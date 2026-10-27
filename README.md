@@ -1,43 +1,44 @@
-# 🌾 Agriculture Information System (AIS)
+# <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/circle-stack.svg" width="32" height="32" align="center" /> Agriculture Information System (AIS)
 ### Web Application Development (AP 3) — Midterm & Final Laboratory Project
 
 [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
 [![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://tailwindcss.com/)
+[![Heroicons](https://img.shields.io/badge/Icons-Heroicons_(Tailwind)-0ea5e9?style=for-the-badge&logo=tailwind-css&logoColor=white)](https://heroicons.com/)
 [![Supabase](https://img.shields.io/badge/Supabase-PostgreSQL-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
 
 ---
 
-## 📌 Project Overview
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/sparkles.svg" width="22" height="22" align="center" /> Project Overview
 
 The **Agriculture Information System (AIS)** is a comprehensive, web-based database management application developed for **AP 3 (Web Application Development)**. It provides agricultural officers, farm managers, and administrative staff with centralized tools to manage farmers, farms, crop varieties, planting cycles, and harvest outputs.
 
-The system is powered by a normalized **Supabase PostgreSQL** cloud database, built using modern **PHP (PDO)** with clean Object-Oriented Programming (OOP) classes, and styled with responsive, utility-first **Tailwind CSS**.
+The system is powered by a normalized **Supabase PostgreSQL** cloud database, built using modern **PHP (PDO)** with clean Object-Oriented Programming (OOP) classes, and styled with responsive, utility-first **Tailwind CSS** and **Tailwind Heroicons**.
 
 ---
 
-## 🚀 Core Features & Modules
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/squares-2x2.svg" width="22" height="22" align="center" /> Core Features & Modules
 
-### 1. 👨‍🌾 Farmer Management
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/users.svg" width="18" height="18" align="center" /> 1. Farmer Management
 - Full CRUD (Create, Read, Update, Delete) operations for registered farmers.
 - Stores personal details: First Name, Last Name, Contact Number, Address, and Registration Date.
 - Search by farmer name and filter by location/address.
 
-### 2. 🏡 Farm Management
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/home-modern.svg" width="18" height="18" align="center" /> 2. Farm Management
 - Records farm profile: Farm Name, Location, Area in Hectares, Soil Type, and Irrigation Type.
 - Foreign key relationship linking each farm to its registered owner (`farmer_id`).
 - Referential integrity check to prevent orphan farm records.
 
-### 3. 🌽 Crop Catalog
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/tag.svg" width="18" height="18" align="center" /> 3. Crop Catalog
 - Categorizes agricultural crops: Crop Name, Variety, Category (Cereal, Legume, Root Crop, Fruit, Vegetable).
 - Standard growing period in days and recommended planting seasons (Dry Season, Wet Season, Year Round).
 
-### 4. 🚜 Planting Records
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/calendar-days.svg" width="18" height="18" align="center" /> 4. Planting Records
 - Tracks field plantings: Planting Date, Area Planted (ha), Seed Quantity (kg), Expected Harvest Date, and Status (`Planted`, `Growing`, `Harvested`).
 - Multi-table `JOIN` displaying related Farm and Crop names instead of raw IDs.
 - Date validation: Ensures expected harvest date falls logically after planting date.
 
-### 5. 🧺 Harvest Records & Lookup Tables
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/archive-box.svg" width="18" height="18" align="center" /> 5. Harvest Records & Lookup Tables
 - Records crop yields: Harvest Date, Quantity Harvested (kg), Selling Price per kg, Quality Grade (`Grade A`, `Grade B`, `Grade C`).
 - **Controlled Dropdowns:** Integrated with a normalized lookup table (`harvest_remarks`):
   - `1` = Good Harvest
@@ -47,32 +48,32 @@ The system is powered by a normalized **Supabase PostgreSQL** cloud database, bu
   - `5` = Damaged Harvest
 - Dynamic revenue estimation: `Total Value = Quantity (kg) × Selling Price per kg`.
 
-### 6. 📊 Interactive Dashboard
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/chart-bar.svg" width="18" height="18" align="center" /> 6. Interactive Dashboard
 - Summary statistics cards:
-  - 👥 Total Farmers
-  - 🚜 Total Active Farms
-  - 🌽 Cataloged Crops
-  - 🌱 Active Plantings
-  - 🌾 Total Harvests
+  - Total Farmers
+  - Total Active Farms
+  - Cataloged Crops
+  - Active Plantings
+  - Total Harvests
 - Recent planting and harvesting activity feeds.
 - Visual status breakdown badge indicators.
 
-### 7. 📈 Reports Engine
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/document-chart-bar.svg" width="18" height="18" align="center" /> 7. Reports Engine
 - Filterable agricultural reports:
   - **Farmers & Farm Ownership Report**
   - **Crop Production per Farm**
   - **Planting Cycle Status Report**
   - **Harvest Yield & Revenue Report** (with date range filtering)
 
-### 8. 🔐 Authentication & Access Control
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/lock-closed.svg" width="18" height="18" align="center" /> 8. Authentication & Access Control
 - Secure session-based authentication with password hashing (`password_hash` / `password_verify`).
 - Role-Based Access Control (RBAC):
-  - **👑 Administrator:** Full CRUD access, user management, and system configuration.
-  - **📋 Staff:** Data entry, record viewing, updating, and report generation.
+  - **Administrator:** Full CRUD access, user management, and system configuration.
+  - **Staff:** Data entry, record viewing, updating, and report generation.
 
 ---
 
-## 🗄️ Database Normalization Process
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/circle-stack.svg" width="22" height="22" align="center" /> Database Normalization Process
 
 To eliminate data redundancy and ensure referential integrity, the database schema follows a strict normalization pathway up to **Third Normal Form (3NF)**:
 
@@ -109,7 +110,7 @@ A flat spreadsheet containing repeating groups:
 
 ---
 
-## 📐 Entity-Relationship Diagram (ERD)
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/table-cells.svg" width="22" height="22" align="center" /> Entity-Relationship Diagram (ERD)
 
 ```mermaid
 erDiagram
@@ -186,7 +187,7 @@ erDiagram
 
 ---
 
-## 📂 Project Architecture
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/folder.svg" width="22" height="22" align="center" /> Project Architecture
 
 Structured following clean OOP and modular PHP practices taught in class:
 
@@ -226,19 +227,19 @@ php-project-agriculture/
 
 ---
 
-## 🛠️ Technology Stack
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/cpu-chip.svg" width="22" height="22" align="center" /> Technology Stack
 
 | Component | Technology | Description |
 | :--- | :--- | :--- |
 | **Language** | PHP 8.1+ | Server-side logic with PDO (PHP Data Objects) |
 | **Database** | PostgreSQL / Supabase | Cloud-hosted relational database engine |
 | **Styling** | Tailwind CSS | Modern, utility-first CSS framework |
-| **Icons** | Heroicons / SVG | Crisp, modern UI icons |
+| **Icons** | Heroicons (Tailwind Labs) | Official SVG icon system by Tailwind |
 | **Architecture**| Modular OOP | Clean separation between Database, Models, and Views |
 
 ---
 
-## ⚙️ Installation & Setup
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/command-line.svg" width="22" height="22" align="center" /> Installation & Setup
 
 ### 1. Clone the Repository
 ```bash
@@ -264,7 +265,7 @@ Open your browser and navigate to `http://localhost:8000`.
 
 ---
 
-## 👤 Author & Academic Information
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/check-badge.svg" width="22" height="22" align="center" /> Author & Academic Information
 
 - **Student Developer:** Medy Villarias (`villariasa`)
 - **Institution:** Cebu Technological University (CTU) — Cebu City Campus
@@ -273,5 +274,5 @@ Open your browser and navigate to `http://localhost:8000`.
 
 ---
 
-## 📄 License
+## License
 This project is open-source under the [MIT License](LICENSE).
