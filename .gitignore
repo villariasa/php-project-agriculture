@@ -1,0 +1,16 @@
+# Environment and sensitive credentials
+.env
+.env.local
+config/db_credentials.php
+
+# OS and Editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Temporary files & logs
+*.log
+scratch/
