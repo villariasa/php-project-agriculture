@@ -2,6 +2,8 @@
 .env
 .env.local
 config/db_credentials.php
+# Real DB credentials live here - copy config/Database.example.php to config/Database.php and fill in
+config/Database.php
 
 # OS and Editor
 .DS_Store
