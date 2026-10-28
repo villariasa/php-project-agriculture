@@ -25,6 +25,8 @@ $active     = "reports";
 require "../includes/header.php";
 ?>
 
+<div class="max-w-5xl mx-auto">
+
 <div class="flex items-center justify-between mb-6">
     <div>
         <h1 class="text-2xl font-bold">Farmers &amp; Farm Ownership</h1>
@@ -67,6 +69,8 @@ require "../includes/header.php";
             <?php endforeach; ?>
         </tbody>
     </table>
+</div>
+
 </div>
 
 <?php require "../includes/footer.php"; ?>

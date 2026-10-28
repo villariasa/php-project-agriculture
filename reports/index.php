@@ -22,7 +22,12 @@ $active     = "reports";
 require "../includes/header.php";
 ?>
 
-<h1 class="text-2xl font-bold mb-6">Reports</h1>
+<div class="max-w-4xl mx-auto">
+
+<div class="mb-6">
+    <h1 class="text-2xl font-bold">Reports</h1>
+    <p class="text-sm text-gray-500">Printable summaries generated from live records</p>
+</div>
 
 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
     <?php foreach ($reports as $report): ?>
@@ -42,6 +47,8 @@ require "../includes/header.php";
             </div>
         </div>
     <?php endforeach; ?>
+</div>
+
 </div>
 
 <?php require "../includes/footer.php"; ?>

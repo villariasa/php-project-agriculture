@@ -70,22 +70,31 @@ require "../includes/header.php";
     </button>
 </div>
 
-<!-- Date Range Filter -->
-<form method="GET" class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 mb-4 flex flex-wrap gap-3 items-end print:hidden">
-    <div>
-        <label class="block text-sm text-gray-500 mb-1">From</label>
-        <input type="date" name="date_from" value="<?= htmlspecialchars($date_from) ?>"
-               class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-    </div>
-    <div>
-        <label class="block text-sm text-gray-500 mb-1">To</label>
-        <input type="date" name="date_to" value="<?= htmlspecialchars($date_to) ?>"
-               class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-    </div>
-    <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg">Apply Filter</button>
-    <a href="harvest_revenue.php" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">Reset</a>
-</form>
+<div class="flex flex-col xl:flex-row gap-6">
 
+<!-- Right rail: date range filter -->
+<aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
+    <form method="GET" class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-3 xl:sticky xl:top-20">
+        <div>
+            <label class="block text-sm text-gray-500 mb-1">From</label>
+            <input type="date" name="date_from" value="<?= htmlspecialchars($date_from) ?>"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-500 mb-1">To</label>
+            <input type="date" name="date_to" value="<?= htmlspecialchars($date_to) ?>"
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        </div>
+        <div class="flex gap-2">
+            <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg">Apply Filter</button>
+            <a href="harvest_revenue.php" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">Reset</a>
+        </div>
+        <p class="text-xs text-gray-400"><?= count($rows) ?> row(s) shown</p>
+    </form>
+</aside>
+
+<!-- Primary feed: report table -->
+<div class="flex-1 min-w-0 xl:order-1">
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
@@ -129,6 +138,9 @@ require "../includes/header.php";
             </tfoot>
         <?php endif; ?>
     </table>
+</div>
+</div>
+
 </div>
 
 <?php require "../includes/footer.php"; ?>
