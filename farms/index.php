@@ -53,8 +53,8 @@ require "../includes/header.php";
                     <td class="px-4 py-3"><?= htmlspecialchars($row['owner_name']) ?></td>
                     <td class="px-4 py-3"><?= htmlspecialchars($row['location']) ?></td>
                     <td class="px-4 py-3 text-right"><?= number_format($row['area_hectares'], 2) ?></td>
-                    <td class="px-4 py-3"><?= htmlspecialchars($row['soil_type']) ?></td>
-                    <td class="px-4 py-3"><?= htmlspecialchars($row['irrigation_type']) ?></td>
+                    <td class="px-4 py-3"><?= htmlspecialchars($row['soil_type_name']) ?></td>
+                    <td class="px-4 py-3"><?= htmlspecialchars($row['irrigation_type_name']) ?></td>
                     <td class="px-4 py-3 text-right">
                         <div class="inline-flex items-center gap-2">
                             <a href="edit.php?id=<?= $row['farm_id'] ?>" title="Edit" class="text-blue-600 hover:text-blue-800">

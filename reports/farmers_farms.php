@@ -14,7 +14,8 @@ $rows = $pdo->query(
         COUNT(f.farm_id) AS farm_count,
         COALESCE(SUM(f.area_hectares), 0) AS total_hectares
      FROM farmer fm
-     LEFT JOIN farm f ON fm.farmer_id = f.farmer_id
+     LEFT JOIN farm f ON fm.farmer_id = f.farmer_id AND f.is_deleted = FALSE
+     WHERE fm.is_deleted = FALSE
      GROUP BY fm.farmer_id, fm.first_name, fm.last_name, fm.contact_number, fm.address
      ORDER BY fm.farmer_id"
 )->fetchAll();

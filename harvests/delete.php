@@ -15,10 +15,6 @@ $harvest_id = (int) ($_GET["id"] ?? 0);
 $pdo          = (new Database())->connect();
 $harvestModel = new Harvest($pdo);
 
-try {
-    $harvestModel->delete($harvest_id);
-    header("Location: index.php?msg=" . urlencode("Harvest record deleted successfully."));
-} catch (PDOException $e) {
-    header("Location: index.php?error=" . urlencode("Unable to delete this harvest record."));
-}
+$harvestModel->delete($harvest_id); // soft delete (is_deleted flag)
+header("Location: index.php?msg=" . urlencode("Harvest record deleted successfully."));
 exit;

@@ -15,10 +15,12 @@ $farmer_id = (int) ($_GET["id"] ?? 0);
 $pdo         = (new Database())->connect();
 $farmerModel = new Farmer($pdo);
 
-try {
-    $farmerModel->delete($farmer_id);
-    header("Location: index.php?msg=" . urlencode("Farmer deleted successfully."));
-} catch (PDOException $e) {
-    header("Location: index.php?error=" . urlencode("Cannot delete this farmer because they still own farms."));
+// Referential integrity: block deletion while active farms belong to this farmer
+if ($farmerModel->hasActiveFarms($farmer_id)) {
+    header("Location: index.php?error=" . urlencode("Cannot delete this farmer because they still own active farms."));
+    exit;
 }
+
+$farmerModel->delete($farmer_id); // soft delete (is_deleted flag)
+header("Location: index.php?msg=" . urlencode("Farmer deleted successfully."));
 exit;

@@ -14,6 +14,11 @@ $nav_links = [
     "harvests"  => ["label" => "Harvests",  "url" => "harvests/index.php"],
     "reports"   => ["label" => "Reports",   "url" => "reports/index.php"],
 ];
+
+// Settings (lookup table management) is visible to admins only
+if (($_SESSION['role'] ?? '') === 'admin') {
+    $nav_links["settings"] = ["label" => "Settings", "url" => "settings/index.php"];
+}
 ?>
 <!DOCTYPE html>
 <html lang="en">

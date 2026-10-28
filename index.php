@@ -5,19 +5,25 @@ require_once "config/Database.php";
 
 $pdo = (new Database())->connect();
 
-// Summary counts
-$total_farmers   = $pdo->query("SELECT COUNT(*) FROM farmer")->fetchColumn();
-$total_farms     = $pdo->query("SELECT COUNT(*) FROM farm")->fetchColumn();
-$total_crops     = $pdo->query("SELECT COUNT(*) FROM crop")->fetchColumn();
-$active_plantings = $pdo->query("SELECT COUNT(*) FROM planting WHERE status IN ('Planted', 'Growing')")->fetchColumn();
-$total_harvests  = $pdo->query("SELECT COUNT(*) FROM harvest")->fetchColumn();
+// Summary counts (active records only - soft-deleted rows are excluded)
+$total_farmers   = $pdo->query("SELECT COUNT(*) FROM farmer WHERE is_deleted = FALSE")->fetchColumn();
+$total_farms     = $pdo->query("SELECT COUNT(*) FROM farm WHERE is_deleted = FALSE")->fetchColumn();
+$total_crops     = $pdo->query("SELECT COUNT(*) FROM crop WHERE is_deleted = FALSE")->fetchColumn();
+$active_plantings = $pdo->query(
+    "SELECT COUNT(*) FROM planting p
+     JOIN planting_status ps ON p.status_id = ps.status_id
+     WHERE p.is_deleted = FALSE AND ps.status_name IN ('Planted', 'Growing')"
+)->fetchColumn();
+$total_harvests  = $pdo->query("SELECT COUNT(*) FROM harvest WHERE is_deleted = FALSE")->fetchColumn();
 
 // Recent plantings (last 5)
 $recent_plantings = $pdo->query(
-    "SELECT p.planting_date, p.status, f.farm_name, c.crop_name
+    "SELECT p.planting_date, ps.status_name AS status, f.farm_name, c.crop_name
      FROM planting p
      JOIN farm f ON p.farm_id = f.farm_id
      JOIN crop c ON p.crop_id = c.crop_id
+     JOIN planting_status ps ON p.status_id = ps.status_id
+     WHERE p.is_deleted = FALSE
      ORDER BY p.planting_id DESC
      LIMIT 5"
 )->fetchAll();
@@ -29,6 +35,7 @@ $recent_harvests = $pdo->query(
      JOIN planting p ON h.planting_id = p.planting_id
      JOIN farm f ON p.farm_id = f.farm_id
      JOIN crop c ON p.crop_id = c.crop_id
+     WHERE h.is_deleted = FALSE
      ORDER BY h.harvest_id DESC
      LIMIT 5"
 )->fetchAll();

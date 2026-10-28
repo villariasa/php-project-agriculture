@@ -5,14 +5,16 @@ require_once "../config/Database.php";
 require_once "../models/Planting.php";
 require_once "../models/Farm.php";
 require_once "../models/Crop.php";
+require_once "../models/Lookup.php";
 
 $pdo           = (new Database())->connect();
 $plantingModel = new Planting($pdo);
 $farms         = (new Farm($pdo))->getAll();
 $crops         = (new Crop($pdo))->getAll();
+$lookup        = new Lookup($pdo);
 $error         = "";
 
-$statuses = ["Planted", "Growing", "Harvested"];
+$statuses = $lookup->getAll("planting_status");
 
 $planting_id = (int) ($_GET["id"] ?? 0);
 $planting    = $plantingModel->getById($planting_id);
@@ -29,16 +31,14 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $area_planted          = (float) $_POST["area_planted"];
     $seed_quantity         = (float) $_POST["seed_quantity"];
     $expected_harvest_date = (string) trim($_POST["expected_harvest_date"]);
-    $status                = (string) trim($_POST["status"]);
+    $status_id             = (int) $_POST["status_id"];
 
-    if ($farm_id <= 0 || $crop_id <= 0 || $planting_date === "" || $expected_harvest_date === "" || $area_planted <= 0 || $seed_quantity <= 0) {
+    if ($farm_id <= 0 || $crop_id <= 0 || $planting_date === "" || $expected_harvest_date === "" || $area_planted <= 0 || $seed_quantity <= 0 || $status_id <= 0) {
         $error = "All fields are required and amounts must be greater than zero.";
     } elseif ($expected_harvest_date <= $planting_date) {
         $error = "Expected harvest date must be after the planting date.";
-    } elseif (!in_array($status, $statuses)) {
-        $error = "Invalid status selected.";
     } else {
-        $plantingModel->update($planting_id, $farm_id, $crop_id, $planting_date, $area_planted, $seed_quantity, $expected_harvest_date, $status);
+        $plantingModel->update($planting_id, $farm_id, $crop_id, $planting_date, $area_planted, $seed_quantity, $expected_harvest_date, $status_id);
         header("Location: index.php?msg=" . urlencode("Planting record updated successfully."));
         exit;
     }
@@ -107,10 +107,12 @@ require "../includes/header.php";
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Status</label>
-                <select name="status" required
+                <select name="status_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <?php foreach ($statuses as $s): ?>
-                        <option value="<?= $s ?>" <?= $planting['status'] === $s ? 'selected' : '' ?>><?= $s ?></option>
+                        <option value="<?= $s['id'] ?>" <?= (int) $planting['status_id'] === (int) $s['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($s['name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>

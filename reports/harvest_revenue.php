@@ -16,15 +16,16 @@ $sql = "SELECT
             h.harvest_date,
             h.quantity_kg,
             h.selling_price_per_kg,
-            h.quality_grade,
+            qg.grade_name AS quality_grade,
             r.remark_description
         FROM harvest h
         JOIN planting p ON h.planting_id = p.planting_id
         JOIN farm f ON p.farm_id = f.farm_id
         JOIN crop c ON p.crop_id = c.crop_id
+        JOIN quality_grades qg ON h.grade_id = qg.grade_id
         JOIN harvest_remarks r ON h.remark_id = r.remark_id";
 $params = [];
-$where  = [];
+$where  = ["h.is_deleted = FALSE"];
 if ($date_from !== "") {
     $where[] = "h.harvest_date >= :date_from";
     $params["date_from"] = $date_from;
