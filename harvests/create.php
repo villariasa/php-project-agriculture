@@ -9,28 +9,26 @@ require_once "../models/Lookup.php";
 $pdo           = (new Database())->connect();
 $harvestModel  = new Harvest($pdo);
 $plantingModel = new Planting($pdo);
+$lookup        = new Lookup($pdo);
 $plantings     = $plantingModel->getAll();
-$remarks       = (new Lookup($pdo))->getRemarks();
+$remarks       = $lookup->getAll("harvest_remarks");
+$grades        = $lookup->getAll("quality_grades");
 $error         = "";
-
-$grades = ["Grade A", "Grade B", "Grade C"];
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $planting_id          = (int) $_POST["planting_id"];
     $harvest_date         = (string) trim($_POST["harvest_date"]);
     $quantity_kg          = (float) $_POST["quantity_kg"];
     $selling_price_per_kg = (float) $_POST["selling_price_per_kg"];
-    $quality_grade        = (string) trim($_POST["quality_grade"]);
+    $grade_id             = (int) $_POST["grade_id"];
     $remark_id            = (int) $_POST["remark_id"];
 
-    if ($planting_id <= 0 || $harvest_date === "" || $quantity_kg <= 0 || $selling_price_per_kg <= 0 || $remark_id <= 0) {
+    if ($planting_id <= 0 || $harvest_date === "" || $quantity_kg <= 0 || $selling_price_per_kg <= 0 || $grade_id <= 0 || $remark_id <= 0) {
         $error = "All fields are required and amounts must be greater than zero.";
-    } elseif (!in_array($quality_grade, $grades)) {
-        $error = "Invalid quality grade selected.";
     } else {
-        $harvestModel->create($planting_id, $harvest_date, $quantity_kg, $selling_price_per_kg, $quality_grade, $remark_id);
+        $harvestModel->create($planting_id, $harvest_date, $quantity_kg, $selling_price_per_kg, $grade_id, $remark_id);
         // Mark the related planting as Harvested
-        $plantingModel->updateStatus($planting_id, "Harvested");
+        $plantingModel->updateStatusByName($planting_id, "Harvested");
         header("Location: index.php?msg=" . urlencode("Harvest record added successfully."));
         exit;
     }
@@ -81,11 +79,13 @@ require "../includes/header.php";
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Quality Grade</label>
-                <select name="quality_grade" required
+                <select name="grade_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <option value="">-- Select Grade --</option>
                     <?php foreach ($grades as $grade): ?>
-                        <option value="<?= $grade ?>" <?= ($_POST['quality_grade'] ?? '') === $grade ? 'selected' : '' ?>><?= $grade ?></option>
+                        <option value="<?= $grade['id'] ?>" <?= (int) ($_POST['grade_id'] ?? 0) === (int) $grade['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($grade['name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -95,8 +95,8 @@ require "../includes/header.php";
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <option value="">-- Select Remark --</option>
                     <?php foreach ($remarks as $rem): ?>
-                        <option value="<?= $rem['remark_id'] ?>" <?= (int) ($_POST['remark_id'] ?? 0) === (int) $rem['remark_id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($rem['remark_description']) ?>
+                        <option value="<?= $rem['id'] ?>" <?= (int) ($_POST['remark_id'] ?? 0) === (int) $rem['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($rem['name']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

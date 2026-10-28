@@ -3,16 +3,15 @@ $base = "../";
 require_once "../includes/auth_check.php";
 require_once "../config/Database.php";
 require_once "../models/Planting.php";
+require_once "../models/Lookup.php";
 
 $pdo           = (new Database())->connect();
 $plantingModel = new Planting($pdo);
+$lookup        = new Lookup($pdo);
 
-$statuses = ["Planted", "Growing", "Harvested"];
-$status   = (string) trim($_GET["status"] ?? "");
-if (!in_array($status, $statuses)) {
-    $status = "";
-}
-$plantings = $plantingModel->getAll($status);
+$statuses  = $lookup->getAll("planting_status");
+$status_id = (int) ($_GET["status_id"] ?? 0);
+$plantings = $plantingModel->getAll($status_id);
 
 // Status badge colors (white theme)
 $badge_colors = [
@@ -42,11 +41,11 @@ require "../includes/header.php";
 <!-- Status Filter -->
 <form method="GET" class="mb-4 flex gap-2 items-center">
     <label class="text-sm text-gray-500">Status:</label>
-    <select name="status" onchange="this.form.submit()"
+    <select name="status_id" onchange="this.form.submit()"
             class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-        <option value="">All</option>
+        <option value="0">All</option>
         <?php foreach ($statuses as $s): ?>
-            <option value="<?= $s ?>" <?= $status === $s ? 'selected' : '' ?>><?= $s ?></option>
+            <option value="<?= $s['id'] ?>" <?= $status_id === (int) $s['id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['name']) ?></option>
         <?php endforeach; ?>
     </select>
 </form>

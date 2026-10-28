@@ -4,27 +4,29 @@ require_once "../includes/auth_check.php";
 require_once "../config/Database.php";
 require_once "../models/Farm.php";
 require_once "../models/Farmer.php";
+require_once "../models/Lookup.php";
 
 $pdo       = (new Database())->connect();
 $farmModel = new Farm($pdo);
 $farmers   = (new Farmer($pdo))->getAll();
+$lookup    = new Lookup($pdo);
 $error     = "";
 
-$soil_types       = ["Clay Loam", "Sandy Loam", "Silt Loam", "Loam", "Clay", "Sandy"];
-$irrigation_types = ["Irrigated", "Rainfed", "Drip", "Sprinkler"];
+$soil_types       = $lookup->getAll("soil_types");
+$irrigation_types = $lookup->getAll("irrigation_types");
 
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $farmer_id       = (int) $_POST["farmer_id"];
-    $farm_name       = (string) trim($_POST["farm_name"]);
-    $location        = (string) trim($_POST["location"]);
-    $area_hectares   = (float) $_POST["area_hectares"];
-    $soil_type       = (string) trim($_POST["soil_type"]);
-    $irrigation_type = (string) trim($_POST["irrigation_type"]);
+    $farmer_id          = (int) $_POST["farmer_id"];
+    $farm_name          = (string) trim($_POST["farm_name"]);
+    $location           = (string) trim($_POST["location"]);
+    $area_hectares      = (float) $_POST["area_hectares"];
+    $soil_type_id       = (int) $_POST["soil_type_id"];
+    $irrigation_type_id = (int) $_POST["irrigation_type_id"];
 
-    if ($farmer_id <= 0 || $farm_name === "" || $location === "" || $area_hectares <= 0) {
+    if ($farmer_id <= 0 || $farm_name === "" || $location === "" || $area_hectares <= 0 || $soil_type_id <= 0 || $irrigation_type_id <= 0) {
         $error = "All fields are required and area must be greater than zero.";
     } else {
-        $farmModel->create($farmer_id, $farm_name, $location, $area_hectares, $soil_type, $irrigation_type);
+        $farmModel->create($farmer_id, $farm_name, $location, $area_hectares, $soil_type_id, $irrigation_type_id);
         header("Location: index.php?msg=" . urlencode("Farm added successfully."));
         exit;
     }
@@ -75,21 +77,25 @@ require "../includes/header.php";
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Soil Type</label>
-                <select name="soil_type" required
+                <select name="soil_type_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <option value="">-- Select Soil Type --</option>
                     <?php foreach ($soil_types as $soil): ?>
-                        <option value="<?= $soil ?>" <?= ($_POST['soil_type'] ?? '') === $soil ? 'selected' : '' ?>><?= $soil ?></option>
+                        <option value="<?= $soil['id'] ?>" <?= (int) ($_POST['soil_type_id'] ?? 0) === (int) $soil['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($soil['name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Irrigation Type</label>
-                <select name="irrigation_type" required
+                <select name="irrigation_type_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <option value="">-- Select Irrigation --</option>
                     <?php foreach ($irrigation_types as $irr): ?>
-                        <option value="<?= $irr ?>" <?= ($_POST['irrigation_type'] ?? '') === $irr ? 'selected' : '' ?>><?= $irr ?></option>
+                        <option value="<?= $irr['id'] ?>" <?= (int) ($_POST['irrigation_type_id'] ?? 0) === (int) $irr['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($irr['name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>

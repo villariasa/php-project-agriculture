@@ -18,10 +18,11 @@ $sql = "SELECT
         FROM planting p
         JOIN farm f ON p.farm_id = f.farm_id
         JOIN crop c ON p.crop_id = c.crop_id
-        LEFT JOIN harvest h ON h.planting_id = p.planting_id";
+        LEFT JOIN harvest h ON h.planting_id = p.planting_id AND h.is_deleted = FALSE
+        WHERE p.is_deleted = FALSE";
 $params = [];
 if ($farm_id > 0) {
-    $sql .= " WHERE f.farm_id = :farm_id";
+    $sql .= " AND f.farm_id = :farm_id";
     $params["farm_id"] = $farm_id;
 }
 $sql .= " GROUP BY f.farm_name, c.crop_name, c.variety

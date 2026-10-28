@@ -13,7 +13,7 @@ class User {
     }
 
     public function findByUsername(string $username) {
-        $sql = "SELECT * FROM users WHERE username = :username";
+        $sql = "SELECT * FROM users WHERE username = :username AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(["username" => $username]);
         return $stmt->fetch();

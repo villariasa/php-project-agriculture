@@ -3,13 +3,15 @@ $base = "../";
 require_once "../includes/auth_check.php";
 require_once "../config/Database.php";
 require_once "../models/Crop.php";
+require_once "../models/Lookup.php";
 
 $pdo       = (new Database())->connect();
 $cropModel = new Crop($pdo);
+$lookup    = new Lookup($pdo);
 $error     = "";
 
-$categories = ["Cereal", "Legume", "Root Crop", "Fruit", "Vegetable"];
-$seasons    = ["Dry Season", "Wet Season", "Year Round"];
+$categories = $lookup->getAll("crop_categories");
+$seasons    = $lookup->getAll("seasons");
 
 $crop_id = (int) ($_GET["id"] ?? 0);
 $crop    = $cropModel->getById($crop_id);
@@ -22,14 +24,14 @@ if (!$crop) {
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
     $crop_name           = (string) trim($_POST["crop_name"]);
     $variety             = (string) trim($_POST["variety"]);
-    $crop_category       = (string) trim($_POST["crop_category"]);
+    $category_id         = (int) $_POST["category_id"];
     $growing_period_days = (int) $_POST["growing_period_days"];
-    $recommended_season  = (string) trim($_POST["recommended_season"]);
+    $season_id           = (int) $_POST["season_id"];
 
-    if ($crop_name === "" || $variety === "" || $crop_category === "" || $growing_period_days <= 0 || $recommended_season === "") {
+    if ($crop_name === "" || $variety === "" || $category_id <= 0 || $growing_period_days <= 0 || $season_id <= 0) {
         $error = "All fields are required and growing period must be greater than zero.";
     } else {
-        $cropModel->update($crop_id, $crop_name, $variety, $crop_category, $growing_period_days, $recommended_season);
+        $cropModel->update($crop_id, $crop_name, $variety, $category_id, $growing_period_days, $season_id);
         header("Location: index.php?msg=" . urlencode("Crop updated successfully."));
         exit;
     }
@@ -64,11 +66,13 @@ require "../includes/header.php";
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Category</label>
-                <select name="crop_category" required
+                <select name="category_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <option value="">-- Select Category --</option>
                     <?php foreach ($categories as $cat): ?>
-                        <option value="<?= $cat ?>" <?= $crop['crop_category'] === $cat ? 'selected' : '' ?>><?= $cat ?></option>
+                        <option value="<?= $cat['id'] ?>" <?= (int) $crop['category_id'] === (int) $cat['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($cat['name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -79,11 +83,13 @@ require "../includes/header.php";
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Recommended Season</label>
-                <select name="recommended_season" required
+                <select name="season_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <option value="">-- Select Season --</option>
                     <?php foreach ($seasons as $season): ?>
-                        <option value="<?= $season ?>" <?= $crop['recommended_season'] === $season ? 'selected' : '' ?>><?= $season ?></option>
+                        <option value="<?= $season['id'] ?>" <?= (int) $crop['season_id'] === (int) $season['id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($season['name']) ?>
+                        </option>
                     <?php endforeach; ?>
                 </select>
             </div>

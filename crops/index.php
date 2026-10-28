@@ -52,11 +52,11 @@ require "../includes/header.php";
                     <td class="px-4 py-3"><?= htmlspecialchars($row['variety']) ?></td>
                     <td class="px-4 py-3">
                         <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700">
-                            <?= htmlspecialchars($row['crop_category']) ?>
+                            <?= htmlspecialchars($row['category_name']) ?>
                         </span>
                     </td>
                     <td class="px-4 py-3 text-right"><?= $row['growing_period_days'] ?></td>
-                    <td class="px-4 py-3"><?= htmlspecialchars($row['recommended_season']) ?></td>
+                    <td class="px-4 py-3"><?= htmlspecialchars($row['season_name']) ?></td>
                     <td class="px-4 py-3 text-right">
                         <div class="inline-flex items-center gap-2">
                             <a href="edit.php?id=<?= $row['crop_id'] ?>" title="Edit" class="text-blue-600 hover:text-blue-800">

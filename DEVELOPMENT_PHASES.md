@@ -254,6 +254,42 @@ Every page in the system uses the same visual language. **No dark mode, no gradi
 
 ---
 
+## Phase 11 — <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/adjustments-horizontal.svg" width="18" height="18" align="center" /> 13-Table Migration, Settings Module & Soft Delete
+
+**Goal:** Full 3NF per the teacher's discussion — 6 core entities + 7 lookup tables = **13 tables**, every lookup managed in a Settings module, and soft delete (boolean flag) replacing hard delete system-wide.
+
+### 11.1 Schema v2 (`database/schema.sql`)
+- [ ] 6 new lookup tables (each: `*_id` SERIAL PK, name column, `is_deleted BOOLEAN DEFAULT FALSE`):
+  `soil_types`, `irrigation_types`, `crop_categories`, `seasons`, `planting_status`, `quality_grades` (+ existing `harvest_remarks`).
+- [ ] Convert text columns to integer FKs: `farm.soil_type_id`, `farm.irrigation_type_id`, `crop.category_id`, `crop.season_id`, `planting.status_id`, `harvest.grade_id`.
+- [ ] `is_deleted BOOLEAN NOT NULL DEFAULT FALSE` on all 13 tables.
+- [ ] Audit columns `created_at` / `updated_at` on all core entities (spec: Audit Information).
+- [ ] Seed all lookups + remap sample data to lookup IDs.
+
+### 11.2 Soft Delete Rules (teacher's requirement)
+- [ ] Every `delete.php` performs `UPDATE ... SET is_deleted = TRUE` — **no DELETE statements anywhere**.
+- [ ] All list queries, dropdowns, searches, counts, and reports filter `is_deleted = FALSE`.
+- [ ] Referential integrity moves to the application: block soft-deleting a record that still has **active** children (farmer→farms, farm→plantings, crop→plantings, planting→harvests, lookup→rows using it) with a friendly red banner.
+- [ ] Historical JOINs still resolve: soft-deleted lookups/parents remain joinable for existing records; they only disappear from dropdowns and lists.
+
+### 11.3 Generic Lookup Model (`models/Lookup.php`)
+- [ ] Whitelisted config of all 7 lookup tables (table, PK, name column, referencing table/column).
+- [ ] Generic `getAll($type)`, `getById`, `create`, `update`, `softDelete`, `isInUse` — SQL identifiers come only from the internal whitelist.
+
+### 11.4 Settings Module (`settings/`, admin-only)
+- [ ] `settings/index.php?type=...` — tab per lookup table, list of active values, inline Add form.
+- [ ] `settings/edit.php` — rename a value. `settings/delete.php` — soft delete, blocked while in use by active records.
+- [ ] "Settings" nav link visible to admins only; module guarded server-side.
+
+### 11.5 Module & UI updates
+- [ ] Farms / Crops / Plantings / Harvests forms: hardcoded `<select>` options → DB-driven lookup dropdowns (store ID, display name).
+- [ ] All list pages & reports JOIN the lookup tables to display names.
+- [ ] Dashboard and all 4 reports: lookup JOINs + `is_deleted` filters.
+
+**Exit criteria:** 13 tables live; zero hardcoded dropdown options; zero hard deletes; settings CRUD works; deleting an in-use value or parent shows a friendly error.
+
+---
+
 ## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/light-bulb.svg" width="22" height="22" align="center" /> Working Rules Reminder
 
 1. **One phase at a time** — never start a module before its dependencies pass exit criteria.
