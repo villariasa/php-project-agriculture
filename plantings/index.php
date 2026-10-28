@@ -25,31 +25,43 @@ $active     = "plantings";
 require "../includes/header.php";
 ?>
 
-<div class="flex items-center justify-between mb-6">
+<div class="mb-6">
     <h1 class="text-2xl font-bold">Planting Records</h1>
-    <a href="create.php"
-       class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Add Planting
-    </a>
+    <p class="text-sm text-gray-500">Planting operations per farm and crop</p>
 </div>
 
 <?php require "../includes/alert.php"; ?>
 
-<!-- Status Filter -->
-<form method="GET" class="mb-4 flex gap-2 items-center">
-    <label class="text-sm text-gray-500">Status:</label>
-    <select name="status_id" onchange="this.form.submit()"
-            class="p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-        <option value="0">All</option>
-        <?php foreach ($statuses as $s): ?>
-            <option value="<?= $s['id'] ?>" <?= $status_id === (int) $s['id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['name']) ?></option>
-        <?php endforeach; ?>
-    </select>
-</form>
+<div class="flex flex-col xl:flex-row gap-6">
 
+<!-- Right rail: filter + actions -->
+<aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4 xl:sticky xl:top-20">
+        <form method="GET" class="space-y-2">
+            <label class="block text-sm text-gray-500">Filter by status</label>
+            <select name="status_id" onchange="this.form.submit()"
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                <option value="0">All</option>
+                <?php foreach ($statuses as $s): ?>
+                    <option value="<?= $s['id'] ?>" <?= $status_id === (int) $s['id'] ? 'selected' : '' ?>><?= htmlspecialchars($s['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+        </form>
+        <div class="border-t border-gray-100 pt-4">
+            <a href="create.php"
+               class="w-full bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add Planting
+            </a>
+        </div>
+        <p class="text-xs text-gray-400"><?= count($plantings) ?> record(s) shown</p>
+    </div>
+</aside>
+
+<!-- Primary feed: table -->
+<div class="flex-1 min-w-0 xl:order-1">
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
@@ -107,6 +119,9 @@ require "../includes/header.php";
             <?php endforeach; ?>
         </tbody>
     </table>
+</div>
+</div>
+
 </div>
 
 <?php require "../includes/confirm_modal.php"; ?>

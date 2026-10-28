@@ -42,6 +42,15 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <title>Login | Agriculture Information System</title>
     <!-- Tailwind Play CDN serves dynamic JS, so SRI hashes are not supported; required per class standard -->
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                fontFamily: {
+                    sans: ["system-ui", "-apple-system", "Segoe UI", "Roboto", "Helvetica Neue", "Arial", "sans-serif"],
+                },
+            },
+        };
+    </script>
 </head>
 <body class="bg-gray-50 min-h-screen flex items-center justify-center px-4">
 
@@ -49,11 +58,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-8">
         <!-- Logo -->
         <div class="flex flex-col items-center mb-6">
-            <div class="bg-green-50 text-green-600 rounded-lg p-3 mb-3">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-8 h-8">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M20.25 6.375c0 2.278-3.694 4.125-8.25 4.125S3.75 8.653 3.75 6.375m16.5 0c0-2.278-3.694-4.125-8.25-4.125S3.75 4.097 3.75 6.375m16.5 0v11.25c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125V6.375m16.5 5.625c0 2.278-3.694 4.125-8.25 4.125s-8.25-1.847-8.25-4.125" />
-                </svg>
-            </div>
+            <img src="../assets/image-cutout.png" alt="AIS logo" class="w-16 h-16 object-contain mb-3">
             <h1 class="text-xl font-bold text-gray-800">Agriculture Information System</h1>
             <p class="text-sm text-gray-500">Sign in to your account</p>
         </div>

@@ -15,33 +15,46 @@ $active     = "farmers";
 require "../includes/header.php";
 ?>
 
-<div class="flex items-center justify-between mb-6">
+<div class="mb-6">
     <h1 class="text-2xl font-bold">Farmers</h1>
-    <a href="create.php"
-       class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-        </svg>
-        Add Farmer
-    </a>
+    <p class="text-sm text-gray-500">Registered farmer records</p>
 </div>
 
 <?php require "../includes/alert.php"; ?>
 
-<!-- Search Bar -->
-<form method="GET" class="mb-4 flex gap-2">
-    <input type="text" name="search" value="<?= htmlspecialchars($search) ?>"
-           placeholder="Search by name or address..."
-           class="w-full md:w-80 p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-    <button type="submit"
-            class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg inline-flex items-center gap-2">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-        </svg>
-        Search
-    </button>
-</form>
+<div class="flex flex-col xl:flex-row gap-6">
 
+<!-- Right rail: search + actions -->
+<aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4 xl:sticky xl:top-20">
+        <form method="GET" class="space-y-2">
+            <label class="block text-sm text-gray-500">Search</label>
+            <input type="text" name="search" value="<?= htmlspecialchars($search) ?>"
+                   placeholder="Search by name or address..."
+                   class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            <button type="submit"
+                    class="w-full bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg inline-flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                </svg>
+                Search
+            </button>
+        </form>
+        <div class="border-t border-gray-100 pt-4">
+            <a href="create.php"
+               class="w-full bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center justify-center gap-2">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                Add Farmer
+            </a>
+        </div>
+        <p class="text-xs text-gray-400"><?= count($farmers) ?> record(s) shown</p>
+    </div>
+</aside>
+
+<!-- Primary feed: table -->
+<div class="flex-1 min-w-0 xl:order-1">
 <!-- Farmers Table -->
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
     <table class="w-full text-sm">
@@ -90,6 +103,9 @@ require "../includes/header.php";
             <?php endforeach; ?>
         </tbody>
     </table>
+</div>
+</div>
+
 </div>
 
 <?php require "../includes/confirm_modal.php"; ?>
