@@ -103,9 +103,10 @@
         pjaxNavigate(url.href);
     });
 
+    // Crash-proof: stale page functions must never be able to kill navigation
     function closeSheetsSafely() {
-        if (typeof closeSheets === "function") { closeSheets(); }
-        if (typeof closeSideCards === "function") { closeSideCards(); }
+        try { if (typeof closeSheets === "function") { closeSheets(); } } catch (e) {}
+        try { if (typeof closeSideCards === "function") { closeSideCards(); } } catch (e) {}
     }
 })();
 
