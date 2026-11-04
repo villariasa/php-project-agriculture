@@ -4,6 +4,13 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 $base        = $base ?? "";
 $active      = $active ?? "";
+
+// Absolute app root for all SHELL links/fetches. The shell persists across
+// PJAX navigations, so relative ($base) URLs would break once the current
+// directory changes; absolute paths stay valid everywhere.
+$app_root = ($base === ""
+    ? rtrim(str_replace("\\", "/", dirname($_SERVER["SCRIPT_NAME"])), "/")
+    : rtrim(str_replace("\\", "/", dirname(dirname($_SERVER["SCRIPT_NAME"]))), "/")) . "/";
 $breadcrumbs = $breadcrumbs ?? [];
 $is_admin    = ($_SESSION['role'] ?? '') === 'admin';
 
@@ -161,6 +168,18 @@ if ($is_admin) {
         @keyframes chip-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
         .chip-pop { animation: chip-pop .35s cubic-bezier(.2, .9, .3, 1); }
 
+        /* Gooey desktop sidebar: two green blobs (fast + slow) under the same
+           goo filter — the lag between them stretches like liquid when the
+           active item moves. Links paint above the layer. */
+        #side-goo { position: absolute; inset: 0; pointer-events: none; filter: url(#goo-filter); }
+        #side-goo .sblob {
+            position: absolute; left: 12px; right: 12px;
+            border-radius: 0.5rem; background: #dcfce7; opacity: 0;
+        }
+        #side-goo .sblob-a { transition: top .25s cubic-bezier(.3, 1.2, .4, 1), height .25s ease, opacity .2s ease; }
+        #side-goo .sblob-b { transition: top .45s cubic-bezier(.3, 1.2, .4, 1), height .45s ease, opacity .2s ease; }
+        #side-goo.no-anim .sblob { transition: none !important; }
+
         /* Gooey bottom nav: bar + blob rendered on a goo-filtered layer so the
            bump under the active tab melts out of the bar; icons sit above. */
         .goo-layer { filter: url(#goo-filter) drop-shadow(0 -4px 10px rgb(0 0 0 / .08)); }
@@ -233,7 +252,7 @@ if ($is_admin) {
             .tab-indicator,
             .chip-pop,
             #goo-blob { animation: none; }
-            #records-sheet, #menu-sheet, #sheet-overlay, #goo-blob { transition: none; }
+            #records-sheet, #menu-sheet, #sheet-overlay, #goo-blob, #side-goo .sblob { transition: none; }
         }
     </style>
 </head>
@@ -246,20 +265,20 @@ if ($is_admin) {
     <aside id="app-sidebar"
            class="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-gray-200 lg:sticky lg:top-0 lg:h-screen print:hidden">
         <!-- Logo -->
-        <a href="<?= $base ?>index.php" class="flex items-center gap-2.5 h-14 px-4 border-b border-gray-200 shrink-0">
-            <img src="<?= $base ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain">
+        <a href="<?= $app_root ?>index.php" class="flex items-center gap-2.5 h-14 px-4 border-b border-gray-200 shrink-0">
+            <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain">
             <span class="font-bold text-gray-800 leading-tight">AIS<span class="block text-[11px] font-normal text-gray-500">Agriculture Information System</span></span>
         </a>
 
         <!-- Nav -->
-        <nav id="sidebar-nav" class="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        <nav id="sidebar-nav" class="relative flex-1 overflow-y-auto px-3 py-4 space-y-5">
             <?php foreach ($nav_sections as $section => $links): ?>
                 <div>
                     <p class="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400"><?= $section ?></p>
                     <?php foreach ($links as $key => $link): ?>
-                        <a href="<?= $base . $link['url'] ?>"
-                           class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-0.5 <?= $active === $key
-                               ? 'bg-green-50 text-green-700 font-semibold'
+                        <a href="<?= $app_root . $link['url'] ?>"
+                           class="relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-0.5 <?= $active === $key
+                               ? 'side-active text-green-700 font-semibold'
                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' ?>">
                             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                                  class="w-5 h-5 shrink-0 <?= $active === $key ? 'text-green-600' : 'text-gray-400' ?>">
@@ -282,12 +301,12 @@ if ($is_admin) {
                     <p class="text-sm font-medium truncate"><?= htmlspecialchars($_SESSION['full_name'] ?? '') ?></p>
                     <p class="text-xs text-gray-500"><?= htmlspecialchars(ucfirst($_SESSION['role'] ?? '')) ?></p>
                 </div>
-                <a href="<?= $base ?>auth/profile.php" title="My profile" class="text-gray-400 hover:text-gray-600">
+                <a href="<?= $app_root ?>auth/profile.php" title="My profile" class="text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.325.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 0 1 1.37.49l1.296 2.247a1.125 1.125 0 0 1-.26 1.431l-1.003.827c-.293.241-.438.613-.43.992a7.723 7.723 0 0 1 0 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 0 1-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.47 6.47 0 0 1-.22.128c-.331.183-.581.495-.644.869l-.213 1.281c-.09.543-.56.94-1.11.94h-2.594c-.55 0-1.019-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 0 1-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 0 1-1.369-.49l-1.297-2.247a1.125 1.125 0 0 1 .26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 0 1 0-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 0 1-.26-1.43l1.297-2.247a1.125 1.125 0 0 1 1.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.086.22-.128.332-.183.582-.495.644-.869l.214-1.28Z M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
                 </a>
-                <a href="<?= $base ?>auth/logout.php" title="Logout" class="text-gray-400 hover:text-red-600">
+                <a href="<?= $app_root ?>auth/logout.php" title="Logout" class="text-gray-400 hover:text-red-600">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                     </svg>
@@ -303,13 +322,13 @@ if ($is_admin) {
         <header class="sticky top-0 z-30 bg-white border-b border-gray-200 print:hidden">
             <div class="flex items-center gap-3 h-14 px-4 sm:px-6">
                 <!-- Logo (mobile only — the sidebar carries it on desktop) -->
-                <a href="<?= $base ?>index.php" class="lg:hidden shrink-0">
-                    <img src="<?= $base ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain">
+                <a href="<?= $app_root ?>index.php" class="lg:hidden shrink-0">
+                    <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain">
                 </a>
 
                 <!-- Breadcrumbs -->
                 <nav id="breadcrumbs" class="flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
-                    <a href="<?= $base ?>index.php" class="text-gray-400 hover:text-gray-600 shrink-0" title="Dashboard">
+                    <a href="<?= $app_root ?>index.php" class="text-gray-400 hover:text-gray-600 shrink-0" title="Dashboard">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                         </svg>
@@ -331,7 +350,7 @@ if ($is_admin) {
 
                 <!-- Global live search (results drop down as you type) -->
                 <div id="global-search-wrap" class="hidden sm:block w-56 md:w-72 relative">
-                    <form method="GET" action="<?= $base ?>search.php" autocomplete="off">
+                    <form method="GET" action="<?= $app_root ?>search.php" autocomplete="off">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
                              class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
@@ -344,7 +363,7 @@ if ($is_admin) {
                          class="hidden absolute right-0 top-full mt-1.5 w-80 max-w-[calc(100vw-2rem)] max-h-96 overflow-y-auto
                                 bg-white border border-gray-200 rounded-lg shadow-lg z-50 divide-y divide-gray-50 pb-1"></div>
                 </div>
-                <a href="<?= $base ?>search.php" class="sm:hidden text-gray-500 hover:text-gray-800" title="Search">
+                <a href="<?= $app_root ?>search.php" class="sm:hidden text-gray-500 hover:text-gray-800" title="Search">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                         <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                     </svg>
@@ -365,7 +384,7 @@ if ($is_admin) {
                                 return;
                             }
                             timer = setTimeout(function () {
-                                fetch("<?= $base ?>search.php?ajax=1&q=" + encodeURIComponent(q))
+                                fetch("<?= $app_root ?>search.php?ajax=1&q=" + encodeURIComponent(q))
                                     .then(function (response) { return response.text(); })
                                     .then(function (html) {
                                         panel.innerHTML = html;
@@ -422,7 +441,7 @@ $bottom_item_off = "text-gray-500";
             <!-- App-launcher grid: icon tiles, active module highlighted -->
             <nav class="grid grid-cols-3 gap-2 px-4 pb-7 pt-1">
                 <?php foreach ($nav_sections["Records"] as $key => $link): ?>
-                    <a href="<?= $base . $link['url'] ?>"
+                    <a href="<?= $app_root . $link['url'] ?>"
                        class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-transform active:scale-95 <?= $active === $key ? 'bg-green-50' : 'hover:bg-gray-50' ?>">
                         <span class="w-12 h-12 rounded-2xl flex items-center justify-center <?= $active === $key
                             ? 'bg-green-600 text-white shadow-md shadow-green-600/30'
@@ -459,7 +478,7 @@ $bottom_item_off = "text-gray-500";
                 </button>
             </div>
             <nav class="px-3 pb-6">
-                <a href="<?= $base ?>auth/profile.php" class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
+                <a href="<?= $app_root ?>auth/profile.php" class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-gray-700 hover:bg-gray-50">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 shrink-0 text-gray-400">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17.982 18.725A7.488 7.488 0 0 0 12 15.75a7.488 7.488 0 0 0-5.982 2.975m11.963 0a9 9 0 1 0-11.963 0m11.963 0A8.966 8.966 0 0 1 12 21a8.966 8.966 0 0 1-5.982-2.275M15 9.75a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
                     </svg>
@@ -467,7 +486,7 @@ $bottom_item_off = "text-gray-500";
                 </a>
                 <?php if ($is_admin): ?>
                     <?php foreach ($nav_sections["Administration"] as $key => $link): ?>
-                        <a href="<?= $base . $link['url'] ?>"
+                        <a href="<?= $app_root . $link['url'] ?>"
                            class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm <?= $active === $key
                                ? 'bg-green-50 text-green-700 font-semibold'
                                : 'text-gray-700 hover:bg-gray-50' ?>">
@@ -479,7 +498,7 @@ $bottom_item_off = "text-gray-500";
                         </a>
                     <?php endforeach; ?>
                 <?php endif; ?>
-                <a href="<?= $base ?>auth/logout.php" class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-2 pt-3">
+                <a href="<?= $app_root ?>auth/logout.php" class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm text-red-600 hover:bg-red-50 border-t border-gray-100 mt-2 pt-3">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5 shrink-0">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0 0 13.5 3h-6a2.25 2.25 0 0 0-2.25 2.25v13.5A2.25 2.25 0 0 0 7.5 21h6a2.25 2.25 0 0 0 2.25-2.25V15m3 0 3-3m0 0-3-3m3 3H9" />
                     </svg>
@@ -511,7 +530,7 @@ $bottom_item_off = "text-gray-500";
                 <?php endif; ?>
             </div>
             <div class="relative grid grid-cols-5 h-16">
-                <a href="<?= $base ?>index.php" data-goo="0" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'dashboard' ? $bottom_item_on : $bottom_item_off ?>">
+                <a href="<?= $app_root ?>index.php" data-goo="0" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'dashboard' ? $bottom_item_on : $bottom_item_off ?>">
                     <span class="<?= $active === 'dashboard'
                         ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
                         : 'px-4 py-0.5 flex items-center justify-center' ?>">
@@ -531,7 +550,7 @@ $bottom_item_off = "text-gray-500";
                     </span>
                     <span class="text-[11px] <?= $records_active ? 'font-semibold' : '' ?>">Records</span>
                 </button>
-                <a href="<?= $base ?>search.php" data-goo="2" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'search' ? $bottom_item_on : $bottom_item_off ?>">
+                <a href="<?= $app_root ?>search.php" data-goo="2" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'search' ? $bottom_item_on : $bottom_item_off ?>">
                     <span class="<?= $active === 'search'
                         ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
                         : 'px-4 py-0.5 flex items-center justify-center' ?>">
@@ -541,7 +560,7 @@ $bottom_item_off = "text-gray-500";
                     </span>
                     <span class="text-[11px] <?= $active === 'search' ? 'font-semibold' : '' ?>">Search</span>
                 </a>
-                <a href="<?= $base ?>reports/index.php" data-goo="3" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'reports' ? $bottom_item_on : $bottom_item_off ?>">
+                <a href="<?= $app_root ?>reports/index.php" data-goo="3" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'reports' ? $bottom_item_on : $bottom_item_off ?>">
                     <span class="<?= $active === 'reports'
                         ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
                         : 'px-4 py-0.5 flex items-center justify-center' ?>">
@@ -621,6 +640,55 @@ $bottom_item_off = "text-gray-500";
             document.addEventListener("keydown", function (event) {
                 if (event.key === "Escape") { closeSheets(); }
             });
+
+            // ---------- Gooey sidebar indicator (desktop) ----------
+            function moveSideGoo(link, instant) {
+                var layer = document.getElementById("side-goo");
+                if (!layer) { return; }
+                var blobs = layer.querySelectorAll(".sblob");
+                if (!link) {
+                    blobs.forEach(function (blob) { blob.style.opacity = "0"; });
+                    return;
+                }
+                if (instant) { layer.classList.add("no-anim"); }
+                blobs.forEach(function (blob) {
+                    blob.style.opacity = "1";
+                    blob.style.top     = link.offsetTop + "px";
+                    blob.style.height  = link.offsetHeight + "px";
+                });
+                if (instant) {
+                    requestAnimationFrame(function () {
+                        requestAnimationFrame(function () { layer.classList.remove("no-anim"); });
+                    });
+                }
+            }
+            function initSideGoo() {
+                var nav = document.getElementById("sidebar-nav");
+                if (!nav) { return; }
+                var layer = document.getElementById("side-goo");
+                if (!layer || layer.parentNode !== nav) {
+                    layer = document.createElement("div");
+                    layer.id = "side-goo";
+                    layer.innerHTML = '<div class="sblob sblob-b"></div><div class="sblob sblob-a"></div>';
+                    nav.insertBefore(layer, nav.firstChild);
+                }
+                moveSideGoo(nav.querySelector(".side-active"), true);
+            }
+            initSideGoo();
+
+            // Blob slides gooily to a clicked sidebar link before the swap
+            document.addEventListener("click", function (event) {
+                var link = event.target.closest("#sidebar-nav a");
+                if (link) { moveSideGoo(link, false); }
+            });
+
+            // PJAX swaps #sidebar-nav's innerHTML (layer included) — rebuild
+            var sideNav = document.getElementById("sidebar-nav");
+            if (sideNav) {
+                new MutationObserver(function () {
+                    if (!document.getElementById("side-goo")) { initSideGoo(); }
+                }).observe(sideNav, { childList: true });
+            }
 
             // Gooey blob stretches toward the tapped tab (delegated so it
             // survives PJAX swaps of the bottom nav)
