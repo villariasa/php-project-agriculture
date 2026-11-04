@@ -255,6 +255,9 @@ function openUserEdit(id, fullName, role, username) {
     card.querySelector('[name="password"]').value = "";
     document.getElementById("edit-card-username").value = username;
     document.getElementById("edit-card-title").textContent = "Edit User — " + username;
+    if (window.syncCustomSelects) {
+        syncCustomSelects(card);
+    }
     openEditCard();
     return false;
 }

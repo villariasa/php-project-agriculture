@@ -32,6 +32,9 @@ $page               = currentPage();
 $total_rows         = $farmModel->countAll($irrigation_type_id, $search);
 $farms              = $farmModel->getPage($irrigation_type_id, $search, $order, $dir, PER_PAGE, pageOffset($page));
 
+// TRUE when the empty result comes from an active search/filter, not an empty table
+$is_filtered = $search !== "" || $irrigation_type_id > 0;
+
 // Data for the filter + Add side card form
 $farmers          = (new Farmer($pdo))->getAll();
 $lookup           = new Lookup($pdo);
@@ -122,8 +125,13 @@ require "../includes/header.php";
                 <tr>
                     <td colspan="8" class="px-4 py-10">
                         <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
-                            No farms found.
-                            <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farm</button>
+                            <?php if ($is_filtered): ?>
+                                No farms match your search or filter.
+                                <a href="index.php" class="text-green-700 font-medium hover:underline">Clear filters</a>
+                            <?php else: ?>
+                                No farms yet.
+                                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farm</button>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -191,8 +199,13 @@ require "../includes/header.php";
     <?php if (count($farms) === 0): ?>
         <div class="p-4">
             <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
-                No farms found.
-                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farm</button>
+                <?php if ($is_filtered): ?>
+                    No farms match your search or filter.
+                    <a href="index.php" class="text-green-700 font-medium hover:underline">Clear filters</a>
+                <?php else: ?>
+                    No farms yet.
+                    <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farm</button>
+                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>

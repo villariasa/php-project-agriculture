@@ -34,6 +34,9 @@ $page       = currentPage();
 $total_rows = $harvestModel->countAll($grade_id, $search);
 $harvests   = $harvestModel->getPage($grade_id, $search, $order, $dir, PER_PAGE, pageOffset($page));
 
+// TRUE when the empty result comes from an active search/filter, not an empty table
+$is_filtered = $search !== "" || $grade_id > 0;
+
 // Data for the filter + Add side card form
 $plantings = (new Planting($pdo))->getAll();
 $grades    = $lookup->getAll("quality_grades");
@@ -131,8 +134,13 @@ require "../includes/header.php";
                 <tr>
                     <td colspan="10" class="px-4 py-10">
                         <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
-                            No harvest records found.
-                            <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first harvest</button>
+                            <?php if ($is_filtered): ?>
+                                No harvests match your search or filter.
+                                <a href="index.php" class="text-green-700 font-medium hover:underline">Clear filters</a>
+                            <?php else: ?>
+                                No harvest records yet.
+                                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first harvest</button>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -209,8 +217,13 @@ require "../includes/header.php";
     <?php if (count($harvests) === 0): ?>
         <div class="p-4">
             <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
-                No harvest records found.
-                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first harvest</button>
+                <?php if ($is_filtered): ?>
+                    No harvests match your search or filter.
+                    <a href="index.php" class="text-green-700 font-medium hover:underline">Clear filters</a>
+                <?php else: ?>
+                    No harvest records yet.
+                    <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first harvest</button>
+                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>

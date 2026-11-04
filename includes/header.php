@@ -167,6 +167,21 @@ if ($is_admin) {
         /* Brand-colored text selection */
         ::selection { background: #bbf7d0; }
 
+        /* Soft pastel "rainbow" glow over a near-white canvas (same as login).
+           Fixed attachment keeps the glow steady while the page scrolls. */
+        body {
+            background:
+                radial-gradient(42rem 42rem at 18% 22%, rgb(167 139 250 / .18), transparent 60%),
+                radial-gradient(46rem 46rem at 82% 28%, rgb(134 239 172 / .22), transparent 60%),
+                radial-gradient(40rem 40rem at 28% 85%, rgb(249 168 212 / .16), transparent 60%),
+                radial-gradient(36rem 36rem at 86% 80%, rgb(252 211 77 / .14), transparent 60%),
+                #fafafa;
+            background-attachment: fixed;
+        }
+        @media print {
+            body { background: #fff; }
+        }
+
         @media (prefers-reduced-motion: reduce) {
             input, select, textarea, button, a { transition: none; }
             aside[id$="-card"].flex,
@@ -178,7 +193,7 @@ if ($is_admin) {
         }
     </style>
 </head>
-<body class="bg-gray-50 text-gray-800 min-h-screen">
+<body class="text-gray-800 min-h-screen">
 
 <div class="flex min-h-screen">
 

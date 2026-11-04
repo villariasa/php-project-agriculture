@@ -81,6 +81,9 @@ function fillAndOpenEditCard(sourceEl) {
     if (title && sourceEl.dataset.title) {
         title.textContent = "Edit " + sourceEl.dataset.title;
     }
+    if (window.syncCustomSelects) {
+        syncCustomSelects(card);
+    }
     openEditCard();
     return true;
 }

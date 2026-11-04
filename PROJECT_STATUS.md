@@ -11,7 +11,24 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### NProgress top loading bar (2026-11-04, latest) — user-supplied snippet applied app-wide
+### Rainbow background app-wide (2026-11-04, latest) — user request
+- The login's pastel radial "rainbow" wash now backs ALL app pages via `includes/header.php`: same four glows at slightly lower alpha (.14–.22) over `#fafafa`, `background-attachment: fixed` so it stays steady while scrolling; `bg-gray-50` removed from the body tag; `@media print` forces a plain white background so reports print clean. White sidebar/topbar/cards sit on top unchanged.
+
+### Login restyle per sample.webp reference (2026-11-04, latest)
+- Background: near-white `#fafafa` with four soft pastel radial glows (violet/green/pink/amber, ≤.26 alpha) — the reference's subtle "rainbow" wash.
+- Card per reference: `rounded-2xl`, big soft shadow (`0 8px 30px rgb(0,0,0,.08)`), split into a **white header** (centered logo, "Sign In", subtitle, bottom hairline) and a **gray-50 form body** with small UPPERCASE labels and white shadowed inputs. Username + password only (per user). All life features kept (fade-up stagger, logo drop, shake, eye toggle, Caps Lock, spinner, NProgress).
+
+### Context-aware empty states (2026-11-04) — user bug: "Add the first farmer" shown on empty SEARCH results
+- All 5 modules now set `$is_filtered` (search term or active filter) and branch both empty states (desktop table + mobile cards): filtered-but-empty → "No X match your search or filter." + **Clear filters** link (plain `index.php` href, resets everything); truly empty table → "No X yet." + "Add the first X" button.
+
+### Custom dropdowns + combobox, login reverted to original layout (2026-11-04)
+- **Custom dropdown component** (vanilla JS in `includes/footer.php`, syntax-checked): every `<select>` app-wide is replaced by a styled trigger (inherits the select's classes — pills stay pills) + white rounded options panel with hover rows, green check on the selected item, rotating chevron. The native select stays hidden in the form → values submit normally, inline `onchange` fires via dispatched change events, no-JS falls back to native. Esc/click-outside close; Arrow keys change value on the trigger.
+- **Search combobox (user rule):** selects with **>10 options** automatically get a search box pinned at the top of the panel (type-to-filter, Enter picks the first match, "No matches found." empty state). Both variants show **~8 rows (`max-h-72`), the rest scroll**.
+- Edit sliders re-sync trigger labels after JS prefill via `window.syncCustomSelects()` (wired in sidecard.php + users page).
+- Hardened per user report ("selects on the data tables too"): enhancer now runs on every select at load AND via a MutationObserver for anything added later (already-enhanced skipped via `data-enhanced`); `window.enhanceSelects()` exposed. Verified every page containing a `<select>` includes footer.php. If toolbar selects still look native in testing → hard refresh (Ctrl+Shift+R), old cached JS.
+- **Login reverted** to the ORIGINAL centered-card layout at the user's demand ("the previous layout is what I want, just add life") — v2 split-screen and v3 scene are gone. Same markup as the original + life only: staggered fade-up, logo drop-bounce, error shake, eye toggle, Caps Lock hint, submit spinner, NProgress kept.
+
+### NProgress top loading bar (2026-11-04) — user-supplied snippet applied app-wide
 - NProgress 0.2.0 (cdnjs, **SRI sha384 hashes computed from the actual files** + crossorigin) added to `includes/header.php` and `auth/login.php`; bar restyled green `#22a447`, 3px, spinner disabled.
 - Triggers: `beforeunload` → every full navigation (nav links, create/delete posts, logout, login); plus explicit start/done around `loadRecords()` (sort/filter/pagination/panel refresh) and the edit-slider fetch save in sidecard.php. All calls guarded with `if (window.NProgress)` so a blocked CDN degrades silently.
 

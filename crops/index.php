@@ -31,6 +31,9 @@ $page        = currentPage();
 $total_rows  = $cropModel->countAll($category_id, $search);
 $crops       = $cropModel->getPage($category_id, $search, $order, $dir, PER_PAGE, pageOffset($page));
 
+// TRUE when the empty result comes from an active search/filter, not an empty table
+$is_filtered = $search !== "" || $category_id > 0;
+
 // Lookups for the filter + Add side card form
 $categories = $lookup->getAll("crop_categories");
 $seasons    = $lookup->getAll("seasons");
@@ -118,8 +121,13 @@ require "../includes/header.php";
                 <tr>
                     <td colspan="7" class="px-4 py-10">
                         <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
-                            No crops found.
-                            <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first crop</button>
+                            <?php if ($is_filtered): ?>
+                                No crops match your search or filter.
+                                <a href="index.php" class="text-green-700 font-medium hover:underline">Clear filters</a>
+                            <?php else: ?>
+                                No crops yet.
+                                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first crop</button>
+                            <?php endif; ?>
                         </div>
                     </td>
                 </tr>
@@ -188,8 +196,13 @@ require "../includes/header.php";
     <?php if (count($crops) === 0): ?>
         <div class="p-4">
             <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
-                No crops found.
-                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first crop</button>
+                <?php if ($is_filtered): ?>
+                    No crops match your search or filter.
+                    <a href="index.php" class="text-green-700 font-medium hover:underline">Clear filters</a>
+                <?php else: ?>
+                    No crops yet.
+                    <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first crop</button>
+                <?php endif; ?>
             </div>
         </div>
     <?php endif; ?>
