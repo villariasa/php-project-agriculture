@@ -135,9 +135,25 @@ if ($is_admin) {
             aside[id$="-card"].flex { animation: card-in-right .25s cubic-bezier(.2, .8, .3, 1); }
         }
 
-        /* Overlays fade in */
-        #sidecard-overlay:not(.hidden),
-        #sheet-overlay:not(.hidden) { animation: overlay-in .2s ease; }
+        /* Overlays fade in (sheet overlay uses opacity transitions instead) */
+        #sidecard-overlay:not(.hidden) { animation: overlay-in .2s ease; }
+
+        /* Mobile bottom sheets: springy slide + staggered item entrance */
+        #records-sheet, #menu-sheet { transition: transform .3s cubic-bezier(.2, .9, .3, 1); }
+        @keyframes sheet-item-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .sheet-open nav > a { animation: sheet-item-in .3s ease both; }
+        .sheet-open nav > a:nth-child(1) { animation-delay: .03s; }
+        .sheet-open nav > a:nth-child(2) { animation-delay: .06s; }
+        .sheet-open nav > a:nth-child(3) { animation-delay: .09s; }
+        .sheet-open nav > a:nth-child(4) { animation-delay: .12s; }
+        .sheet-open nav > a:nth-child(5) { animation-delay: .15s; }
+        .sheet-open nav > a:nth-child(6) { animation-delay: .18s; }
+
+        /* Bottom nav: active indicator slides in, chip pops, tabs press down */
+        @keyframes tab-indicator-in { from { transform: translateX(-50%) scaleX(0); } to { transform: translateX(-50%) scaleX(1); } }
+        .tab-indicator { animation: tab-indicator-in .25s cubic-bezier(.2, .9, .3, 1); }
+        @keyframes chip-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
+        .chip-pop { animation: chip-pop .35s cubic-bezier(.2, .9, .3, 1); }
 
         /* Delete confirmation pops in */
         #deleteModal:not(.hidden) > .relative { animation: pop-in .2s ease; }
@@ -189,7 +205,11 @@ if ($is_admin) {
             #sheet-overlay:not(.hidden),
             #deleteModal:not(.hidden) > .relative,
             #toast-stack > div,
-            #records-panel.swapped { animation: none; }
+            #records-panel.swapped,
+            .sheet-open nav > a,
+            .tab-indicator,
+            .chip-pop { animation: none; }
+            #records-sheet, #menu-sheet, #sheet-overlay { transition: none; }
         }
     </style>
 </head>
@@ -344,19 +364,22 @@ if ($is_admin) {
 // ---------- Mobile bottom navigation (hidden on lg+, where the sidebar takes over) ----------
 $record_keys    = ["farmers", "farms", "crops", "plantings", "harvests"];
 $records_active = in_array($active, $record_keys, true);
-$menu_active    = in_array($active, ["settings", "users", "activity"], true);
+$menu_active    = in_array($active, ["settings", "users", "activity", "profile"], true);
 
 $bottom_item_on  = "text-green-700";
 $bottom_item_off = "text-gray-500";
 ?>
-        <!-- Mobile sheet overlay -->
-        <div id="sheet-overlay" class="fixed inset-0 bg-black/30 z-40 hidden lg:hidden print:hidden" onclick="closeSheets()"></div>
+        <!-- Mobile sheet overlay: fades in AND out via opacity -->
+        <div id="sheet-overlay"
+             class="fixed inset-0 bg-black/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300 lg:hidden print:hidden"
+             onclick="closeSheets()"></div>
 
         <!-- Records bottom sheet (the burger for the 5 record modules) -->
         <div id="records-sheet"
              class="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-gray-200 rounded-t-2xl shadow-lg
-                    translate-y-full transition-transform duration-200 lg:hidden print:hidden">
-            <div class="flex items-center justify-between px-5 pt-4 pb-2">
+                    translate-y-full lg:hidden print:hidden">
+            <div class="pt-2.5 flex justify-center"><span class="w-10 h-1 rounded-full bg-gray-300"></span></div>
+            <div class="flex items-center justify-between px-5 pt-1.5 pb-2">
                 <h2 class="font-semibold">Records</h2>
                 <button type="button" onclick="closeSheets()" aria-label="Close" class="text-gray-400 hover:text-gray-600">
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -364,17 +387,19 @@ $bottom_item_off = "text-gray-500";
                     </svg>
                 </button>
             </div>
-            <nav class="px-3 pb-6">
+            <!-- App-launcher grid: icon tiles, active module highlighted -->
+            <nav class="grid grid-cols-3 gap-2 px-4 pb-7 pt-1">
                 <?php foreach ($nav_sections["Records"] as $key => $link): ?>
                     <a href="<?= $base . $link['url'] ?>"
-                       class="flex items-center gap-3 px-3 py-3 rounded-lg text-sm <?= $active === $key
-                           ? 'bg-green-50 text-green-700 font-semibold'
-                           : 'text-gray-700 hover:bg-gray-50' ?>">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                             class="w-5 h-5 shrink-0 <?= $active === $key ? 'text-green-600' : 'text-gray-400' ?>">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="<?= $link['icon'] ?>" />
-                        </svg>
-                        <?= $link['label'] ?>
+                       class="flex flex-col items-center gap-1.5 p-3 rounded-xl transition-transform active:scale-95 <?= $active === $key ? 'bg-green-50' : 'hover:bg-gray-50' ?>">
+                        <span class="w-12 h-12 rounded-2xl flex items-center justify-center <?= $active === $key
+                            ? 'bg-green-600 text-white shadow-md shadow-green-600/30'
+                            : 'bg-green-50 text-green-600' ?>">
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="<?= $link['icon'] ?>" />
+                            </svg>
+                        </span>
+                        <span class="text-xs <?= $active === $key ? 'text-green-700 font-semibold' : 'text-gray-600' ?>"><?= $link['label'] ?></span>
                     </a>
                 <?php endforeach; ?>
             </nav>
@@ -383,8 +408,9 @@ $bottom_item_off = "text-gray-500";
         <!-- Menu bottom sheet (profile, admin tools, logout) -->
         <div id="menu-sheet"
              class="fixed inset-x-0 bottom-0 z-50 bg-white border-t border-gray-200 rounded-t-2xl shadow-lg
-                    translate-y-full transition-transform duration-200 lg:hidden print:hidden">
-            <div class="flex items-center justify-between px-5 pt-4 pb-2">
+                    translate-y-full lg:hidden print:hidden">
+            <div class="pt-2.5 flex justify-center"><span class="w-10 h-1 rounded-full bg-gray-300"></span></div>
+            <div class="flex items-center justify-between px-5 pt-1.5 pb-2">
                 <div class="flex items-center gap-3 min-w-0">
                     <div class="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-semibold shrink-0">
                         <?= htmlspecialchars(strtoupper(substr($_SESSION['full_name'] ?? 'U', 0, 1))) ?>
@@ -434,34 +460,49 @@ $bottom_item_off = "text-gray-500";
         <nav class="fixed inset-x-0 bottom-0 z-30 bg-white border-t border-gray-200 lg:hidden print:hidden"
              style="padding-bottom: env(safe-area-inset-bottom)">
             <div class="grid grid-cols-5 h-16">
-                <a href="<?= $base ?>index.php" class="flex flex-col items-center justify-center gap-0.5 <?= $active === 'dashboard' ? $bottom_item_on : $bottom_item_off ?>">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                    </svg>
+                <a href="<?= $base ?>index.php" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'dashboard' ? $bottom_item_on : $bottom_item_off ?>">
+                    <?php if ($active === 'dashboard'): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
+                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $active === 'dashboard' ? 'bg-green-50 chip-pop' : '' ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
+                        </svg>
+                    </span>
                     <span class="text-[11px] <?= $active === 'dashboard' ? 'font-semibold' : '' ?>">Dashboard</span>
                 </a>
-                <button type="button" onclick="openSheet('records-sheet')" class="flex flex-col items-center justify-center gap-0.5 <?= $records_active ? $bottom_item_on : $bottom_item_off ?>">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
-                    </svg>
+                <button type="button" onclick="openSheet('records-sheet')" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $records_active ? $bottom_item_on : $bottom_item_off ?>">
+                    <?php if ($records_active): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
+                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $records_active ? 'bg-green-50 chip-pop' : '' ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
+                        </svg>
+                    </span>
                     <span class="text-[11px] <?= $records_active ? 'font-semibold' : '' ?>">Records</span>
                 </button>
-                <a href="<?= $base ?>search.php" class="flex flex-col items-center justify-center gap-0.5 text-gray-500">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
-                    </svg>
-                    <span class="text-[11px]">Search</span>
+                <a href="<?= $base ?>search.php" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'search' ? $bottom_item_on : $bottom_item_off ?>">
+                    <?php if ($active === 'search'): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
+                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $active === 'search' ? 'bg-green-50 chip-pop' : '' ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+                        </svg>
+                    </span>
+                    <span class="text-[11px] <?= $active === 'search' ? 'font-semibold' : '' ?>">Search</span>
                 </a>
-                <a href="<?= $base ?>reports/index.php" class="flex flex-col items-center justify-center gap-0.5 <?= $active === 'reports' ? $bottom_item_on : $bottom_item_off ?>">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
-                    </svg>
+                <a href="<?= $base ?>reports/index.php" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'reports' ? $bottom_item_on : $bottom_item_off ?>">
+                    <?php if ($active === 'reports'): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
+                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $active === 'reports' ? 'bg-green-50 chip-pop' : '' ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                        </svg>
+                    </span>
                     <span class="text-[11px] <?= $active === 'reports' ? 'font-semibold' : '' ?>">Reports</span>
                 </a>
-                <button type="button" onclick="openSheet('menu-sheet')" class="flex flex-col items-center justify-center gap-0.5 <?= $menu_active ? $bottom_item_on : $bottom_item_off ?>">
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
-                    </svg>
+                <button type="button" onclick="openSheet('menu-sheet')" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $menu_active ? $bottom_item_on : $bottom_item_off ?>">
+                    <?php if ($menu_active): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
+                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $menu_active ? 'bg-green-50 chip-pop' : '' ?>">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
+                        </svg>
+                    </span>
                     <span class="text-[11px] <?= $menu_active ? 'font-semibold' : '' ?>">Menu</span>
                 </button>
             </div>
@@ -470,13 +511,55 @@ $bottom_item_off = "text-gray-500";
         <script>
             function openSheet(id) {
                 closeSheets();
-                document.getElementById("sheet-overlay").classList.remove("hidden");
-                document.getElementById(id).classList.remove("translate-y-full");
+                var overlay = document.getElementById("sheet-overlay");
+                overlay.classList.remove("opacity-0", "pointer-events-none");
+                var sheet = document.getElementById(id);
+                sheet.classList.remove("translate-y-full");
+                sheet.classList.add("sheet-open"); // staggers the items in
+                if (navigator.vibrate) { navigator.vibrate(8); } // subtle haptic tick
             }
+
+            // Swipe-down to dismiss: the sheet follows the finger, snaps back
+            // on a short drag, closes past the threshold.
+            ["records-sheet", "menu-sheet"].forEach(function (id) {
+                var sheet    = document.getElementById(id);
+                var startY   = 0;
+                var dragY    = 0;
+                var dragging = false;
+
+                sheet.addEventListener("touchstart", function (event) {
+                    if (sheet.classList.contains("translate-y-full")) { return; }
+                    startY   = event.touches[0].clientY;
+                    dragY    = 0;
+                    dragging = true;
+                    sheet.style.transition = "none";
+                }, { passive: true });
+
+                sheet.addEventListener("touchmove", function (event) {
+                    if (!dragging) { return; }
+                    dragY = Math.max(0, event.touches[0].clientY - startY);
+                    sheet.style.transform = "translateY(" + dragY + "px)";
+                }, { passive: true });
+
+                sheet.addEventListener("touchend", function () {
+                    if (!dragging) { return; }
+                    dragging = false;
+                    sheet.style.transition = "";
+                    sheet.style.transform  = "";
+                    if (dragY > 90) {
+                        closeSheets();
+                        if (navigator.vibrate) { navigator.vibrate(6); }
+                    }
+                    dragY = 0;
+                });
+            });
             function closeSheets() {
-                document.getElementById("sheet-overlay").classList.add("hidden");
+                var overlay = document.getElementById("sheet-overlay");
+                overlay.classList.add("opacity-0", "pointer-events-none");
                 ["records-sheet", "menu-sheet"].forEach(function (id) {
-                    document.getElementById(id).classList.add("translate-y-full");
+                    var sheet = document.getElementById(id);
+                    sheet.classList.add("translate-y-full");
+                    sheet.classList.remove("sheet-open");
                 });
             }
             document.addEventListener("keydown", function (event) {

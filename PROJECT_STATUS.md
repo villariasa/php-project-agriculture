@@ -11,7 +11,17 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### Reports mobile polish (2026-11-04, latest)
+### Mobile burger round 2 (2026-11-04, latest) — user wanted more
+- **Swipe-down to dismiss:** both sheets track the finger live (touchstart/move/end, transition suspended during drag), snap back under 90px, close past it with a tiny haptic; opening a sheet also gives an 8ms `navigator.vibrate` tick (guarded).
+- **Records sheet is now an app-launcher GRID:** 3 columns of icon tiles — icon in a rounded-2xl green square (active module: solid green-600 icon + soft green shadow + green label), labels under; tiles press-scale. Stagger entrance still applies.
+- **Active tab chip pops** on page load (`chip-pop` scale overshoot keyframe) on top of the indicator bar. All added to the reduced-motion kill list.
+
+### Mobile burger/bottom-nav upgrade (2026-11-04) — animations + active tab
+- **Bottom nav active tab:** green indicator bar scales in across the top of the active tab (`tab-indicator` keyframe), active icon sits in a `bg-green-50` rounded chip; every tab has `active:scale-90` press feedback. Records lights up for any of the 5 modules, Menu for settings/users/activity.
+- **Sheets:** springy 300ms cubic-bezier slide; **drag-handle bar** at the top of both sheets; items **stagger in** (fade+rise, 30ms steps via `.sheet-open` nth-child delays).
+- **Backdrop:** now fades in AND out (opacity transition + `pointer-events-none` instead of hidden toggle), `bg-black/40 backdrop-blur-sm`. All new motion disabled under reduced-motion.
+
+### Reports mobile polish (2026-11-04)
 - **Analytics overview:** date-range form wraps as full-width pill inputs + pill Apply/Print on phones; **Revenue KPI is a hero tile spanning both columns**; all KPI/summary numbers `text-lg sm:text-xl`; chart/detail cards `p-4 sm:p-6`; trend chart `h-56 sm:h-72`.
 - **All 7 detail reports (via report_helpers):** summary-strip values downsized one notch on phones; **Export CSV + Print buttons split the full row 50/50 on mobile** (`flex-1 sm:flex-initial justify-center`), shrink to content on sm+. Scroll-viewport tables with sticky headers already handle narrow screens.
 

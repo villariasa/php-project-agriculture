@@ -132,7 +132,7 @@ $browse_links = [
 ];
 
 $page_title  = "Search";
-$active      = "";
+$active      = "search";
 $breadcrumbs = [["Search", null]];
 require "includes/header.php";
 ?>

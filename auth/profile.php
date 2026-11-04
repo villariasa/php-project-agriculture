@@ -45,7 +45,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 }
 
 $page_title  = "My Profile";
-$active      = "";
+$active      = "profile";
 $breadcrumbs = [["My Profile", null]];
 require "../includes/header.php";
 ?>
