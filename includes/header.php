@@ -172,17 +172,26 @@ if ($is_admin) {
         @keyframes chip-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
         .chip-pop { animation: chip-pop .35s cubic-bezier(.2, .9, .3, 1); }
 
-        /* Gooey desktop sidebar: two green blobs (fast + slow) under the same
-           goo filter — the lag between them stretches like liquid when the
-           active item moves. Links paint above the layer. */
+        /* Gooey desktop sidebar — EXACT copy of the bottom nav's mechanism,
+           rotated 90°: one white blob + a white backing layer melt together
+           under the goo filter into a bump that pokes out of the sidebar's
+           right edge; the active icon rides on top of that bump, unfiltered,
+           in its own raised green circle. */
         #side-goo { position: absolute; inset: 0; pointer-events: none; filter: url(#goo-filter); }
-        #side-goo .sblob {
-            position: absolute; left: 12px; right: 12px;
-            border-radius: 0.5rem; background: #dcfce7; opacity: 0;
+        #side-goo .sgoo-bg { position: absolute; inset: 0; background: #fff; }
+        #side-goo-blob {
+            position: absolute; right: -1.5rem; width: 4rem; height: 4rem;
+            border-radius: 9999px; background: #fff; opacity: 0;
+            transition: top .32s cubic-bezier(.3, 1.2, .4, 1), height .32s ease, opacity .2s ease;
         }
-        #side-goo .sblob-a { transition: top .25s cubic-bezier(.3, 1.2, .4, 1), height .25s ease, opacity .2s ease; }
-        #side-goo .sblob-b { transition: top .45s cubic-bezier(.3, 1.2, .4, 1), height .45s ease, opacity .2s ease; }
-        #side-goo.no-anim .sblob { transition: none !important; }
+        #side-goo.no-anim #side-goo-blob { transition: none !important; }
+        @keyframes side-blob-rise { from { right: -4.5rem; } to { right: -1.5rem; } }
+        #side-goo-blob.rise { animation: side-blob-rise .45s cubic-bezier(.2, .9, .3, 1); }
+
+        /* Active sidebar row: label stays left-aligned, icon flips to the
+           right end of the row to sit inside the bump (mirrors the bottom
+           nav's icon riding -mt-7 above its bar). */
+        .side-active-row { flex-direction: row-reverse; }
 
         /* Gooey bottom nav: bar + blob rendered on a goo-filtered layer so the
            bump under the active tab melts out of the bar; icons sit above. */
@@ -209,6 +218,60 @@ if ($is_admin) {
         /* Sidebar nav nudges on hover */
         #app-sidebar nav a:hover { transform: translateX(2px); }
 
+        /* ---------- Collapsible desktop sidebar ---------- */
+        #app-sidebar {
+            transition: width .32s cubic-bezier(.4, 0, .2, 1);
+            /* No overflow:hidden here — the gooey bump must poke past the
+               right edge (labels already clip themselves individually). */
+        }
+        #app-sidebar.collapsed { width: 5rem; }
+        /* Inline labels (single-line nav link text) shrink away horizontally;
+           the row's height is already fixed by the icon, so no leftover gap. */
+        .sidebar-label {
+            display: inline-block;
+            max-width: 12rem;
+            opacity: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            transition: max-width .28s cubic-bezier(.4, 0, .2, 1), opacity .15s ease, margin .28s ease;
+        }
+        #app-sidebar.collapsed .sidebar-label { max-width: 0; opacity: 0; margin: 0; }
+        #app-sidebar.collapsed nav a { gap: 0; justify-content: center; }
+
+        /* Block labels (section headers, logo subtitle, user name/role) must
+           collapse their HEIGHT too, or they leave an invisible-but-occupied
+           gap in the vertical flow even at zero width. */
+        .sidebar-block-label {
+            max-height: 3.5rem;
+            opacity: 1;
+            overflow: hidden;
+            transition: max-height .28s cubic-bezier(.4, 0, .2, 1), opacity .15s ease, margin .2s ease;
+        }
+        #app-sidebar.collapsed .sidebar-block-label { max-height: 0; opacity: 0; margin: 0; }
+
+        /* Logo fully hides when collapsed — icon-only rail, toggle centers alone */
+        #app-sidebar.collapsed .sidebar-logo-link {
+            display: none !important;
+            width: 0 !important;
+            height: 0 !important;
+            margin: 0 !important;
+            padding: 0 !important;
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            overflow: hidden !important;
+        }
+        #app-sidebar.collapsed .sidebar-header-row {
+            justify-content: center !important;
+            padding-left: 0.5rem !important;
+            padding-right: 0.5rem !important;
+        }
+
+        #app-sidebar.collapsed .side-user-panel { flex-direction: column; gap: .625rem; }
+        @media (prefers-reduced-motion: reduce) {
+            #app-sidebar, .sidebar-label { transition: none; }
+        }
+
         /* Clickable white tiles (KPIs, report cards, browse shortcuts) lift on hover */
         a.bg-white:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgb(0 0 0 / 0.06); }
 
@@ -221,13 +284,20 @@ if ($is_admin) {
         /* Brand-colored text selection */
         ::selection { background: #bbf7d0; }
 
+        /* Save/Update button spinner (same treatment as the login button) */
+        @keyframes btn-spin { to { transform: rotate(360deg); } }
+        .btn-spinner { animation: btn-spin .7s linear infinite; }
+        @media (prefers-reduced-motion: reduce) {
+            .btn-spinner { animation-duration: 1.4s; }
+        }
+
         /* Cross-document View Transitions: full page loads cross-fade instead
            of white-flashing (supported browsers only; others just load). */
         @view-transition { navigation: auto; }
         ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
 
         /* Entrance animations only play on the first load of a session */
-        .revisit .chip-pop, .revisit #goo-blob, .revisit .tab-indicator { animation: none; }
+        .revisit .chip-pop, .revisit #goo-blob, .revisit .tab-indicator, .revisit #side-goo-blob { animation: none; }
 
         /* Soft pastel "rainbow" glow over a near-white canvas (same as login).
            Fixed attachment keeps the glow steady while the page scrolls. */
@@ -256,7 +326,7 @@ if ($is_admin) {
             .tab-indicator,
             .chip-pop,
             #goo-blob { animation: none; }
-            #records-sheet, #menu-sheet, #sheet-overlay, #goo-blob, #side-goo .sblob { transition: none; }
+            #records-sheet, #menu-sheet, #sheet-overlay, #goo-blob, #side-goo-blob { transition: none; }
         }
     </style>
 </head>
@@ -267,28 +337,52 @@ if ($is_admin) {
     <!-- Sidebar (desktop only — mobile uses the bottom navigation bar).
          Sticky + h-screen keeps the user panel (logout) always visible; nav scrolls inside. -->
     <aside id="app-sidebar"
-           class="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-gray-200 lg:sticky lg:top-0 lg:h-screen print:hidden">
-        <!-- Logo -->
-        <a href="<?= $app_root ?>index.php" class="flex items-center gap-2.5 h-14 px-4 border-b border-gray-200 shrink-0">
-            <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain">
-            <span class="font-bold text-gray-800 leading-tight">AIS<span class="block text-[11px] font-normal text-gray-500">Agriculture Information System</span></span>
-        </a>
+           class="hidden lg:flex w-[16.5rem] shrink-0 flex-col bg-white border-r border-gray-200 lg:sticky lg:top-0 lg:h-screen print:hidden">
+        <!-- Logo + collapse toggle -->
+        <div class="sidebar-header-row flex items-center justify-between gap-2 h-14 px-3.5 border-b border-gray-200 shrink-0">
+            <a href="<?= $app_root ?>index.php" class="sidebar-logo-link flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
+                <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain shrink-0">
+                <span class="sidebar-block-label min-w-0 flex-1">
+                    <span class="block font-bold text-gray-800 text-sm leading-tight">AIS</span>
+                    <span class="block text-[10.5px] font-normal text-gray-500 whitespace-nowrap leading-tight">Agriculture Information System</span>
+                </span>
+            </a>
+            <!-- Standard "toggle sidebar" panel glyph (VS Code / Notion style) -->
+            <button type="button" id="sidebar-toggle" title="Collapse sidebar" aria-label="Collapse sidebar"
+                    class="shrink-0 text-gray-400 hover:text-gray-700 hover:bg-gray-50 rounded-lg p-1.5">
+                <svg id="sidebar-icon-expanded" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5">
+                    <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                    <path d="M9.5 4v16" />
+                    <path d="m14.5 10-2 2 2 2" />
+                </svg>
+                <svg id="sidebar-icon-collapsed" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" class="w-5 h-5 hidden">
+                    <rect x="3" y="4" width="18" height="16" rx="2.5" />
+                    <path d="M9.5 4v16" />
+                    <path d="m12.5 10 2 2-2 2" />
+                </svg>
+            </button>
+        </div>
 
         <!-- Nav -->
         <nav id="sidebar-nav" class="relative flex-1 overflow-y-auto px-3 py-4 space-y-5">
             <?php foreach ($nav_sections as $section => $links): ?>
                 <div>
-                    <p class="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400"><?= $section ?></p>
+                    <p class="sidebar-block-label px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 whitespace-nowrap"><?= $section ?></p>
                     <?php foreach ($links as $key => $link): ?>
-                        <a href="<?= $app_root . $link['url'] ?>"
-                           class="relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-0.5 <?= $active === $key
-                               ? 'side-active text-green-700 font-semibold'
+                        <?php $is_active_link = $active === $key; ?>
+                        <a href="<?= $app_root . $link['url'] ?>" title="<?= htmlspecialchars($link['label']) ?>"
+                           class="relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-0.5 <?= $is_active_link
+                               ? 'side-active side-active-row text-green-700 font-semibold'
                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' ?>">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                 class="w-5 h-5 shrink-0 <?= $active === $key ? 'text-green-600' : 'text-gray-400' ?>">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="<?= $link['icon'] ?>" />
-                            </svg>
-                            <?= $link['label'] ?>
+                            <span class="shrink-0 flex items-center justify-center <?= $is_active_link
+                                ? 'w-9 h-9 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 chip-pop'
+                                : '' ?>">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                     class="w-5 h-5 shrink-0 <?= $is_active_link ? '' : 'text-gray-400' ?>">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="<?= $link['icon'] ?>" />
+                                </svg>
+                            </span>
+                            <span class="sidebar-label whitespace-nowrap overflow-hidden"><?= $link['label'] ?></span>
                         </a>
                     <?php endforeach; ?>
                 </div>
@@ -297,11 +391,12 @@ if ($is_admin) {
 
         <!-- User panel -->
         <div class="border-t border-gray-200 px-4 py-3 shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-semibold shrink-0">
+            <div class="side-user-panel flex items-center gap-3">
+                <div title="<?= htmlspecialchars(($_SESSION['full_name'] ?? '') . ' (' . ucfirst($_SESSION['role'] ?? '') . ')') ?>"
+                     class="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-semibold shrink-0">
                     <?= htmlspecialchars(strtoupper(substr($_SESSION['full_name'] ?? 'U', 0, 1))) ?>
                 </div>
-                <div class="min-w-0 flex-1">
+                <div class="sidebar-block-label min-w-0 flex-1">
                     <p class="text-sm font-medium truncate"><?= htmlspecialchars($_SESSION['full_name'] ?? '') ?></p>
                     <p class="text-xs text-gray-500"><?= htmlspecialchars(ucfirst($_SESSION['role'] ?? '')) ?></p>
                 </div>
@@ -332,7 +427,8 @@ if ($is_admin) {
 
                 <!-- Breadcrumbs -->
                 <nav id="breadcrumbs" class="flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
-                    <a href="<?= $app_root ?>index.php" class="text-gray-400 hover:text-gray-600 shrink-0" title="Dashboard">
+                    <!-- Mobile only: the desktop sidebar already has a Dashboard/home icon -->
+                    <a href="<?= $app_root ?>index.php" class="lg:hidden text-gray-400 hover:text-gray-600 shrink-0" title="Dashboard">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                         </svg>
@@ -340,8 +436,9 @@ if ($is_admin) {
                     <?php if (count($breadcrumbs) === 0 && ($page_title ?? "") !== "" && $active !== "dashboard"): ?>
                         <?php $breadcrumbs = [[$page_title, null]]; ?>
                     <?php endif; ?>
-                    <?php foreach ($breadcrumbs as $crumb): ?>
-                        <span class="text-gray-300 shrink-0">/</span>
+                    <?php foreach ($breadcrumbs as $i => $crumb): ?>
+                        <!-- First separator only shows on mobile, pairing with the home icon above -->
+                        <span class="text-gray-300 shrink-0 <?= $i === 0 ? 'lg:hidden' : '' ?>">/</span>
                         <?php if (!empty($crumb[1])): ?>
                             <a href="<?= $crumb[1] ?>" class="text-gray-500 hover:text-gray-800 truncate"><?= htmlspecialchars($crumb[0]) ?></a>
                         <?php else: ?>
@@ -644,6 +741,38 @@ $bottom_item_off = "text-gray-500";
             document.addEventListener("keydown", function (event) {
                 if (event.key === "Escape") { closeSheets(); }
             });
+
+            // ---------- Collapsible sidebar (desktop) ----------
+            // Restored before the user can perceive the default state (this
+            // script runs once per real page load, right after the sidebar
+            // markup is parsed); the class then persists across PJAX swaps
+            // since the <aside> itself is never replaced, only #sidebar-nav.
+            var sidebarEl = document.getElementById("app-sidebar");
+            if (sidebarEl && localStorage.getItem("ais-sidebar-collapsed") === "1") {
+                sidebarEl.classList.add("collapsed");
+            }
+            var toggleBtn = document.getElementById("sidebar-toggle");
+            function syncSidebarToggleIcon(collapsed) {
+                if (!toggleBtn) { return; }
+                var expandedIcon  = document.getElementById("sidebar-icon-expanded");
+                var collapsedIcon = document.getElementById("sidebar-icon-collapsed");
+                if (expandedIcon)  { expandedIcon.classList.toggle("hidden", collapsed); }
+                if (collapsedIcon) { collapsedIcon.classList.toggle("hidden", !collapsed); }
+                toggleBtn.title = collapsed ? "Expand sidebar" : "Collapse sidebar";
+                toggleBtn.setAttribute("aria-label", toggleBtn.title);
+            }
+            if (sidebarEl && toggleBtn) {
+                syncSidebarToggleIcon(sidebarEl.classList.contains("collapsed"));
+            }
+            if (sidebarEl && toggleBtn && !toggleBtn.dataset.bound) {
+                toggleBtn.dataset.bound = "1";
+                toggleBtn.addEventListener("click", function () {
+                    var collapsed = sidebarEl.classList.toggle("collapsed");
+                    localStorage.setItem("ais-sidebar-collapsed", collapsed ? "1" : "0");
+                    syncSidebarToggleIcon(collapsed);
+                    moveSideGoo(sidebarEl.querySelector(".side-active"), true); // resnap, no stretch
+                });
+            }
 
             // ---------- Gooey sidebar indicator (desktop) ----------
             function moveSideGoo(link, instant) {
