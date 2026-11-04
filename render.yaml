@@ -4,6 +4,7 @@ services:
     runtime: docker
     plan: free
     region: singapore
+    autoDeploy: true
     envVars:
       - key: DB_HOST
         value: aws-0-ap-southeast-1.pooler.supabase.com
