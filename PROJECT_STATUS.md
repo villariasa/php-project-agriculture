@@ -11,7 +11,19 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### PJAX stability fix (2026-11-04, latest) — user: breaks after reports→search→dashboard→search
+### PJAX fix #3 (2026-11-04, latest) — intermittent 404 /farmers/auth/profile.php
+- Root cause: the persistent shell (sidebar user panel, logos, topbar search, bottom-nav/sheets' profile/logout) carried RELATIVE `$base` URLs from the first-loaded page; after PJAX-ing into a subdirectory (/farmers/...), those hrefs resolved against the new directory → 404s. Intermittent because it depended on which page was loaded first vs. where you were when clicking.
+- Fix: header now computes `$app_root` (absolute app base from SCRIPT_NAME, subfolder-safe) and ALL shell links/fetches use it (19 conversions incl. the topbar live-search fetch URL, which was silently 404ing from subdirectory pages too). Swapped-in page content keeps using relative URLs correctly since the URL is pushed before the swap.
+
+### PJAX crash fix #2 (2026-11-04) — console: null.classList in closeSideCards
+- Root cause (user's console trace): after PJAX-ing from a module page to Reports, the stale global `closeSideCards()` still referenced `#sidecard-overlay` (absent on Reports) → threw INSIDE the click interceptor after preventDefault → every later nav click swallowed.
+- Fix: all three `closeSideCards()`/`showSideCard()` definitions (sidecard.php, users, settings) are now null-safe on every element lookup, AND the PJAX engine's `closeSheetsSafely()` wraps each call in try/catch — stale page functions can never kill navigation again. All scripts syntax-checked.
+
+### Gooey desktop sidebar indicator (2026-11-04)
+- Liquid active-item indicator: a goo-filtered layer (`#side-goo`, reuses the bottom-nav `#goo-filter`) inside `#sidebar-nav` holds TWO green-100 blobs with different spring speeds (.25s/.45s) — when the active item moves, the lag between them reads as a **stretching liquid droplet** sliding down the rail. Active link keeps green bold text (`side-active` class, static `bg-green-50` removed — the blob is the background).
+- JS: `initSideGoo()` builds/positions the layer on the `.side-active` link (instant, no-anim, on load); clicking any sidebar link slides the blob gooily to it before the PJAX swap; a MutationObserver on `#sidebar-nav` rebuilds the layer after PJAX replaces the nav's innerHTML. Reduced-motion disables blob transitions. Header JS syntax-checked.
+
+### PJAX stability fix (2026-11-04) — user: breaks after reports→search→dashboard→search
 - Root cause: swapped inline scripts executed immediately while `src` scripts (Chart.js) loaded async → chart init ran before the lib on PJAX entry to dashboard/reports → navigation chain died mid-way (stuck NProgress, desynced URL, dead next click / full-reload fallback).
 - Fix: `executeScripts()` rewritten as a **sequential promise chain** — an external lib fully `onload`s before the next inline script runs; already-loaded libs (same src) are skipped; per-script try/resolve so no script can kill navigation. `pushState` + title now committed BEFORE the swap (URL can never desync); `pjaxBusy` in-flight guard blocks double-clicks; NProgress.done guaranteed in both success and catch paths. Footer JS syntax-checked.
 
