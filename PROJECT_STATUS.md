@@ -11,7 +11,11 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### Mobile burger round 2 (2026-11-04, latest) — user wanted more
+### Gooey bottom nav + active-tab fixes (2026-11-04, latest)
+- **Bug fixes:** Search page now sets `$active="search"` and the Search tab has a full active state; My Profile sets `$active="profile"` and lights the Menu tab.
+- **Gooey nav (user request):** SVG goo filter (`feGaussianBlur` + `feColorMatrix` + composite) on a dedicated layer holding the white bar + a white blob positioned under the active tab (`$nav_index` 0–4 computed in PHP) — the blob **melts out of the bar** as a bump. Active tab's icon rides in a **raised green-600 circle** (-mt-7, green glow shadow, chip-pop) inside the bump; indicator bars removed. Blob **rises on load** and **stretches gooily toward any tapped tab** (`data-goo` click handler sets its `left`, 350ms springy transition) before navigation. Bar's border-t replaced by a drop-shadow on the goo layer. Reduced-motion disables blob animation/transition.
+
+### Mobile burger round 2 (2026-11-04) — user wanted more
 - **Swipe-down to dismiss:** both sheets track the finger live (touchstart/move/end, transition suspended during drag), snap back under 90px, close past it with a tiny haptic; opening a sheet also gives an 8ms `navigator.vibrate` tick (guarded).
 - **Records sheet is now an app-launcher GRID:** 3 columns of icon tiles — icon in a rounded-2xl green square (active module: solid green-600 icon + soft green shadow + green label), labels under; tiles press-scale. Stagger entrance still applies.
 - **Active tab chip pops** on page load (`chip-pop` scale overshoot keyframe) on top of the indicator bar. All added to the reduced-motion kill list.

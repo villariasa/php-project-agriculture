@@ -155,6 +155,15 @@ if ($is_admin) {
         @keyframes chip-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
         .chip-pop { animation: chip-pop .35s cubic-bezier(.2, .9, .3, 1); }
 
+        /* Gooey bottom nav: bar + blob rendered on a goo-filtered layer so the
+           bump under the active tab melts out of the bar; icons sit above. */
+        .goo-layer { filter: url(#goo-filter) drop-shadow(0 -4px 10px rgb(0 0 0 / .08)); }
+        @keyframes blob-rise { from { transform: translateY(2.5rem); } to { transform: translateY(0); } }
+        #goo-blob {
+            transition: left .35s cubic-bezier(.3, 1.3, .4, 1);
+            animation: blob-rise .45s cubic-bezier(.2, .9, .3, 1);
+        }
+
         /* Delete confirmation pops in */
         #deleteModal:not(.hidden) > .relative { animation: pop-in .2s ease; }
 
@@ -208,8 +217,9 @@ if ($is_admin) {
             #records-panel.swapped,
             .sheet-open nav > a,
             .tab-indicator,
-            .chip-pop { animation: none; }
-            #records-sheet, #menu-sheet, #sheet-overlay { transition: none; }
+            .chip-pop,
+            #goo-blob { animation: none; }
+            #records-sheet, #menu-sheet, #sheet-overlay, #goo-blob { transition: none; }
         }
     </style>
 </head>
@@ -366,6 +376,14 @@ $record_keys    = ["farmers", "farms", "crops", "plantings", "harvests"];
 $records_active = in_array($active, $record_keys, true);
 $menu_active    = in_array($active, ["settings", "users", "activity", "profile"], true);
 
+// Tab slot (0-4) for the gooey blob; -1 hides it
+if ($active === "dashboard")    { $nav_index = 0; }
+elseif ($records_active)        { $nav_index = 1; }
+elseif ($active === "search")   { $nav_index = 2; }
+elseif ($active === "reports")  { $nav_index = 3; }
+elseif ($menu_active)           { $nav_index = 4; }
+else                            { $nav_index = -1; }
+
 $bottom_item_on  = "text-green-700";
 $bottom_item_off = "text-gray-500";
 ?>
@@ -456,49 +474,73 @@ $bottom_item_off = "text-gray-500";
             </nav>
         </div>
 
-        <!-- Mobile bottom navigation bar -->
-        <nav class="fixed inset-x-0 bottom-0 z-30 bg-white border-t border-gray-200 lg:hidden print:hidden"
+        <!-- Goo filter for the bottom nav (blurs + sharpens so shapes merge) -->
+        <svg width="0" height="0" class="absolute" aria-hidden="true">
+            <defs>
+                <filter id="goo-filter">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
+                    <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+                </filter>
+            </defs>
+        </svg>
+
+        <!-- Mobile bottom navigation bar (gooey) -->
+        <nav class="fixed inset-x-0 bottom-0 z-30 lg:hidden print:hidden"
              style="padding-bottom: env(safe-area-inset-bottom)">
-            <div class="grid grid-cols-5 h-16">
-                <a href="<?= $base ?>index.php" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'dashboard' ? $bottom_item_on : $bottom_item_off ?>">
-                    <?php if ($active === 'dashboard'): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
-                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $active === 'dashboard' ? 'bg-green-50 chip-pop' : '' ?>">
+            <!-- Goo layer: the white bar + a blob under the active tab melt together -->
+            <div class="goo-layer absolute inset-0 pointer-events-none" aria-hidden="true">
+                <div class="absolute inset-0 bg-white"></div>
+                <?php if ($nav_index >= 0): ?>
+                    <div id="goo-blob" class="absolute w-[4.5rem] h-[4.5rem] rounded-full bg-white"
+                         style="top: -1.3rem; left: calc(<?= $nav_index ?> * 20% + 10% - 2.25rem);"></div>
+                <?php endif; ?>
+            </div>
+            <div class="relative grid grid-cols-5 h-16">
+                <a href="<?= $base ?>index.php" data-goo="0" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'dashboard' ? $bottom_item_on : $bottom_item_off ?>">
+                    <span class="<?= $active === 'dashboard'
+                        ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
+                        : 'px-4 py-0.5 flex items-center justify-center' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                         </svg>
                     </span>
                     <span class="text-[11px] <?= $active === 'dashboard' ? 'font-semibold' : '' ?>">Dashboard</span>
                 </a>
-                <button type="button" onclick="openSheet('records-sheet')" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $records_active ? $bottom_item_on : $bottom_item_off ?>">
-                    <?php if ($records_active): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
-                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $records_active ? 'bg-green-50 chip-pop' : '' ?>">
+                <button type="button" onclick="openSheet('records-sheet')" data-goo="1" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $records_active ? $bottom_item_on : $bottom_item_off ?>">
+                    <span class="<?= $records_active
+                        ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
+                        : 'px-4 py-0.5 flex items-center justify-center' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 6.75h16.5M3.75 12h16.5m-16.5 5.25h16.5" />
                         </svg>
                     </span>
                     <span class="text-[11px] <?= $records_active ? 'font-semibold' : '' ?>">Records</span>
                 </button>
-                <a href="<?= $base ?>search.php" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'search' ? $bottom_item_on : $bottom_item_off ?>">
-                    <?php if ($active === 'search'): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
-                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $active === 'search' ? 'bg-green-50 chip-pop' : '' ?>">
+                <a href="<?= $base ?>search.php" data-goo="2" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'search' ? $bottom_item_on : $bottom_item_off ?>">
+                    <span class="<?= $active === 'search'
+                        ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
+                        : 'px-4 py-0.5 flex items-center justify-center' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                         </svg>
                     </span>
                     <span class="text-[11px] <?= $active === 'search' ? 'font-semibold' : '' ?>">Search</span>
                 </a>
-                <a href="<?= $base ?>reports/index.php" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'reports' ? $bottom_item_on : $bottom_item_off ?>">
-                    <?php if ($active === 'reports'): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
-                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $active === 'reports' ? 'bg-green-50 chip-pop' : '' ?>">
+                <a href="<?= $base ?>reports/index.php" data-goo="3" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $active === 'reports' ? $bottom_item_on : $bottom_item_off ?>">
+                    <span class="<?= $active === 'reports'
+                        ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
+                        : 'px-4 py-0.5 flex items-center justify-center' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
                         </svg>
                     </span>
                     <span class="text-[11px] <?= $active === 'reports' ? 'font-semibold' : '' ?>">Reports</span>
                 </a>
-                <button type="button" onclick="openSheet('menu-sheet')" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $menu_active ? $bottom_item_on : $bottom_item_off ?>">
-                    <?php if ($menu_active): ?><span class="tab-indicator absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 bg-green-600 rounded-full"></span><?php endif; ?>
-                    <span class="px-4 py-0.5 rounded-full transition-colors <?= $menu_active ? 'bg-green-50 chip-pop' : '' ?>">
+                <button type="button" onclick="openSheet('menu-sheet')" data-goo="4" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $menu_active ? $bottom_item_on : $bottom_item_off ?>">
+                    <span class="<?= $menu_active
+                        ? 'w-12 h-12 -mt-7 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 flex items-center justify-center chip-pop'
+                        : 'px-4 py-0.5 flex items-center justify-center' ?>">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM12.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0ZM18.75 12a.75.75 0 1 1-1.5 0 .75.75 0 0 1 1.5 0Z" />
                         </svg>
@@ -564,6 +606,16 @@ $bottom_item_off = "text-gray-500";
             }
             document.addEventListener("keydown", function (event) {
                 if (event.key === "Escape") { closeSheets(); }
+            });
+
+            // Gooey blob stretches toward the tapped tab before the page changes
+            document.querySelectorAll("[data-goo]").forEach(function (tab) {
+                tab.addEventListener("click", function () {
+                    var blob = document.getElementById("goo-blob");
+                    if (blob) {
+                        blob.style.left = "calc(" + tab.dataset.goo + " * 20% + 10% - 2.25rem)";
+                    }
+                });
             });
         </script>
 
