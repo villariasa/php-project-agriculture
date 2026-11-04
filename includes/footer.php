@@ -1,6 +1,37 @@
 </main>
 
 <script>
+// ---------- Save/Update button spinner ----------
+// Same loading treatment as the login button: disable, swap label for a
+// spinner, and stop the user double-submitting. Works for both classic
+// posts (Add forms — page navigates away) and fetch saves (Edit sliders —
+// the caller restores the button via resetBtn once the fetch settles).
+window.setBtnLoading = function (btn, label) {
+    if (!btn || btn.dataset.loading === "1") { return; }
+    btn.dataset.loading      = "1";
+    btn.dataset.originalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML =
+        '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="btn-spinner w-4 h-4 inline-block align-[-2px] mr-1.5">'
+        + '<path stroke-linecap="round" d="M12 3a9 9 0 1 0 9 9" /></svg>'
+        + (label || "Saving...");
+};
+window.resetBtn = function (btn) {
+    if (!btn || btn.dataset.loading !== "1") { return; }
+    btn.innerHTML = btn.dataset.originalHtml;
+    btn.disabled  = false;
+    delete btn.dataset.loading;
+};
+
+// Add-card forms are classic POSTs (not fetch-intercepted), so a delegated
+// listener is enough — the page navigates away right after.
+document.addEventListener("submit", function (event) {
+    var form = event.target;
+    if (!form.matches("#add-card form")) { return; }
+    var btn = form.querySelector("button[type=submit]");
+    if (btn) { setBtnLoading(btn, "Saving..."); }
+});
+
 // ---------- PJAX navigation ----------
 // Internal links swap <main> (and the nav shells) in place instead of
 // reloading the page: the sidebar, topbar, and bottom nav never flash.

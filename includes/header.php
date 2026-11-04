@@ -172,26 +172,56 @@ if ($is_admin) {
         @keyframes chip-pop { 0% { transform: scale(.7); } 60% { transform: scale(1.12); } 100% { transform: scale(1); } }
         .chip-pop { animation: chip-pop .35s cubic-bezier(.2, .9, .3, 1); }
 
-        /* Gooey desktop sidebar — EXACT copy of the bottom nav's mechanism,
-           rotated 90°: one white blob + a white backing layer melt together
-           under the goo filter into a bump that pokes out of the sidebar's
-           right edge; the active icon rides on top of that bump, unfiltered,
-           in its own raised green circle. */
-        #side-goo { position: absolute; inset: 0; pointer-events: none; filter: url(#goo-filter); }
-        #side-goo .sgoo-bg { position: absolute; inset: 0; background: #fff; }
-        #side-goo-blob {
-            position: absolute; right: -1.5rem; width: 4rem; height: 4rem;
-            border-radius: 9999px; background: #fff; opacity: 0;
-            transition: top .32s cubic-bezier(.3, 1.2, .4, 1), height .32s ease, opacity .2s ease;
-        }
-        #side-goo.no-anim #side-goo-blob { transition: none !important; }
-        @keyframes side-blob-rise { from { right: -4.5rem; } to { right: -1.5rem; } }
-        #side-goo-blob.rise { animation: side-blob-rise .45s cubic-bezier(.2, .9, .3, 1); }
+        /* Gooey desktop sidebar: ONLY active when collapsed (hidden words mode) */
+        #side-goo { display: none !important; }
 
-        /* Active sidebar row: label stays left-aligned, icon flips to the
-           right end of the row to sit inside the bump (mirrors the bottom
-           nav's icon riding -mt-7 above its bar). */
-        .side-active-row { flex-direction: row-reverse; }
+        #app-sidebar.collapsed #side-goo {
+            display: block !important;
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+            filter: url(#side-goo-filter);
+        }
+        #app-sidebar.collapsed #side-goo .sblob {
+            position: absolute;
+            left: 50%;
+            width: 2.5rem;
+            height: 2.5rem;
+            transform: translateX(-50%);
+            border-radius: 9999px;
+            background: #16a34a; /* vibrant green circular chip like mobile */
+            opacity: 0;
+            box-shadow: 0 4px 12px rgb(22 163 74 / 0.35);
+        }
+        #side-goo .sblob-a {
+            transition: top .26s cubic-bezier(.3, 1.2, .4, 1), height .26s ease, opacity .2s ease;
+        }
+        #side-goo .sblob-b {
+            transition: top .44s cubic-bezier(.3, 1.2, .4, 1), height .44s ease, opacity .2s ease;
+        }
+        #side-goo.no-anim .sblob { transition: none !important; }
+
+        /* When collapsed, active icon turns white to stand out on the green bubble */
+        #app-sidebar.collapsed a.side-active {
+            color: #ffffff !important;
+            background: transparent !important;
+            position: relative;
+            z-index: 2;
+        }
+        #app-sidebar.collapsed a.side-active svg {
+            color: #ffffff !important;
+        }
+
+        /* When NOT collapsed (showing words), standard clean active pill background, no gooey */
+        #app-sidebar:not(.collapsed) a.side-active {
+            background-color: #f0fdf4 !important;
+            color: #15803d !important;
+            font-weight: 600 !important;
+        }
+        #app-sidebar:not(.collapsed) a.side-active svg {
+            color: #16a34a !important;
+        }
 
         /* Gooey bottom nav: bar + blob rendered on a goo-filtered layer so the
            bump under the active tab melts out of the bar; icons sit above. */
@@ -221,33 +251,40 @@ if ($is_admin) {
         /* ---------- Collapsible desktop sidebar ---------- */
         #app-sidebar {
             transition: width .32s cubic-bezier(.4, 0, .2, 1);
-            /* No overflow:hidden here — the gooey bump must poke past the
-               right edge (labels already clip themselves individually). */
-        }
-        #app-sidebar.collapsed { width: 5rem; }
-        /* Inline labels (single-line nav link text) shrink away horizontally;
-           the row's height is already fixed by the icon, so no leftover gap. */
-        .sidebar-label {
-            display: inline-block;
-            max-width: 12rem;
-            opacity: 1;
-            white-space: nowrap;
             overflow: hidden;
-            transition: max-width .28s cubic-bezier(.4, 0, .2, 1), opacity .15s ease, margin .28s ease;
         }
-        #app-sidebar.collapsed .sidebar-label { max-width: 0; opacity: 0; margin: 0; }
-        #app-sidebar.collapsed nav a { gap: 0; justify-content: center; }
-
-        /* Block labels (section headers, logo subtitle, user name/role) must
-           collapse their HEIGHT too, or they leave an invisible-but-occupied
-           gap in the vertical flow even at zero width. */
-        .sidebar-block-label {
-            max-height: 3.5rem;
-            opacity: 1;
-            overflow: hidden;
-            transition: max-height .28s cubic-bezier(.4, 0, .2, 1), opacity .15s ease, margin .2s ease;
+        #app-sidebar.collapsed { width: 3.75rem; }
+        #app-sidebar.collapsed #sidebar-nav {
+            padding-left: 0.25rem;
+            padding-right: 0.25rem;
         }
-        #app-sidebar.collapsed .sidebar-block-label { max-height: 0; opacity: 0; margin: 0; }
+        #app-sidebar.collapsed nav a {
+            width: 2.5rem;
+            height: 2.5rem;
+            padding: 0;
+            gap: 0;
+            justify-content: center;
+            border-radius: 9999px;
+            margin-left: auto;
+            margin-right: auto;
+            position: relative;
+            z-index: 2;
+        }
+        #app-sidebar.collapsed .sidebar-label {
+            display: none !important;
+            max-width: 0 !important;
+            opacity: 0 !important;
+            margin: 0 !important;
+        }
+        #app-sidebar.collapsed .sidebar-block-label {
+            display: none !important;
+            max-height: 0 !important;
+            opacity: 0 !important;
+            margin: 0 !important;
+        }
+        #app-sidebar.collapsed .space-y-5 > :not([hidden]) ~ :not([hidden]) {
+            margin-top: 0.75rem !important;
+        }
 
         /* Logo fully hides when collapsed — icon-only rail, toggle centers alone */
         #app-sidebar.collapsed .sidebar-logo-link {
@@ -263,11 +300,27 @@ if ($is_admin) {
         }
         #app-sidebar.collapsed .sidebar-header-row {
             justify-content: center !important;
-            padding-left: 0.5rem !important;
-            padding-right: 0.5rem !important;
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+        }
+        #app-sidebar.collapsed #sidebar-toggle {
+            margin: 0 auto !important;
         }
 
-        #app-sidebar.collapsed .side-user-panel { flex-direction: column; gap: .625rem; }
+        #app-sidebar.collapsed .side-user-panel-wrap {
+            padding-left: 0.25rem !important;
+            padding-right: 0.25rem !important;
+        }
+        #app-sidebar.collapsed .side-user-panel {
+            flex-direction: column;
+            gap: 0.75rem;
+            align-items: center;
+            justify-content: center;
+        }
+        #app-sidebar.collapsed .side-user-panel > div:first-child {
+            margin-left: auto;
+            margin-right: auto;
+        }
         @media (prefers-reduced-motion: reduce) {
             #app-sidebar, .sidebar-label { transition: none; }
         }
@@ -297,7 +350,7 @@ if ($is_admin) {
         ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
 
         /* Entrance animations only play on the first load of a session */
-        .revisit .chip-pop, .revisit #goo-blob, .revisit .tab-indicator, .revisit #side-goo-blob { animation: none; }
+        .revisit .chip-pop, .revisit #goo-blob, .revisit .tab-indicator { animation: none; }
 
         /* Soft pastel "rainbow" glow over a near-white canvas (same as login).
            Fixed attachment keeps the glow steady while the page scrolls. */
@@ -326,7 +379,7 @@ if ($is_admin) {
             .tab-indicator,
             .chip-pop,
             #goo-blob { animation: none; }
-            #records-sheet, #menu-sheet, #sheet-overlay, #goo-blob, #side-goo-blob { transition: none; }
+            #records-sheet, #menu-sheet, #sheet-overlay, #goo-blob, #side-goo .sblob { transition: none; }
         }
     </style>
 </head>
@@ -369,19 +422,14 @@ if ($is_admin) {
                 <div>
                     <p class="sidebar-block-label px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400 whitespace-nowrap"><?= $section ?></p>
                     <?php foreach ($links as $key => $link): ?>
-                        <?php $is_active_link = $active === $key; ?>
                         <a href="<?= $app_root . $link['url'] ?>" title="<?= htmlspecialchars($link['label']) ?>"
-                           class="relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-0.5 <?= $is_active_link
-                               ? 'side-active side-active-row text-green-700 font-semibold'
+                           class="relative flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-0.5 <?= $active === $key
+                               ? 'side-active text-green-700 font-semibold'
                                : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' ?>">
-                            <span class="shrink-0 flex items-center justify-center <?= $is_active_link
-                                ? 'w-9 h-9 rounded-full bg-green-600 text-white shadow-lg shadow-green-600/40 chip-pop'
-                                : '' ?>">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
-                                     class="w-5 h-5 shrink-0 <?= $is_active_link ? '' : 'text-gray-400' ?>">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="<?= $link['icon'] ?>" />
-                                </svg>
-                            </span>
+                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+                                 class="w-5 h-5 shrink-0 <?= $active === $key ? 'text-green-600' : 'text-gray-400' ?>">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="<?= $link['icon'] ?>" />
+                            </svg>
                             <span class="sidebar-label whitespace-nowrap overflow-hidden"><?= $link['label'] ?></span>
                         </a>
                     <?php endforeach; ?>
@@ -390,7 +438,7 @@ if ($is_admin) {
         </nav>
 
         <!-- User panel -->
-        <div class="border-t border-gray-200 px-4 py-3 shrink-0">
+        <div class="side-user-panel-wrap border-t border-gray-200 px-4 py-3 shrink-0">
             <div class="side-user-panel flex items-center gap-3">
                 <div title="<?= htmlspecialchars(($_SESSION['full_name'] ?? '') . ' (' . ucfirst($_SESSION['role'] ?? '') . ')') ?>"
                      class="w-9 h-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-semibold shrink-0">
@@ -608,13 +656,18 @@ $bottom_item_off = "text-gray-500";
             </nav>
         </div>
 
-        <!-- Goo filter for the bottom nav (blurs + sharpens so shapes merge) -->
-        <svg width="0" height="0" class="absolute" aria-hidden="true">
+        <!-- Goo filters (blurs + sharpens so shapes merge) -->
+        <svg width="0" height="0" class="absolute pointer-events-none" aria-hidden="true">
             <defs>
                 <filter id="goo-filter">
                     <feGaussianBlur in="SourceGraphic" stdDeviation="8" result="blur" />
                     <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
                     <feComposite in="SourceGraphic" in2="goo" operator="atop" />
+                </filter>
+                <filter id="side-goo-filter">
+                    <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur" />
+                    <feColorMatrix in="blur" mode="matrix" values="1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 18 -8" result="goo" />
+                    <feBlend in="SourceGraphic" in2="goo" />
                 </filter>
             </defs>
         </svg>
@@ -764,30 +817,39 @@ $bottom_item_off = "text-gray-500";
             if (sidebarEl && toggleBtn) {
                 syncSidebarToggleIcon(sidebarEl.classList.contains("collapsed"));
             }
-            if (sidebarEl && toggleBtn && !toggleBtn.dataset.bound) {
-                toggleBtn.dataset.bound = "1";
-                toggleBtn.addEventListener("click", function () {
-                    var collapsed = sidebarEl.classList.toggle("collapsed");
-                    localStorage.setItem("ais-sidebar-collapsed", collapsed ? "1" : "0");
-                    syncSidebarToggleIcon(collapsed);
-                    moveSideGoo(sidebarEl.querySelector(".side-active"), true); // resnap, no stretch
-                });
-            }
-
             // ---------- Gooey sidebar indicator (desktop) ----------
-            function moveSideGoo(link, instant) {
+            function hideSideGoo() {
                 var layer = document.getElementById("side-goo");
                 if (!layer) { return; }
                 var blobs = layer.querySelectorAll(".sblob");
-                if (!link) {
-                    blobs.forEach(function (blob) { blob.style.opacity = "0"; });
+                blobs.forEach(function (blob) { blob.style.opacity = "0"; });
+            }
+
+            function moveSideGoo(link, instant) {
+                var sidebar = document.getElementById("app-sidebar");
+                // ONLY takes effect in hidden words mode (collapsed)
+                if (!sidebar || !sidebar.classList.contains("collapsed")) {
+                    hideSideGoo();
                     return;
                 }
+                var nav = document.getElementById("sidebar-nav");
+                var layer = document.getElementById("side-goo");
+                if (!nav || !layer) { return; }
+                if (!link) {
+                    hideSideGoo();
+                    return;
+                }
+                var blobs = layer.querySelectorAll(".sblob");
+                var navRect  = nav.getBoundingClientRect();
+                var linkRect = link.getBoundingClientRect();
+                var top = (linkRect.top - navRect.top) + nav.scrollTop;
+                var height = linkRect.height || 40;
+
                 if (instant) { layer.classList.add("no-anim"); }
                 blobs.forEach(function (blob) {
                     blob.style.opacity = "1";
-                    blob.style.top     = link.offsetTop + "px";
-                    blob.style.height  = link.offsetHeight + "px";
+                    blob.style.top     = top + "px";
+                    blob.style.height  = height + "px";
                 });
                 if (instant) {
                     requestAnimationFrame(function () {
@@ -795,6 +857,7 @@ $bottom_item_off = "text-gray-500";
                     });
                 }
             }
+
             function initSideGoo() {
                 var nav = document.getElementById("sidebar-nav");
                 if (!nav) { return; }
@@ -805,21 +868,66 @@ $bottom_item_off = "text-gray-500";
                     layer.innerHTML = '<div class="sblob sblob-b"></div><div class="sblob sblob-a"></div>';
                     nav.insertBefore(layer, nav.firstChild);
                 }
-                moveSideGoo(nav.querySelector(".side-active"), true);
+                var sidebar = document.getElementById("app-sidebar");
+                if (sidebar && sidebar.classList.contains("collapsed")) {
+                    moveSideGoo(nav.querySelector(".side-active"), true);
+                } else {
+                    hideSideGoo();
+                }
             }
             initSideGoo();
 
-            // Blob slides gooily to a clicked sidebar link before the swap
+            if (sidebarEl && toggleBtn && !toggleBtn.dataset.bound) {
+                toggleBtn.dataset.bound = "1";
+                toggleBtn.addEventListener("click", function () {
+                    var collapsed = sidebarEl.classList.toggle("collapsed");
+                    localStorage.setItem("ais-sidebar-collapsed", collapsed ? "1" : "0");
+                    syncSidebarToggleIcon(collapsed);
+                    var activeLink = sidebarEl.querySelector(".side-active");
+                    if (collapsed) {
+                        // Collapsed (hidden words mode) -> activate gooey indicator
+                        moveSideGoo(activeLink, true);
+                        setTimeout(function () { moveSideGoo(activeLink, true); }, 60);
+                        setTimeout(function () { moveSideGoo(activeLink, true); }, 330);
+                    } else {
+                        // Expanded (showing words mode) -> hide gooey effect completely
+                        hideSideGoo();
+                    }
+                });
+            }
+
+            // Gooey stretch on click ONLY when in collapsed mode
             document.addEventListener("click", function (event) {
                 var link = event.target.closest("#sidebar-nav a");
-                if (link) { moveSideGoo(link, false); }
+                if (link) {
+                    var sidebar = document.getElementById("app-sidebar");
+                    if (sidebar && sidebar.classList.contains("collapsed")) {
+                        moveSideGoo(link, false);
+                    }
+                }
             });
 
-            // PJAX swaps #sidebar-nav's innerHTML (layer included) — rebuild
+            // Keep in sync during scroll & PJAX swaps
             var sideNav = document.getElementById("sidebar-nav");
             if (sideNav) {
+                sideNav.addEventListener("scroll", function () {
+                    var sidebar = document.getElementById("app-sidebar");
+                    if (sidebar && sidebar.classList.contains("collapsed")) {
+                        var active = sideNav.querySelector(".side-active");
+                        if (active) { moveSideGoo(active, true); }
+                    }
+                }, { passive: true });
+
                 new MutationObserver(function () {
                     if (!document.getElementById("side-goo")) { initSideGoo(); }
+                    else {
+                        var sidebar = document.getElementById("app-sidebar");
+                        if (sidebar && sidebar.classList.contains("collapsed")) {
+                            moveSideGoo(sideNav.querySelector(".side-active"), true);
+                        } else {
+                            hideSideGoo();
+                        }
+                    }
                 }).observe(sideNav, { childList: true });
             }
 

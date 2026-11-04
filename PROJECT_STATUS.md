@@ -11,7 +11,36 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### PJAX fix #3 (2026-11-04, latest) — intermittent 404 /farmers/auth/profile.php
+### REVERTED: sidebar gooey rewrite (2026-11-04) — misread the request, broke the expanded sidebar
+- User's ask ("apply the gooey effect when the sidenav is hidden") meant: on mobile, where the sidebar is hidden and the bottom nav takes over — confirm/ensure THAT already has the gooey effect (it does, from the earlier "Gooey bottom nav" work). It was NOT a request to redesign the desktop sidebar's indicator.
+- I misread it as "when the desktop sidebar is collapsed" and did a full rewrite (single bottom-nav-style blob, row-reverse active rows, icon riding in a raised circle, removed `#app-sidebar`'s `overflow:hidden`) — this broke the normal EXPANDED sidebar, which the user had never complained about.
+- **Fully reverted** to the prior working two-blob (`sblob-a`/`sblob-b` lag-stretch) sidebar indicator, plain active-link styling (green text, no icon circle, no row-reverse), and `overflow:hidden` restored on `#app-sidebar`. Verified no leftover references to the rewrite (`side-goo-blob`, `side-active-row`, `sgoo-bg`) remain; JS re-syntax-checked, template balance clean.
+- **Lesson:** "hidden" in this codebase has two meanings — mobile (sidebar literally hidden via `hidden lg:flex`) vs. desktop-collapsed (icon rail). Don't assume which one a request means; ask if ambiguous rather than redesigning a working component.
+
+### Gooey indicator shaped for the collapsed rail (2026-11-04)
+- The liquid sidebar indicator previously stayed a wide pill (nav-width minus 24px) even at the 80px collapsed width, reading as a thick bar rather than a bubble. `#app-sidebar.collapsed #side-goo .sblob` now centers a fixed 2.75rem **circular** blob behind the icon instead; both blobs' transitions extended to cover `left/right/width/border-radius` (not just top/height) so the shape morphs smoothly too. Switching tabs while collapsed still runs the same lag-based stretch (`.sblob-a` .25s / `.sblob-b` .45s) through the shared goo filter — same liquid effect, correctly shaped for the icon rail. Collapse/expand toggling itself still re-snaps instantly (`no-anim`) to avoid fighting the sidebar's own width transition.
+
+### Sidebar collapse fixes (2026-11-04) — user: logo text cut + leftover gaps when collapsed, redundant topbar home icon
+- **Logo text cut (expanded):** the logo subtitle had `whitespace-nowrap overflow-hidden` forcing single-line truncation at 12rem in a ~150px space. Removed; it wraps naturally again (two lines) as before.
+- **Leftover gaps (collapsed) — root cause:** block-level labels (section headers, logo subtitle, user name/role) only had their WIDTH collapsed to 0 (`.sidebar-label`); their line-box HEIGHT persisted, leaving invisible-but-occupied vertical gaps. New `.sidebar-block-label` class collapses `max-height` instead for all 3, eliminating the gaps. Nav-link labels keep the original width-based `.sidebar-label` (correct there — fixed-height flex row, no height issue) and also zero the link's `gap` when collapsed so the hidden label leaves no residual spacing.
+- **Full icon-only hide:** the logo image+text now `display:none`s entirely when collapsed (`.sidebar-logo-link`) and the header row centers the toggle button alone (`.sidebar-header-row`) — matches the user's reference screenshot exactly (icon rail, no logo remnant).
+- **Removed the redundant topbar home icon** (user: sidebar already has one) — the breadcrumb home icon + its leading "/" separator are now `lg:hidden` (mobile-only, where there's no sidebar); desktop breadcrumbs start directly at the first real crumb.
+- All verified: JS syntax-checked, template balance clean.
+
+### Sidebar toggle icon fix (2026-11-04) — user rejected the double-chevron
+- Replaced the `<<` double-chevron with the standard **panel-toggle glyph** (VS Code/Notion/shadcn style: rounded rectangle + vertical divider + a small directional arrow in the left column). Two SVGs (`sidebar-icon-expanded`/`-collapsed`) swap via `hidden` toggle — same pattern as the login password eye icon — instead of rotating one icon 180°. `syncSidebarToggleIcon()` keeps it in sync on both restore and click.
+
+### Collapsible desktop sidebar (2026-11-04)
+- Toggle button (chevron, rotates 180° on state change) next to the logo collapses `#app-sidebar` from `w-60` to a `w-20` icon-only rail via a `.collapsed` class + `width` transition (`.32s cubic-bezier(.4,0,.2,1)`). All text (logo subtitle, section headers, link labels, user name/role) lives in `.sidebar-label` spans that shrink-and-fade (`max-width`+`opacity`) rather than just vanishing. Collapsed state: nav items center their icons, the user panel stacks vertically (avatar → profile icon → logout icon), every link/avatar gets a `title` tooltip for icon-only mode.
+- **Persists via localStorage** (`ais-sidebar-collapsed`), restored by an inline script immediately after the sidebar markup parses (before the user perceives the default state); the class then survives all PJAX navigation for free since `<aside id="app-sidebar">` itself is never replaced (only `#sidebar-nav`'s innerHTML is swapped). Toggling re-snaps the gooey indicator to the active item. Reduced-motion disables the transitions. Header JS syntax-checked, template balance verified.
+
+### Save/Update button spinner, app-wide (2026-11-04) — same treatment as the login button
+- `window.setBtnLoading(btn, label)` / `window.resetBtn(btn)` added to footer.php (spinner SVG + label swap, button disabled, original HTML restored on reset; `btn-spinner` keyframe in header.php).
+- **Add forms** (all 5 modules + users + settings): a single delegated `#add-card form` submit listener applies the spinner automatically — no per-page changes needed; button stays disabled through the classic POST/redirect.
+- **Edit sliders** (same 7 surfaces, 3 submit-handler copies: sidecard.php shared + users + settings): spinner shown on submit; **reset on validation error** so the still-open slider is retry-able; reset after success too (slider is hidden, but ready if reopened without a reload); left disabled through the catch-path classic-submit fallback.
+- Scripts syntax-checked.
+
+### PJAX fix #3 (2026-11-04) — intermittent 404 /farmers/auth/profile.php
 - Root cause: the persistent shell (sidebar user panel, logos, topbar search, bottom-nav/sheets' profile/logout) carried RELATIVE `$base` URLs from the first-loaded page; after PJAX-ing into a subdirectory (/farmers/...), those hrefs resolved against the new directory → 404s. Intermittent because it depended on which page was loaded first vs. where you were when clicking.
 - Fix: header now computes `$app_root` (absolute app base from SCRIPT_NAME, subfolder-safe) and ALL shell links/fetches use it (19 conversions incl. the topbar live-search fetch URL, which was silently 404ing from subdirectory pages too). Swapped-in page content keeps using relative URLs correctly since the URL is pushed before the swap.
 

@@ -228,6 +228,8 @@ function initListPage() {
         var editForm = editCard.querySelector("form");
         editForm.addEventListener("submit", function (event) {
             event.preventDefault();
+            var saveBtn = editForm.querySelector("button[type=submit]");
+            setBtnLoading(saveBtn, "Updating...");
             if (window.NProgress) { NProgress.start(); }
             fetch(editForm.action, {
                 method: "POST",
@@ -239,13 +241,16 @@ function initListPage() {
                 if (window.NProgress) { NProgress.done(); }
                 if (result.ok) {
                     closeSideCards();
+                    resetBtn(saveBtn); // card is hidden now, but reset so it's ready if reopened
                     var url = new URL(window.location.href);
                     ["edit", "add", "msg", "error"].forEach(function (p) { url.searchParams.delete(p); });
                     loadRecords(url.toString(), "replace");
+                } else {
+                    resetBtn(saveBtn); // validation error: slider stays open, let them retry
                 }
                 showToast(result.message, result.ok ? "success" : "error");
             })
-            .catch(function () { editForm.submit(); }); // classic redirect fallback
+            .catch(function () { editForm.submit(); }); // classic redirect fallback (button stays disabled during nav)
         });
     }
 }

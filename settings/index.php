@@ -233,6 +233,8 @@ function initSettingsPage() {
         editForm.dataset.bound = "1";
         editForm.addEventListener("submit", function (event) {
             event.preventDefault();
+            var saveBtn = editForm.querySelector("button[type=submit]");
+            setBtnLoading(saveBtn, "Updating...");
             fetch(editForm.action, {
                 method: "POST",
                 body: new FormData(editForm),
@@ -242,6 +244,7 @@ function initSettingsPage() {
             .then(function (result) {
                 if (result.ok) {
                     closeSideCards();
+                    resetBtn(saveBtn);
                     fetch(window.location.href, { headers: { "X-Requested-With": "fetch" } })
                         .then(function (r) { return r.text(); })
                         .then(function (html) {
@@ -249,10 +252,12 @@ function initSettingsPage() {
                             var panel = document.getElementById("records-panel");
                             if (fresh && panel) { panel.innerHTML = fresh.innerHTML; }
                         });
+                } else {
+                    resetBtn(saveBtn);
                 }
                 showToast(result.message, result.ok ? "success" : "error");
             })
-            .catch(function () { editForm.submit(); }); // classic redirect fallback
+            .catch(function () { editForm.submit(); }); // classic redirect fallback (button stays disabled during nav)
         });
     }
 }
