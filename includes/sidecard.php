@@ -35,13 +35,17 @@
 
 <script>
 function showSideCard(card) {
-    document.getElementById("sidecard-overlay").classList.remove("hidden");
+    var overlay = document.getElementById("sidecard-overlay");
+    if (overlay) { overlay.classList.remove("hidden"); }
     card.classList.remove("hidden");
     card.classList.add("flex");
 }
 
+// Null-safe: this function outlives its page under PJAX, so every element
+// lookup must tolerate pages that don't have side cards (reports, dashboard).
 function closeSideCards() {
-    document.getElementById("sidecard-overlay").classList.add("hidden");
+    var overlay = document.getElementById("sidecard-overlay");
+    if (overlay) { overlay.classList.add("hidden"); }
     ["detail-card", "add-card", "edit-card"].forEach(function (id) {
         var card = document.getElementById(id);
         if (card) {
