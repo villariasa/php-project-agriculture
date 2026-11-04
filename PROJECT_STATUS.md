@@ -11,6 +11,9 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
+### Toolbar search width capped (2026-11-04, latest) — user: search pill too long
+- All 5 module toolbars: search pill is now a fixed compact `w-72` (18rem) on md+ instead of stretching `flex-1` across the page; still full-width on mobile. Filter + sort pills sit right beside it, matching the sample.png proportions.
+
 ### Gooey bottom nav + active-tab fixes (2026-11-04, latest)
 - **Bug fixes:** Search page now sets `$active="search"` and the Search tab has a full active state; My Profile sets `$active="profile"` and lights the Menu tab.
 - **Gooey nav (user request):** SVG goo filter (`feGaussianBlur` + `feColorMatrix` + composite) on a dedicated layer holding the white bar + a white blob positioned under the active tab (`$nav_index` 0–4 computed in PHP) — the blob **melts out of the bar** as a bump. Active tab's icon rides in a **raised green-600 circle** (-mt-7, green glow shadow, chip-pop) inside the bump; indicator bars removed. Blob **rises on load** and **stretches gooily toward any tapped tab** (`data-goo` click handler sets its `left`, 350ms springy transition) before navigation. Bar's border-t replaced by a drop-shadow on the goo layer. Reduced-motion disables blob animation/transition.
