@@ -163,23 +163,23 @@ require "../includes/header.php";
         <h1 class="text-2xl font-bold">Reports &amp; Analytics</h1>
         <p class="text-sm text-gray-500">Production and revenue overview &middot; <?= htmlspecialchars($date_from) ?> to <?= htmlspecialchars($date_to) ?></p>
     </div>
-    <div class="flex items-end gap-2 print:hidden">
-        <form method="GET" class="flex items-end gap-2">
-            <div>
+    <div class="flex flex-wrap items-end gap-2 print:hidden">
+        <form method="GET" class="flex flex-wrap items-end gap-2 w-full sm:w-auto">
+            <div class="flex-1 min-w-[8.5rem] sm:flex-none">
                 <label class="block text-xs text-gray-500 mb-1">From</label>
                 <input type="date" name="from" value="<?= htmlspecialchars($date_from) ?>"
-                       class="p-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                       class="w-full sm:w-auto px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-full shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
             </div>
-            <div>
+            <div class="flex-1 min-w-[8.5rem] sm:flex-none">
                 <label class="block text-xs text-gray-500 mb-1">To</label>
                 <input type="date" name="to" value="<?= htmlspecialchars($date_to) ?>"
-                       class="p-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                       class="w-full sm:w-auto px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-full shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
             </div>
-            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-3 py-1.5 rounded-lg text-sm">Apply</button>
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-1.5 rounded-full text-sm">Apply</button>
             <a href="index.php" class="text-sm text-gray-500 hover:text-gray-700 pb-2">Reset</a>
         </form>
         <button onclick="window.print()"
-                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-sm inline-flex items-center gap-2">
+                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-1.5 rounded-full text-sm shadow-sm inline-flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
             </svg>
@@ -190,29 +190,30 @@ require "../includes/header.php";
 
 <!-- KPI strip -->
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">
-    <div class="bg-white p-4">
+    <!-- Hero metric: full width on phones so the peso amount has room -->
+    <div class="bg-white p-4 col-span-2 sm:col-span-1">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Revenue</p>
-        <p class="text-xl font-bold">&#8369;<?= number_format((float) $kpi['total_revenue'], 2) ?></p>
+        <p class="text-lg sm:text-xl font-bold">&#8369;<?= number_format((float) $kpi['total_revenue'], 2) ?></p>
     </div>
     <div class="bg-white p-4">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Harvested</p>
-        <p class="text-xl font-bold"><?= number_format((float) $kpi['total_kg'], 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
+        <p class="text-lg sm:text-xl font-bold"><?= number_format((float) $kpi['total_kg'], 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
     </div>
     <div class="bg-white p-4">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Harvests</p>
-        <p class="text-xl font-bold"><?= number_format((int) $kpi['harvest_count']) ?></p>
+        <p class="text-lg sm:text-xl font-bold"><?= number_format((int) $kpi['harvest_count']) ?></p>
     </div>
     <div class="bg-white p-4">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Avg Price / kg</p>
-        <p class="text-xl font-bold">&#8369;<?= number_format($avg_price, 2) ?></p>
+        <p class="text-lg sm:text-xl font-bold">&#8369;<?= number_format($avg_price, 2) ?></p>
     </div>
     <div class="bg-white p-4">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Avg Yield / ha</p>
-        <p class="text-xl font-bold"><?= number_format($avg_yield_per_ha, 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
+        <p class="text-lg sm:text-xl font-bold"><?= number_format($avg_yield_per_ha, 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
     </div>
     <div class="bg-white p-4">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Active Plantings</p>
-        <p class="text-xl font-bold"><?= number_format($active_plantings) ?></p>
+        <p class="text-lg sm:text-xl font-bold"><?= number_format($active_plantings) ?></p>
     </div>
 </div>
 
@@ -232,12 +233,12 @@ require "../includes/header.php";
         </div>
         <a href="harvest_revenue.php" class="text-sm text-green-700 hover:underline print:hidden">Detailed report &rarr;</a>
     </div>
-    <div class="relative h-72"><canvas id="trendChart"></canvas></div>
+    <div class="relative h-56 sm:h-72"><canvas id="trendChart"></canvas></div>
 </div>
 
 <!-- Breakdown charts -->
 <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
         <div class="mb-4">
             <h2 class="font-semibold">Plantings by Status</h2>
             <p class="text-xs text-gray-500">current snapshot of all active plantings</p>
@@ -248,7 +249,7 @@ require "../includes/header.php";
             <div class="relative h-52"><canvas id="statusChart"></canvas></div>
         <?php endif; ?>
     </div>
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
         <div class="mb-4">
             <h2 class="font-semibold">Harvests by Grade</h2>
             <p class="text-xs text-gray-500">quality distribution, selected range</p>
@@ -259,7 +260,7 @@ require "../includes/header.php";
             <div class="relative h-52"><canvas id="gradeChart"></canvas></div>
         <?php endif; ?>
     </div>
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
         <div class="mb-4">
             <h2 class="font-semibold">Top Crops by Yield</h2>
             <p class="text-xs text-gray-500">harvested kg, selected range</p>
@@ -336,7 +337,7 @@ require "../includes/header.php";
 <?php endif; ?>
 
 <!-- Detailed printable reports -->
-<div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6 print:hidden">
+<div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6 print:hidden">
     <h2 class="font-semibold mb-1">Detailed Reports</h2>
     <p class="text-xs text-gray-500 mb-4">Full record-level reports — each is filterable, printable, and exportable to CSV.</p>
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">

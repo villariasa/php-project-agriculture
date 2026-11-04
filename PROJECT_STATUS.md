@@ -11,7 +11,11 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### Dashboard mobile layout polish (2026-11-04, latest)
+### Reports mobile polish (2026-11-04, latest)
+- **Analytics overview:** date-range form wraps as full-width pill inputs + pill Apply/Print on phones; **Revenue KPI is a hero tile spanning both columns**; all KPI/summary numbers `text-lg sm:text-xl`; chart/detail cards `p-4 sm:p-6`; trend chart `h-56 sm:h-72`.
+- **All 7 detail reports (via report_helpers):** summary-strip values downsized one notch on phones; **Export CSV + Print buttons split the full row 50/50 on mobile** (`flex-1 sm:flex-initial justify-center`), shrink to content on sm+. Scroll-viewport tables with sticky headers already handle narrow screens.
+
+### Dashboard mobile layout polish (2026-11-04)
 - Date-range filter wraps as full-width **pill inputs** on phones (matches toolbar style); Apply is a pill button.
 - KPI strip on mobile: **Revenue is a hero tile spanning both columns** (peso amount never clips), remaining 5 tiles in the 2-col grid with `text-xl` numbers (`sm:text-2xl` upward).
 - Density: all dashboard cards `p-4 sm:p-6`; chart heights stepped down one notch on phones (`h-56 sm:h-64`, crops `h-52 sm:h-56`).
