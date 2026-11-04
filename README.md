@@ -11,15 +11,16 @@
 
 ## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/sparkles.svg" width="22" height="22" align="center" /> Project Overview
 
-The **Agriculture Information System (AIS)** is a web-based database management application developed for **AP 3 (Web Application Development)**. It provides agricultural officers, farm managers, and administrative staff with centralized tools to manage farmers, farms, crop varieties, planting cycles, and harvest outputs.
+The **Agriculture Information System (AIS)** is a web-based database management application developed for **AP 3 (Web Application Development)**. It provides agricultural officers, farm managers, and administrative staff with centralized tools to manage farmers, farms, crop varieties, planting cycles, and harvest outputs — plus an analytics layer, user administration, and an activity audit trail.
 
-The system runs on a fully normalized (3NF) **PostgreSQL** database — **13 tables** (6 core entities + 7 lookup tables) — hosted locally or on **Supabase**, built with modular native **PHP (PDO)** OOP classes, and styled with a clean white-theme **Tailwind CSS** UI using **Heroicons**.
+The system runs on a fully normalized (3NF) **PostgreSQL** database — **13 normalized domain tables** (6 core entities + 7 lookup tables) **plus 1 supplementary system table** (`activity_log`, an append-only audit trail outside the normalization exercise) — hosted locally or on **Supabase**, built with modular native **PHP (PDO)** OOP classes, and styled with a clean white-theme **Tailwind CSS** UI using **Heroicons**, a custom app shell (sidebar + mobile bottom navigation), and vanilla-JS interaction layer (no frameworks, no Composer).
 
 ### Key Design Principles
-- **Full 3NF normalization** — every predefined-value field lives in its own lookup table.
+- **Full 3NF normalization** — every predefined-value field lives in its own lookup table (13 domain tables).
 - **Soft delete system-wide** — records are never physically removed; an `is_deleted` flag hides them while preserving history and referential integrity.
 - **DB-driven dropdowns** — no hardcoded `<select>` options anywhere; all managed in a Settings module.
-- **Audit trail** — `created_at` / `updated_at` timestamps on all core entities.
+- **Audit trail** — `created_at` / `updated_at` timestamps on all core entities, plus a dedicated `activity_log` table recording every create/update/delete across the system.
+- **No-reload UX** — sorting, filtering, pagination, record edits, and page-to-page navigation update in place via fetch/PJAX; native PHP form posts remain the fallback with JavaScript disabled.
 
 ---
 
@@ -57,34 +58,55 @@ The system runs on a fully normalized (3NF) **PostgreSQL** database — **13 tab
 - Add, rename, and soft-delete dropdown values.
 - Values in use by active records **cannot** be deleted; soft-deleted values disappear from dropdowns but remain joinable for historical records.
 
-### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/chart-bar.svg" width="18" height="18" align="center" /> 7. Interactive Dashboard
-- Summary cards: Total Farmers, Active Farms, Cataloged Crops, Active Plantings, Total Harvests.
-- Recent planting and harvest activity feeds with status badges and revenue.
-- All values query the live database (active records only) — nothing hard-coded.
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/chart-bar.svg" width="18" height="18" align="center" /> 7. Dashboard (Analytics v2)
+- Date-range selector (defaults to the last 12 months) scoping every chart and comparison KPI.
+- KPI strip: revenue and harvested kg this month with %-vs-last-month comparisons, average yield per hectare, active plantings, harvest-due-within-14-days count, total farmers.
+- Harvest volume (bar) and revenue (line) trend charts, top-5 crops by yield, top-5 farms by revenue.
+- Right rail: upcoming harvests (days-left pills), recent plantings, recent harvests.
+- All values are live queries against active (non-soft-deleted) records — nothing hard-coded or simulated.
 
-### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/document-chart-bar.svg" width="18" height="18" align="center" /> 8. Reports Engine
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/document-chart-bar.svg" width="18" height="18" align="center" /> 8. Reports Engine (7 reports + live analytics overview)
+- **Reports hub** is itself a one-page analytics overview: date-range KPI strip, a combo volume/revenue chart, plantings-by-status and harvests-by-grade doughnuts, a top-crops chart, and top-farms/top-farmers leaderboards, with the 7 detailed reports linked below it.
 - **Farmers & Farm Ownership** — farm count and total hectares per farmer.
 - **Crop Production per Farm** — harvested totals, filterable by farm.
 - **Planting Cycle Status** — filterable by status.
 - **Harvest Yield & Revenue** — date-range filter with SUM totals row.
-- Every report is printable (print-friendly layout, navigation hidden).
+- **Farmer Profitability** — harvest volume and revenue per farmer, ranked by revenue.
+- **Seasonal Performance** — plantings, yield, and revenue share per season.
+- **Yield Efficiency** — average kg harvested per hectare per crop, filterable by category.
+- Every report is printable (print-friendly layout, navigation hidden) and **exportable to CSV** (`?export=csv`, with CSV-formula-injection guarding on every exported cell).
 
-### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/lock-closed.svg" width="18" height="18" align="center" /> 9. Authentication & Access Control
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/user-group.svg" width="18" height="18" align="center" /> 9. Administration — Users, Profile & Activity Log
+- **User management** (admin-only): add/edit/deactivate accounts; soft delete blocks self-deactivation and the last active administrator; deactivated users cannot log in.
+- **My Profile** (all roles): change display name and password, current password re-verified before any change is saved.
+- **Activity Log** (admin-only): paginated audit trail of every create/update/delete across the system, filterable by user and record type, backed by the `activity_log` table.
+
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/lock-closed.svg" width="18" height="18" align="center" /> 10. Authentication & Access Control
 - Session-based login with `password_hash` / `password_verify` (bcrypt).
 - Role-Based Access Control:
-  - **Administrator** — full CRUD, record deletion, and Settings (lookup management).
-  - **Staff** — data entry, viewing, updating, and reports (no deletes, no Settings).
-- Role checks enforced **server-side** on every delete endpoint and the Settings module.
+  - **Administrator** — full CRUD, record deletion, Settings, Users, and the Activity Log.
+  - **Staff** — data entry, viewing, updating, and reports (no deletes, no Settings/Users/Activity Log).
+- Role checks enforced **server-side** on every delete endpoint and every admin-only module.
 
-### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/shield-check.svg" width="18" height="18" align="center" /> 10. Data Integrity & Safety
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/shield-check.svg" width="18" height="18" align="center" /> 11. Data Integrity & Safety
 - **Soft delete everywhere** — no `DELETE` statement exists in the codebase; deleting sets `is_deleted = TRUE`.
 - Styled confirmation **modal** before every deletion (spec: Confirmation Before Deletion).
 - Referential integrity: deletion is blocked while active child records exist (farmer→farms, farm→plantings, crop→plantings, planting→harvests, lookup→records using it) with a friendly message.
-- Prepared statements on all queries; `htmlspecialchars()` on all output.
+- Prepared statements on all queries; `htmlspecialchars()` on all output; CSV exports escape formula-injection characters.
+
+### <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/device-phone-mobile.svg" width="18" height="18" align="center" /> 12. Interface & Interaction Layer
+- **Responsive app shell:** fixed desktop sidebar with a gooey liquid active-item indicator; mobile gets a gooey bottom navigation bar (goo-filtered active-tab bump) plus swipe-to-dismiss bottom sheets for Records (app-launcher icon grid) and Menu.
+- **No-reload navigation:** list sorting, filtering, search, pagination, and record edits update in place via background fetch; app-wide PJAX swaps the main content on internal link clicks so the shell never flashes or reloads; a slim top progress bar (NProgress) and View Transitions smooth any remaining full loads.
+- **Mobile-first data tables:** every list renders as scrollable cards on small screens and a sortable, paginated table on desktop, sharing one search/filter/sort toolbar.
+- **Custom form controls:** every `<select>` is replaced by a styled dropdown panel; dropdowns with more than 10 options automatically become a search combobox; both cap at ~8 visible rows with the rest scrolling.
+- **Context-aware empty states:** "no matches for your search/filter" (with a clear-filters link) is distinguished from "no records exist yet" (with an add-first-record action) everywhere.
+- A soft pastel background wash, slide-in/pop-in motion on every modal and toast, and context-sensitive toasts complete the interface — all built with vanilla CSS/JS, respecting `prefers-reduced-motion`.
 
 ---
 
-## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/circle-stack.svg" width="22" height="22" align="center" /> Database Normalization (UNF → 3NF, 13 Tables)
+## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/circle-stack.svg" width="22" height="22" align="center" /> Database Normalization (UNF → 3NF, 13 Domain Tables)
+
+> **Note on table count:** the normalization exercise below covers the **13 domain tables** (6 core entities + 7 lookups) per the course requirement. The schema additionally includes one supplementary **system table**, `activity_log` (14 tables total in `database/schema.sql`) — an append-only audit trail of create/update/delete actions. It is intentionally outside the normalization scope: it has no predefined-value fields to extract into lookups and exists purely to satisfy the system's audit/administration features.
 
 ```
 [ Unnormalized Form (UNF) ]
@@ -257,7 +279,21 @@ erDiagram
         string remark_description
         boolean is_deleted
     }
+
+    USERS ||--o{ ACTIVITY_LOG : performs
+
+    ACTIVITY_LOG {
+        int log_id PK
+        int user_id FK
+        string action
+        string entity
+        int entity_id
+        string details
+        timestamp created_at
+    }
 ```
+
+> `activity_log` (shown above) is the supplementary 14th system table — see the note at the top of this section.
 
 ---
 
@@ -269,39 +305,52 @@ php-project-agriculture/
 │   ├── Database.php              # PDO connection (local defaults + env-var override) - gitignored
 │   └── Database.example.php      # Committed credentials template
 ├── database/
-│   └── schema.sql                # Full 13-table schema + seed data (run in SQL editor)
+│   └── schema.sql                # 14-table schema (13 domain + activity_log) + seed data
 ├── models/
-│   ├── Farmer.php                # Farmer OOP model (soft delete + active-farm check)
-│   ├── Farm.php                  # Farm model (lookup JOINs)
-│   ├── Crop.php                  # Crop model (lookup JOINs)
+│   ├── Farmer.php                # Farmer OOP model (soft delete, search, pagination)
+│   ├── Farm.php                  # Farm model (lookup JOINs, search, pagination)
+│   ├── Crop.php                  # Crop model (lookup JOINs, search, pagination)
 │   ├── Planting.php              # Planting model (multi-table JOINs, status by name)
 │   ├── Harvest.php               # Harvest model (grade + remark JOINs)
 │   ├── Lookup.php                # Generic whitelisted model for all 7 lookup tables
-│   └── User.php                  # Authentication model
+│   └── User.php                  # Authentication + user management model
 ├── includes/
-│   ├── header.php                # Tailwind CDN, white-theme navbar, role-aware nav
-│   ├── footer.php                # Footer + closing tags
+│   ├── header.php                # App shell: sidebar, topbar, mobile bottom nav, component CSS/JS
+│   ├── footer.php                # PJAX engine, custom dropdown enhancer, closing tags
 │   ├── auth_check.php            # Session guard (redirects to login)
-│   ├── alert.php                 # Success / error banner snippet
-│   └── confirm_modal.php         # Styled delete-confirmation modal
-├── farmers/                      # index, create, edit, delete (soft)
-├── farms/                        # index, create, edit, delete (soft)
-├── crops/                        # index, create, edit, delete (soft)
-├── plantings/                    # index (status filter), create, edit, delete (soft)
-├── harvests/                     # index (revenue column), create, edit, delete (soft)
+│   ├── alert.php                 # Toast notification snippet (PJAX-safe init)
+│   ├── confirm_modal.php         # Styled delete-confirmation modal
+│   ├── sidecard.php              # Shared slide-over/slider: details card, list loader, edit-save
+│   ├── table_helpers.php         # Pagination, whitelisted sorting, sortable headers
+│   ├── report_helpers.php        # CSV export (formula-injection safe), print header, summary strip
+│   ├── activity_log.php          # logActivity() audit-trail helper
+│   └── form_response.php         # JSON vs. redirect response helper for edit-slider saves
+├── farmers/                      # index (search/sort/paginate), create, edit, delete (soft)
+├── farms/                        # index (search/filter/sort/paginate), create, edit, delete (soft)
+├── crops/                        # index (search/filter/sort/paginate), create, edit, delete (soft)
+├── plantings/                    # index (search/status filter/sort/paginate), create, edit, delete (soft)
+├── harvests/                     # index (search/grade filter/sort/paginate), create, edit, delete (soft)
+├── users/                        # Admin-only: index, create, edit, delete (soft), activity.php (audit log)
 ├── settings/                     # Admin-only lookup table management (index, edit, delete)
 ├── reports/
-│   ├── index.php                 # Report hub
+│   ├── index.php                 # Analytics overview (KPIs, charts) + links to the 7 detail reports
 │   ├── farmers_farms.php         # Farmers & farm ownership
 │   ├── crop_production.php       # Crop production per farm
 │   ├── planting_status.php       # Planting cycle status
-│   └── harvest_revenue.php       # Harvest yield & revenue (date range + totals)
+│   ├── harvest_revenue.php       # Harvest yield & revenue (date range + totals + CSV)
+│   ├── farmer_profitability.php  # Revenue and volume per farmer
+│   ├── seasonal_performance.php  # Plantings/yield/revenue per season
+│   └── yield_efficiency.php      # kg harvested per hectare per crop
 ├── auth/
-│   ├── login.php                 # Tailwind login card
-│   └── logout.php                # Session destroy
-├── index.php                     # Dashboard (summary cards + recent activity)
+│   ├── login.php                 # Animated sign-in card (split rainbow background, floating labels)
+│   ├── logout.php                # Session destroy
+│   └── profile.php               # Change own name / password
+├── index.php                     # Dashboard v2 (date-range KPIs, trend charts, upcoming harvests)
+├── search.php                    # Global live search (farmers/farms/crops) + topbar dropdown endpoint
 ├── CODING_STANDARDS.md           # Teacher's coding conventions
 ├── DEVELOPMENT_PHASES.md         # Module-by-module build roadmap
+├── PROJECT_STATUS.md             # Session continuity log — current project state, pending work
+├── UI_STYLE_GUIDE.md             # White-theme UI rules
 ├── README.md                     # This file
 └── .gitignore                    # Protects real database credentials
 ```
@@ -313,10 +362,13 @@ php-project-agriculture/
 | Component | Technology | Description |
 | :--- | :--- | :--- |
 | **Language** | PHP 8.1+ | Server-side logic with PDO (PHP Data Objects) |
-| **Database** | PostgreSQL (local / Supabase) | 13-table 3NF relational schema |
+| **Database** | PostgreSQL (local / Supabase) | 13-table 3NF domain schema + 1 supplementary audit table |
 | **Styling** | Tailwind CSS (CDN) | White-theme, utility-first responsive UI |
 | **Icons** | Heroicons (Tailwind Labs) | Inline SVG icon system |
-| **Architecture** | Modular Native PHP + OOP Models | Database → Models → Module pages, no frameworks |
+| **Charts** | Chart.js 4 (CDN, SRI-pinned) | Dashboard and analytics-overview charts |
+| **Progress** | NProgress (CDN, SRI-pinned) | Slim top loading bar for navigations and background fetches |
+| **Interactivity** | Vanilla JavaScript | Custom dropdowns/comboboxes, PJAX navigation, slide-over sliders, mobile gooey nav — no JS framework |
+| **Architecture** | Modular Native PHP + OOP Models | Database → Models → Module pages, no frameworks, no Composer |
 
 ---
 
@@ -329,7 +381,7 @@ cd php-project-agriculture
 ```
 
 ### 2. Create the Database
-Run `database/schema.sql` in your PostgreSQL client (pgAdmin / psql) or the Supabase SQL Editor. It creates all 13 tables with constraints and seeds the lookups, sample records, and two user accounts.
+Run `database/schema.sql` in your PostgreSQL client (pgAdmin / psql) or the Supabase SQL Editor. It creates all 14 tables (13 domain tables + `activity_log`) with constraints and seeds the lookups, sample records, and two user accounts. The script is safe to re-run — it drops and recreates everything.
 
 ### 3. Configure the Connection
 Copy the template and fill in your credentials (the real file is gitignored):

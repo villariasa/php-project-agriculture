@@ -40,9 +40,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta charset="UTF-8">
     <title>Login | Agriculture Information System</title>
     <!-- Tab Favicon -->
-    <link rel="icon" type="image/png" href="../assets/image-cutout.png">
+    <link rel="icon" type="image/png" href="../assets/tab-icon.png">
     <link rel="shortcut icon" href="../favicon.ico">
-    <link rel="apple-touch-icon" href="../assets/image-cutout.png">
+    <link rel="apple-touch-icon" href="../assets/tab-icon.png">
 
     <!-- Tailwind Play CDN serves dynamic JS, so SRI hashes are not supported; required per class standard -->
     <script src="https://cdn.tailwindcss.com"></script>

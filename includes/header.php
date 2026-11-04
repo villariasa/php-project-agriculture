@@ -56,9 +56,9 @@ if ($is_admin) {
     <meta charset="UTF-8">
     <title><?= htmlspecialchars($page_title ?? "AIS") ?> | Agriculture Information System</title>
     <!-- Tab Favicon -->
-    <link rel="icon" type="image/png" href="<?= $app_root ?>assets/image-cutout.png">
+    <link rel="icon" type="image/png" href="<?= $app_root ?>assets/tab-icon.png">
     <link rel="shortcut icon" href="<?= $app_root ?>favicon.ico">
-    <link rel="apple-touch-icon" href="<?= $app_root ?>assets/image-cutout.png">
+    <link rel="apple-touch-icon" href="<?= $app_root ?>assets/tab-icon.png">
 
     <!-- Tailwind Play CDN serves dynamic JS, so SRI hashes are not supported; required per class standard -->
     <script src="https://cdn.tailwindcss.com"></script>
