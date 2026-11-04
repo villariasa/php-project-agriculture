@@ -290,10 +290,13 @@ function closeSideCards() {
         }
     });
 }
-document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") { closeSideCards(); }
-});
-document.addEventListener("DOMContentLoaded", function () {
+if (!window.__aisEscBound) {
+    window.__aisEscBound = true;
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { closeSideCards(); }
+    });
+}
+function initUsersPage() {
     var params = new URLSearchParams(window.location.search);
     if (params.get("add") === "1") {
         openAddCard();
@@ -303,7 +306,8 @@ document.addEventListener("DOMContentLoaded", function () {
 
     // Edit slider saves via fetch: toast + background panel refresh, no reload
     var editCard = document.getElementById("edit-card");
-    if (editCard) {
+    if (editCard && !editCard.dataset.bound) {
+        editCard.dataset.bound = "1";
         var editForm = editCard.querySelector("form");
         editForm.addEventListener("submit", function (event) {
             event.preventDefault();
@@ -332,7 +336,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(function () { editForm.submit(); }); // classic redirect fallback
         });
     }
-});
+}
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initUsersPage);
+} else {
+    initUsersPage(); // PJAX swap: document already loaded
+}
 </script>
 
 <?php require "../includes/confirm_modal.php"; ?>

@@ -138,11 +138,14 @@ function openAddCard() {
     }
 }
 
-document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") {
-        closeSideCards();
-    }
-});
+if (!window.__aisEscBound) {
+    window.__aisEscBound = true;
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") {
+            closeSideCards();
+        }
+    });
+}
 
 // ---------- Dynamic list: sort, paginate, filter, and save WITHOUT reloads ----------
 // Fetches the same page in the background and swaps the server-rendered
@@ -191,7 +194,9 @@ function submitToolbar(form) {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
+// Per-page init: binds to the CURRENT page's elements. Re-run after every
+// PJAX swap (this script lives inside <main>, so it re-executes on swap).
+function initListPage() {
     // Re-open the Add card after a create.php validation redirect (?add=1),
     // or the prefilled Edit card when ?edit=<id> is present (deep link).
     var params = new URLSearchParams(window.location.search);
@@ -201,18 +206,10 @@ document.addEventListener("DOMContentLoaded", function () {
         openEditCard();
     }
 
-    // Sort headers + pagination links inside the records panel
-    document.addEventListener("click", function (event) {
-        var link = event.target.closest("#records-panel a[href^='?']");
-        if (link) {
-            event.preventDefault();
-            loadRecords(link.getAttribute("href"));
-        }
-    });
-
     // Filter toolbar (search / filter select / sort select)
     var toolbar = document.getElementById("filter-toolbar");
-    if (toolbar) {
+    if (toolbar && !toolbar.dataset.bound) {
+        toolbar.dataset.bound = "1";
         toolbar.addEventListener("submit", function (event) {
             event.preventDefault();
             var query = new URLSearchParams(new FormData(toolbar));
@@ -220,14 +217,10 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    // Back/forward buttons re-render the panel for that URL
-    window.addEventListener("popstate", function () {
-        loadRecords(window.location.href, "silent");
-    });
-
     // Edit slider saves via fetch: toast + background panel refresh, no reload
     var editCard = document.getElementById("edit-card");
-    if (editCard) {
+    if (editCard && !editCard.dataset.bound) {
+        editCard.dataset.bound = "1";
         var editForm = editCard.querySelector("form");
         editForm.addEventListener("submit", function (event) {
             event.preventDefault();
@@ -251,5 +244,34 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(function () { editForm.submit(); }); // classic redirect fallback
         });
     }
-});
+}
+
+// Document-level listeners: bound exactly once per real page load
+if (!window.__aisListGlobals) {
+    window.__aisListGlobals = true;
+
+    // Sort headers + pagination links inside the records panel
+    document.addEventListener("click", function (event) {
+        var link = event.target.closest("#records-panel a[href^='?']");
+        if (link) {
+            event.preventDefault();
+            loadRecords(link.getAttribute("href"));
+        }
+    });
+
+    // Back/forward: PJAX the whole page when available, else re-render the panel
+    window.addEventListener("popstate", function () {
+        if (window.pjaxNavigate) {
+            pjaxNavigate(window.location.href, false);
+        } else {
+            loadRecords(window.location.href, "silent");
+        }
+    });
+}
+
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initListPage);
+} else {
+    initListPage(); // PJAX swap: document is already loaded
+}
 </script>

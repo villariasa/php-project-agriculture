@@ -1,6 +1,114 @@
 </main>
 
 <script>
+// ---------- PJAX navigation ----------
+// Internal links swap <main> (and the nav shells) in place instead of
+// reloading the page: the sidebar, topbar, and bottom nav never flash.
+// Any failure falls back to a normal navigation.
+(function () {
+    var pjaxBusy = false;
+
+    // Re-run the swapped page's scripts STRICTLY in order: an external lib
+    // (e.g. Chart.js) fully loads before the next inline script executes.
+    // Already-loaded libs are skipped. Never throws into the caller.
+    function executeScripts(container) {
+        var scripts = Array.prototype.slice.call(container.querySelectorAll("script"));
+        return scripts.reduce(function (chain, old) {
+            return chain.then(function () {
+                return new Promise(function (resolve) {
+                    try {
+                        if (old.src) {
+                            var already = Array.prototype.some.call(document.scripts, function (s) {
+                                return s.src === old.src && s !== old;
+                            });
+                            if (already) { old.remove(); resolve(); return; }
+                            var lib = document.createElement("script");
+                            lib.src = old.src;
+                            if (old.integrity)  { lib.integrity  = old.integrity; }
+                            if (old.crossOrigin) { lib.crossOrigin = old.crossOrigin; }
+                            lib.onload  = function () { resolve(); };
+                            lib.onerror = function () { resolve(); };
+                            old.replaceWith(lib);
+                        } else {
+                            var inline = document.createElement("script");
+                            inline.textContent = old.textContent;
+                            old.replaceWith(inline); // runs now; its errors go to window, not here
+                            resolve();
+                        }
+                    } catch (e) {
+                        resolve(); // never let one script kill the navigation
+                    }
+                });
+            });
+        }, Promise.resolve());
+    }
+
+    window.pjaxNavigate = function (url, push) {
+        if (pjaxBusy) { return; }
+        pjaxBusy = true;
+        if (window.NProgress) { NProgress.start(); }
+        fetch(url, { headers: { "X-Requested-With": "pjax" } })
+            .then(function (response) {
+                if (!response.ok) { throw new Error("bad response"); }
+                return response.text();
+            })
+            .then(function (html) {
+                var doc     = new DOMParser().parseFromString(html, "text/html");
+                var newMain = doc.querySelector("main");
+                var curMain = document.querySelector("main");
+                if (!newMain || !curMain) { window.location.href = url; return; }
+
+                // Commit URL + title first so nothing can desync them
+                if (push !== false) { window.history.pushState({ pjax: true }, "", url); }
+                document.title = doc.title;
+
+                // Swap the page content + every shell piece whose state is per-page
+                curMain.innerHTML = newMain.innerHTML;
+                ["sidebar-nav", "breadcrumbs", "bottom-nav", "records-sheet", "menu-sheet"].forEach(function (id) {
+                    var cur   = document.getElementById(id);
+                    var fresh = doc.getElementById(id);
+                    if (cur && fresh) { cur.innerHTML = fresh.innerHTML; }
+                });
+                window.scrollTo({ top: 0 });
+
+                return executeScripts(curMain); // charts/list init, in order
+            })
+            .then(function () {
+                pjaxBusy = false;
+                if (window.NProgress) { NProgress.done(); }
+            })
+            .catch(function () {
+                pjaxBusy = false;
+                window.location.href = url; // full-load fallback, never strand
+            });
+    };
+
+    document.addEventListener("click", function (event) {
+        if (event.defaultPrevented) { return; }
+        var link = event.target.closest("a[href]");
+        if (!link) { return; }
+        if (link.target === "_blank" || link.hasAttribute("download") || link.hasAttribute("data-no-pjax")) { return; }
+
+        var href = link.getAttribute("href");
+        if (!href || href.charAt(0) === "#" || href.indexOf("mailto:") === 0) { return; }
+
+        var url = new URL(link.href, window.location.href);
+        if (url.origin !== window.location.origin) { return; }
+        if (url.pathname.indexOf("/auth/") !== -1) { return; }          // login/logout: real navigation
+        if (url.search.indexOf("export=csv") !== -1) { return; }        // downloads
+        if (link.closest("#records-panel")) { return; }                 // panel loader handles these
+
+        event.preventDefault();
+        closeSheetsSafely();
+        pjaxNavigate(url.href);
+    });
+
+    function closeSheetsSafely() {
+        if (typeof closeSheets === "function") { closeSheets(); }
+        if (typeof closeSideCards === "function") { closeSideCards(); }
+    }
+})();
+
 // ---------- Custom dropdowns ----------
 // Replaces every native <select> with a styled trigger + options panel.
 // The real <select> stays hidden in the form, so values submit normally,

@@ -11,7 +11,18 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### Toolbar search width capped (2026-11-04, latest) — user: search pill too long
+### PJAX stability fix (2026-11-04, latest) — user: breaks after reports→search→dashboard→search
+- Root cause: swapped inline scripts executed immediately while `src` scripts (Chart.js) loaded async → chart init ran before the lib on PJAX entry to dashboard/reports → navigation chain died mid-way (stuck NProgress, desynced URL, dead next click / full-reload fallback).
+- Fix: `executeScripts()` rewritten as a **sequential promise chain** — an external lib fully `onload`s before the next inline script runs; already-loaded libs (same src) are skipped; per-script try/resolve so no script can kill navigation. `pushState` + title now committed BEFORE the swap (URL can never desync); `pjaxBusy` in-flight guard blocks double-clicks; NProgress.done guaranteed in both success and catch paths. Footer JS syntax-checked.
+
+### No-reload navigation stack (2026-11-04) — user wanted "all three"
+- **View Transitions:** `@view-transition { navigation: auto; }` in header + login (.22s root cross-fade) — any remaining full load cross-fades instead of flashing (supported browsers; others load normally).
+- **App-wide PJAX** (engine in footer.php, persists outside `<main>`): internal link clicks fetch the target page and swap `<main>` + title + `#sidebar-nav` + `#breadcrumbs` + `#bottom-nav` + both sheets (active states stay correct); swapped inline scripts re-executed in order (`async=false`, so Chart.js loads before its init). Skipped: `/auth/` links, CSV exports, `target=_blank`/`download`/`data-no-pjax`, records-panel links (panel loader owns those). Failures fall back to real navigation; popstate PJAXes.
+- **PJAX-safe inits:** sidecard/users/settings/alert scripts converted from `DOMContentLoaded` to readyState-checked init functions (re-run after swaps); document/window-level listeners one-time-guarded (`__aisListGlobals`, `__aisEscBound`); element bindings guarded via `data-bound`; gooey-blob tap handler made delegated; select enhancer already observer-driven.
+- **Once-per-session entrance animations:** `sessionStorage` "ais-visited" flag adds `.revisit` to `<html>` on later full loads, disabling chip-pop/blob-rise/indicator replays.
+- **Smoke test:** click through sidebar/bottom-nav — NO page flash, sidebar never repaints, active states + gooey blob update, Back/Forward work; dashboard + analytics charts render after PJAX-ing into them (watch console); sort/filter/edit still fine after several navigations (no duplicate handlers: one toast per action); logout/login still normal navigations with a cross-fade.
+
+### Toolbar search width capped (2026-11-04) — user: search pill too long
 - All 5 module toolbars: search pill is now a fixed compact `w-72` (18rem) on md+ instead of stretching `flex-1` across the page; still full-width on mobile. Filter + sort pills sit right beside it, matching the sample.png proportions.
 
 ### Gooey bottom nav + active-tab fixes (2026-11-04, latest)

@@ -211,17 +211,21 @@ function openEditCard(id, name) {
     showSideCard(document.getElementById("edit-card"));
     nameField.focus();
 }
-document.addEventListener("keydown", function (event) {
-    if (event.key === "Escape") { closeSideCards(); }
-});
-document.addEventListener("DOMContentLoaded", function () {
+if (!window.__aisEscBound) {
+    window.__aisEscBound = true;
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { closeSideCards(); }
+    });
+}
+function initSettingsPage() {
     if (new URLSearchParams(window.location.search).get("add") === "1") {
         openAddCard();
     }
 
     // Edit slider saves via fetch: toast + background list refresh, no reload
     var editForm = document.querySelector("#edit-card form");
-    if (editForm) {
+    if (editForm && !editForm.dataset.bound) {
+        editForm.dataset.bound = "1";
         editForm.addEventListener("submit", function (event) {
             event.preventDefault();
             fetch(editForm.action, {
@@ -246,7 +250,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(function () { editForm.submit(); }); // classic redirect fallback
         });
     }
-});
+}
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initSettingsPage);
+} else {
+    initSettingsPage(); // PJAX swap: document already loaded
+}
 </script>
 
 <?php require "../includes/confirm_modal.php"; ?>

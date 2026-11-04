@@ -90,6 +90,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         input { transition: border-color .15s ease, box-shadow .15s ease; }
 
+        /* Cross-document View Transitions: page loads cross-fade (supported browsers) */
+        @view-transition { navigation: auto; }
+
         /* Soft pastel "rainbow" glow over a near-white canvas (per reference) */
         body {
             background:

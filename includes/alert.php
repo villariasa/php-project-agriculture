@@ -52,13 +52,20 @@ function showToast(message, type) {
 
 <?php if ($toast_success !== "" || $toast_error !== ""): ?>
 <script>
-document.addEventListener("DOMContentLoaded", function () {
-    <?php if ($toast_success !== ""): ?>
-    showToast(<?= json_encode($toast_success) ?>, "success");
-    <?php endif; ?>
-    <?php if ($toast_error !== ""): ?>
-    showToast(<?= json_encode($toast_error) ?>, "error");
-    <?php endif; ?>
-});
+(function () {
+    function fireToasts() {
+        <?php if ($toast_success !== ""): ?>
+        showToast(<?= json_encode($toast_success) ?>, "success");
+        <?php endif; ?>
+        <?php if ($toast_error !== ""): ?>
+        showToast(<?= json_encode($toast_error) ?>, "error");
+        <?php endif; ?>
+    }
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", fireToasts);
+    } else {
+        fireToasts(); // PJAX swap: document already loaded
+    }
+})();
 </script>
 <?php endif; ?>

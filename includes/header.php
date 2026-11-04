@@ -70,6 +70,12 @@ if ($is_admin) {
             // Full page navigations (nav links, form posts, logout, ...)
             window.addEventListener("beforeunload", function () { NProgress.start(); });
         }
+        // Entrance animations only on the session's first load
+        if (sessionStorage.getItem("ais-visited")) {
+            document.documentElement.classList.add("revisit");
+        } else {
+            sessionStorage.setItem("ais-visited", "1");
+        }
     </script>
     <script>
         tailwind.config = {
@@ -192,6 +198,14 @@ if ($is_admin) {
         /* Brand-colored text selection */
         ::selection { background: #bbf7d0; }
 
+        /* Cross-document View Transitions: full page loads cross-fade instead
+           of white-flashing (supported browsers only; others just load). */
+        @view-transition { navigation: auto; }
+        ::view-transition-old(root), ::view-transition-new(root) { animation-duration: .22s; }
+
+        /* Entrance animations only play on the first load of a session */
+        .revisit .chip-pop, .revisit #goo-blob, .revisit .tab-indicator { animation: none; }
+
         /* Soft pastel "rainbow" glow over a near-white canvas (same as login).
            Fixed attachment keeps the glow steady while the page scrolls. */
         body {
@@ -238,7 +252,7 @@ if ($is_admin) {
         </a>
 
         <!-- Nav -->
-        <nav class="flex-1 overflow-y-auto px-3 py-4 space-y-5">
+        <nav id="sidebar-nav" class="flex-1 overflow-y-auto px-3 py-4 space-y-5">
             <?php foreach ($nav_sections as $section => $links): ?>
                 <div>
                     <p class="px-3 mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-gray-400"><?= $section ?></p>
@@ -294,7 +308,7 @@ if ($is_admin) {
                 </a>
 
                 <!-- Breadcrumbs -->
-                <nav class="flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
+                <nav id="breadcrumbs" class="flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
                     <a href="<?= $base ?>index.php" class="text-gray-400 hover:text-gray-600 shrink-0" title="Dashboard">
                         <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
@@ -486,7 +500,7 @@ $bottom_item_off = "text-gray-500";
         </svg>
 
         <!-- Mobile bottom navigation bar (gooey) -->
-        <nav class="fixed inset-x-0 bottom-0 z-30 lg:hidden print:hidden"
+        <nav id="bottom-nav" class="fixed inset-x-0 bottom-0 z-30 lg:hidden print:hidden"
              style="padding-bottom: env(safe-area-inset-bottom)">
             <!-- Goo layer: the white bar + a blob under the active tab melt together -->
             <div class="goo-layer absolute inset-0 pointer-events-none" aria-hidden="true">
@@ -608,14 +622,15 @@ $bottom_item_off = "text-gray-500";
                 if (event.key === "Escape") { closeSheets(); }
             });
 
-            // Gooey blob stretches toward the tapped tab before the page changes
-            document.querySelectorAll("[data-goo]").forEach(function (tab) {
-                tab.addEventListener("click", function () {
-                    var blob = document.getElementById("goo-blob");
-                    if (blob) {
-                        blob.style.left = "calc(" + tab.dataset.goo + " * 20% + 10% - 2.25rem)";
-                    }
-                });
+            // Gooey blob stretches toward the tapped tab (delegated so it
+            // survives PJAX swaps of the bottom nav)
+            document.addEventListener("click", function (event) {
+                var tab = event.target.closest("[data-goo]");
+                if (!tab) { return; }
+                var blob = document.getElementById("goo-blob");
+                if (blob) {
+                    blob.style.left = "calc(" + tab.dataset.goo + " * 20% + 10% - 2.25rem)";
+                }
             });
         </script>
 
