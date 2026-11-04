@@ -54,6 +54,7 @@ if ($is_admin) {
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($page_title ?? "AIS") ?> | Agriculture Information System</title>
     <!-- Tab Favicon -->
     <link rel="icon" type="image/png" href="<?= $app_root ?>assets/tab-icon.png">

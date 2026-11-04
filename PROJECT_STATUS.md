@@ -11,6 +11,11 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
+### CRITICAL FIX: missing viewport meta tag (2026-11-04, latest) — mobile was rendering as zoomed-out desktop
+- Root cause of the user's "mobile looks like desktop, tiny letters, zoomed out" report: `<meta name="viewport" content="width=device-width, initial-scale=1.0">` was missing from BOTH `includes/header.php` and `auth/login.php`'s `<head>` — likely dropped during an earlier `<head>` edit (favicon tags were added around the same region). Without it, phone browsers render the page at a ~980px desktop viewport and scale the whole thing down to fit, which is exactly this symptom: all the mobile-only CSS (bottom nav, card lists, etc.) technically applies, but at desktop-viewport breakpoints it doesn't activate, AND everything looks tiny/zoomed because the browser is faking a desktop screen.
+- **Fixed:** re-added the viewport tag to both files, right after `<meta charset>`. This is a full-page-load-only concern — PJAX never touches `<head>`, so the fix takes effect on next login/hard refresh for the whole session.
+- **User action needed: hard-refresh the page on the phone** (or close/reopen the browser tab) — the broken viewport was cached in the already-loaded page; the fix only applies on a fresh document load.
+
 ### REVERTED: sidebar gooey rewrite (2026-11-04) — misread the request, broke the expanded sidebar
 - User's ask ("apply the gooey effect when the sidenav is hidden") meant: on mobile, where the sidebar is hidden and the bottom nav takes over — confirm/ensure THAT already has the gooey effect (it does, from the earlier "Gooey bottom nav" work). It was NOT a request to redesign the desktop sidebar's indicator.
 - I misread it as "when the desktop sidebar is collapsed" and did a full rewrite (single bottom-nav-style blob, row-reverse active rows, icon riding in a raised circle, removed `#app-sidebar`'s `overflow:hidden`) — this broke the normal EXPANDED sidebar, which the user had never complained about.
