@@ -11,7 +11,38 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### No-reload everything + top-center toasts (2026-11-04, latest) — user complaints: update/sort/filter reloads
+### NProgress top loading bar (2026-11-04, latest) — user-supplied snippet applied app-wide
+- NProgress 0.2.0 (cdnjs, **SRI sha384 hashes computed from the actual files** + crossorigin) added to `includes/header.php` and `auth/login.php`; bar restyled green `#22a447`, 3px, spinner disabled.
+- Triggers: `beforeunload` → every full navigation (nav links, create/delete posts, logout, login); plus explicit start/done around `loadRecords()` (sort/filter/pagination/panel refresh) and the edit-slider fetch save in sidecard.php. All calls guarded with `if (window.NProgress)` so a blocked CDN degrades silently.
+
+### Uniform table row limiting (2026-11-04) — every table bounded
+- **Modules + Activity:** already paginated at PER_PAGE=10 (unchanged).
+- **Users + Settings:** now paginated too — `array_slice` over the full list + the same `paginationBar()` (no model changes; settings keeps `?type=` in page links via `buildQuery`); header count uses the true total.
+- **All 7 detail reports:** table card is now a `max-h-[70vh]` scroll viewport with a **sticky header** — visible rows limited, rest scroll; `print:max-h-none print:overflow-visible` so printing/CSV still covers every row and tfoot totals stay correct.
+- Dashboard/analytics tables were already capped at top-5.
+
+### Login v3 (2026-11-04) — user not satisfied with v2; now immersive
+- Full-screen deep-green scene (`bg-green-950`): three blurred drifting blobs + faint field-line SVG at the bottom; **pointer parallax** — layers follow the mouse via CSS vars (`--px/--py`), disabled on reduced-motion.
+- Centered white card (`rounded-3xl shadow-2xl`) pops in; **logo badge drops in with overshoot bounce**, half-overlapping the card top; **time-based greeting** (Good morning/afternoon/evening, server time).
+- **Floating labels**: placeholders rise into small green uppercase labels on focus/filled (pure CSS, `:placeholder-shown`).
+- Carried over from v2: error shake, red banner, eye toggle, Caps Lock hint, spinner + "Signing in...", green focus icons, autocomplete attrs. Server logic unchanged.
+- Note: deliberately more decorative than UI_STYLE_GUIDE baseline at the user's explicit insistence (blur blobs ≈ soft glow); the inner app stays strictly clean-white.
+
+### Interactivity pass (2026-11-04) — user: "it's not interactive"
+- **Sliders actually slide** now: side cards animate in from the bottom (mobile) / right (desktop) with cubic-bezier easing; overlays fade in; the delete confirmation pops in (scale .95→1); toasts drop down from the top.
+- **Lists respond to actions:** during a sort/filter/pagination/save fetch the records panel dims (`.loading`), then settles in with a soft rise (`.swapped`, animation restarted via reflow). Table rows ease into hover tint; sidebar links nudge right on hover; clickable white tiles (KPIs, report cards, browse shortcuts) lift with a soft shadow on hover.
+- All new animations disabled under `prefers-reduced-motion`.
+
+### Component upgrade pass (2026-11-04) — no default browser controls
+- Global component stylesheet in `includes/header.php` `<style>` upgrades EVERY control app-wide with zero markup churn: selects lose the native arrow (custom gray chevron that turns green on focus, pointer cursor), inputs/selects get smooth focus/hover transitions + hover border, number fields lose default spinners, date-picker icons softened, all buttons get press-down feedback (`scale(.98)`), side cards/sheets get a slide transition, slim rounded custom scrollbars (WebKit), green text selection. `prefers-reduced-motion` disables transitions.
+
+### Login UI v2 (2026-11-04) — "give it life": animated split-screen sign-in
+- `auth/login.php` view fully rebuilt (server logic untouched): **split-screen** — green-800 brand panel (logo, "Track every harvest, from seed to sale", 3 real feature rows with icons) + white form panel; stacks on mobile with compact brand header.
+- **Motion (CSS keyframes, `prefers-reduced-motion` respected):** staggered fade-up entrance (brand → card → fields → button); error banner triggers a card **shake**; button has hover lift / active press; submit shows a **spinner + "Signing in..."** and disables the button.
+- **Micro-interactions:** leading user/lock icons turn green on focus; **show/hide password** eye toggle; **Caps Lock warning** under the password field; autocomplete attributes set.
+- Smoke test: load animation plays once; wrong password → shake + red banner; eye toggle; Caps Lock hint; submit spinner; mobile stacking; reduced-motion OS setting disables animations.
+
+### No-reload everything + top-center toasts (2026-11-04) — user complaints: update/sort/filter reloads
 - **Edit saves without reload:** new `includes/form_response.php` → `respondAndExit()`; all 7 `edit.php` handlers return JSON when called with the `X-Requested-With: fetch` header (classic redirect otherwise). The edit slider submits via `fetch()`: success → slider closes, success toast, list panel refreshed in the background; validation error → error toast, slider stays open with values. `.catch` falls back to the classic form post.
 - **Sort / pagination / filters without reload (PJAX-style):** module list containers got `id="records-panel"`, header counts `id="records-count"`, toolbars `id="filter-toolbar"`. `loadRecords()` in sidecard.php fetches the same URL and swaps the server-rendered panel + count in place, with pushState (Back/Forward re-render via popstate). Clicks on sort-header/pagination links inside the panel are intercepted; toolbar selects/clear now call `submitToolbar()` (`requestSubmit`) so the intercepted submit event fires. Users + settings pages have their own edit-save interceptors with panel refresh.
 - **Toasts moved to top-center** (`top-4 left-1/2 -translate-x-1/2`) on all screens per user request.

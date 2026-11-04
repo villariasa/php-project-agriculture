@@ -51,6 +51,26 @@ if ($is_admin) {
     <title><?= htmlspecialchars($page_title ?? "AIS") ?> | Agriculture Information System</title>
     <!-- Tailwind Play CDN serves dynamic JS, so SRI hashes are not supported; required per class standard -->
     <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- NProgress: slim top loading bar for navigations and background fetches -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css"
+          integrity="sha384-QUGa0w7S89w/V+840rnBtrQYyUEd1VHb88E0/8vc9FvgRy7b7wHlk8S+o0bNJcv0" crossorigin="anonymous">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"
+            integrity="sha384-WVrcwN/kiINFnwTi170GvMPVLHVBao1WfcXL/BZAK3VaUaaWX0OOsxMgCiFmrIb1" crossorigin="anonymous"></script>
+    <style>
+        #nprogress .bar {
+            background: #22a447 !important;
+            height: 3px !important;
+        }
+        #nprogress .peg { box-shadow: 0 0 10px #22a447, 0 0 5px #22a447 !important; }
+    </style>
+    <script>
+        if (window.NProgress) {
+            NProgress.configure({ showSpinner: false, trickleSpeed: 120 });
+            // Full page navigations (nav links, form posts, logout, ...)
+            window.addEventListener("beforeunload", function () { NProgress.start(); });
+        }
+    </script>
     <script>
         tailwind.config = {
             theme: {
@@ -60,6 +80,103 @@ if ($is_admin) {
             },
         };
     </script>
+    <style>
+        /* ---------- Upgraded form controls (replace the default browser look) ---------- */
+
+        /* Selects: no native arrow — custom chevron, consistent everywhere */
+        select {
+            appearance: none;
+            -webkit-appearance: none;
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/></svg>");
+            background-repeat: no-repeat;
+            background-position: right 0.7rem center;
+            background-size: 0.95rem 0.95rem;
+            padding-right: 2.3rem !important;
+            cursor: pointer;
+        }
+        select:focus {
+            background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2316a34a' stroke-width='2'><path stroke-linecap='round' stroke-linejoin='round' d='m19.5 8.25-7.5 7.5-7.5-7.5'/></svg>");
+        }
+
+        /* Inputs & selects: smooth focus/hover transitions, gentle hover border */
+        input, select, textarea {
+            transition: border-color .15s ease, box-shadow .15s ease, background-color .15s ease;
+        }
+        input:hover:not(:disabled):not(:focus),
+        select:hover:not(:disabled):not(:focus) {
+            border-color: #9ca3af;
+        }
+
+        /* Number fields: no default spinner buttons */
+        input[type="number"] { -moz-appearance: textfield; }
+        input[type="number"]::-webkit-outer-spin-button,
+        input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+
+        /* Date fields: softer picker icon */
+        input[type="date"]::-webkit-calendar-picker-indicator { opacity: .55; cursor: pointer; }
+        input[type="date"]::-webkit-calendar-picker-indicator:hover { opacity: 1; }
+
+        /* Buttons: subtle press feedback everywhere */
+        button, a { transition: background-color .15s ease, color .15s ease, border-color .15s ease, transform .12s ease, box-shadow .15s ease; }
+        button:active:not(:disabled) { transform: scale(.98); }
+
+        /* ---------- Interaction feedback ---------- */
+
+        @keyframes card-in-up    { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        @keyframes card-in-right { from { transform: translateX(100%); opacity: .6; } to { transform: translateX(0); opacity: 1; } }
+        @keyframes overlay-in    { from { opacity: 0; } to { opacity: 1; } }
+        @keyframes pop-in        { from { opacity: 0; transform: scale(.95); } to { opacity: 1; transform: scale(1); } }
+        @keyframes toast-in      { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes rows-in       { from { opacity: .35; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* Side cards slide in: from the bottom on mobile, from the right on md+ */
+        aside[id$="-card"].flex { animation: card-in-up .28s cubic-bezier(.2, .8, .3, 1); }
+        @media (min-width: 768px) {
+            aside[id$="-card"].flex { animation: card-in-right .25s cubic-bezier(.2, .8, .3, 1); }
+        }
+
+        /* Overlays fade in */
+        #sidecard-overlay:not(.hidden),
+        #sheet-overlay:not(.hidden) { animation: overlay-in .2s ease; }
+
+        /* Delete confirmation pops in */
+        #deleteModal:not(.hidden) > .relative { animation: pop-in .2s ease; }
+
+        /* Toasts drop in from the top */
+        #toast-stack > div { animation: toast-in .25s ease; }
+
+        /* Records panel: dim while fetching, settle in after a sort/filter/save */
+        #records-panel.loading { opacity: .45; pointer-events: none; transition: opacity .15s ease; }
+        #records-panel.swapped { animation: rows-in .25s ease; }
+
+        /* Table rows ease into their hover tint */
+        tbody tr { transition: background-color .15s ease; }
+
+        /* Sidebar nav nudges on hover */
+        #app-sidebar nav a:hover { transform: translateX(2px); }
+
+        /* Clickable white tiles (KPIs, report cards, browse shortcuts) lift on hover */
+        a.bg-white:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgb(0 0 0 / 0.06); }
+
+        /* Slim custom scrollbars (WebKit) */
+        ::-webkit-scrollbar { width: 8px; height: 8px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 9999px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+
+        /* Brand-colored text selection */
+        ::selection { background: #bbf7d0; }
+
+        @media (prefers-reduced-motion: reduce) {
+            input, select, textarea, button, a { transition: none; }
+            aside[id$="-card"].flex,
+            #sidecard-overlay:not(.hidden),
+            #sheet-overlay:not(.hidden),
+            #deleteModal:not(.hidden) > .relative,
+            #toast-stack > div,
+            #records-panel.swapped { animation: none; }
+        }
+    </style>
 </head>
 <body class="bg-gray-50 text-gray-800 min-h-screen">
 

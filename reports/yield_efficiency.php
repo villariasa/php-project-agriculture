@@ -110,9 +110,10 @@ require "../includes/header.php";
     "Overall Yield"   => number_format($overall_yield, 1) . " <span class='text-sm font-normal text-gray-500'>kg/ha</span>",
 ]); ?>
 
-<div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
+<!-- Row-limited viewport: extra rows scroll; print shows everything -->
+<div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto max-h-[70vh] overflow-y-auto print:max-h-none print:overflow-visible">
     <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide sticky top-0 z-10">
             <tr>
                 <th class="px-4 py-3 text-left">Crop</th>
                 <th class="px-4 py-3 text-left">Category</th>

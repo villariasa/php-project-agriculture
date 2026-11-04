@@ -146,6 +146,11 @@ document.addEventListener("keydown", function (event) {
 // records panel (and header count) in place. Falls back to normal navigation
 // when fetch fails.
 function loadRecords(url, mode) {
+    var panel = document.getElementById("records-panel");
+    if (panel) {
+        panel.classList.add("loading");
+    }
+    if (window.NProgress) { NProgress.start(); }
     fetch(url, { headers: { "X-Requested-With": "fetch" } })
         .then(function (response) { return response.text(); })
         .then(function (html) {
@@ -157,11 +162,18 @@ function loadRecords(url, mode) {
                     current.innerHTML = fresh.innerHTML;
                 }
             });
+            if (panel) {
+                panel.classList.remove("loading");
+                panel.classList.remove("swapped");
+                void panel.offsetWidth; // restart the settle-in animation
+                panel.classList.add("swapped");
+            }
             if (mode === "replace") {
                 window.history.replaceState(null, "", url);
             } else if (mode !== "silent") {
                 window.history.pushState(null, "", url);
             }
+            if (window.NProgress) { NProgress.done(); }
         })
         .catch(function () { window.location.href = url; });
 }
@@ -216,6 +228,7 @@ document.addEventListener("DOMContentLoaded", function () {
         var editForm = editCard.querySelector("form");
         editForm.addEventListener("submit", function (event) {
             event.preventDefault();
+            if (window.NProgress) { NProgress.start(); }
             fetch(editForm.action, {
                 method: "POST",
                 body: new FormData(editForm),
@@ -223,6 +236,7 @@ document.addEventListener("DOMContentLoaded", function () {
             })
             .then(function (response) { return response.json(); })
             .then(function (result) {
+                if (window.NProgress) { NProgress.done(); }
                 if (result.ok) {
                     closeSideCards();
                     var url = new URL(window.location.href);

@@ -2,6 +2,7 @@
 $base = "../";
 require_once "../includes/auth_check.php";
 require_once "../includes/activity_log.php";
+require_once "../includes/table_helpers.php";
 require_once "../config/Database.php";
 require_once "../models/Lookup.php";
 
@@ -35,7 +36,11 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     }
 }
 
-$rows = $lookup->getAll($type);
+// Uniform table pagination (same PER_PAGE as the record modules)
+$all_rows   = $lookup->getAll($type);
+$total_rows = count($all_rows);
+$page       = currentPage();
+$rows       = array_slice($all_rows, pageOffset($page), PER_PAGE);
 
 $page_title  = "Settings";
 $active      = "settings";
@@ -112,6 +117,7 @@ require "../includes/header.php";
                 <?php endforeach; ?>
             </tbody>
         </table>
+        <?php paginationBar($page, $total_rows); ?>
     </div>
 
     <p class="text-xs text-gray-400 mt-3">Values in use by active records cannot be deleted. Deleted values are hidden from dropdowns but kept for historical records.</p>

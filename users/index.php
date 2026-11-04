@@ -1,6 +1,7 @@
 <?php
 $base = "../";
 require_once "../includes/auth_check.php";
+require_once "../includes/table_helpers.php";
 require_once "../config/Database.php";
 require_once "../models/User.php";
 
@@ -12,7 +13,12 @@ if ($_SESSION['role'] !== 'admin') {
 
 $pdo       = (new Database())->connect();
 $userModel = new User($pdo);
-$users     = $userModel->getAll();
+
+// Uniform table pagination (same PER_PAGE as the record modules)
+$all_users  = $userModel->getAll();
+$total_rows = count($all_users);
+$page       = currentPage();
+$users      = array_slice($all_users, pageOffset($page), PER_PAGE);
 
 // Record being edited via the Edit slider (?edit=<id> prefills and auto-opens it)
 $edit_id     = (int) ($_GET["edit"] ?? 0);
@@ -28,7 +34,7 @@ require "../includes/header.php";
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
     <div>
         <h1 class="text-2xl font-bold">Users</h1>
-        <p class="text-sm text-gray-500"><?= count($users) ?> active user account(s)</p>
+        <p id="records-count" class="text-sm text-gray-500"><?= number_format($total_rows) ?> active user account(s)</p>
     </div>
     <button type="button" onclick="openAddCard()"
             class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2 self-start sm:self-auto print:hidden">
@@ -136,6 +142,8 @@ require "../includes/header.php";
         </div>
     <?php endforeach; ?>
 </div>
+
+    <?php paginationBar($page, $total_rows); ?>
 </div>
 </div>
 
