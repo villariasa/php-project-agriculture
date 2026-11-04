@@ -187,18 +187,18 @@ require "includes/header.php";
         <h1 class="text-2xl font-bold">Dashboard</h1>
         <p class="text-sm text-gray-500">Welcome back, <?= htmlspecialchars($_SESSION['full_name']) ?>!</p>
     </div>
-    <form method="GET" class="flex items-end gap-2 print:hidden">
-        <div>
+    <form method="GET" class="flex flex-wrap items-end gap-2 print:hidden">
+        <div class="flex-1 min-w-[8.5rem] sm:flex-none">
             <label class="block text-xs text-gray-500 mb-1">From</label>
             <input type="date" name="from" value="<?= htmlspecialchars($date_from) ?>"
-                   class="p-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                   class="w-full sm:w-auto px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-full shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
         </div>
-        <div>
+        <div class="flex-1 min-w-[8.5rem] sm:flex-none">
             <label class="block text-xs text-gray-500 mb-1">To</label>
             <input type="date" name="to" value="<?= htmlspecialchars($date_to) ?>"
-                   class="p-1.5 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                   class="w-full sm:w-auto px-3 py-1.5 text-sm bg-white border border-gray-300 rounded-full shadow-sm focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
         </div>
-        <button type="submit" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-1.5 rounded-lg text-sm">Apply</button>
+        <button type="submit" class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-1.5 rounded-full text-sm shadow-sm">Apply</button>
         <a href="index.php" class="text-sm text-gray-500 hover:text-gray-700 pb-2">Reset</a>
     </form>
 </div>
@@ -206,39 +206,40 @@ require "includes/header.php";
 <!-- KPI Strip -->
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">
 
-    <a href="reports/harvest_revenue.php" class="bg-white p-4 hover:bg-gray-50">
+    <!-- Hero metric: full width on phones so the peso amount has room -->
+    <a href="reports/harvest_revenue.php" class="bg-white p-4 hover:bg-gray-50 col-span-2 sm:col-span-1">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Revenue (this month)</p>
-        <p class="text-2xl font-bold">&#8369;<?= number_format((float) $month_kpis['revenue_this'], 2) ?></p>
+        <p class="text-xl sm:text-2xl font-bold">&#8369;<?= number_format((float) $month_kpis['revenue_this'], 2) ?></p>
         <?= trendLine($revenue_pct) ?>
     </a>
 
     <a href="harvests/index.php" class="bg-white p-4 hover:bg-gray-50">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Harvested (this month)</p>
-        <p class="text-2xl font-bold"><?= number_format((float) $month_kpis['kg_this'], 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
+        <p class="text-xl sm:text-2xl font-bold"><?= number_format((float) $month_kpis['kg_this'], 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
         <?= trendLine($kg_pct) ?>
     </a>
 
     <a href="reports/yield_efficiency.php" class="bg-white p-4 hover:bg-gray-50">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Avg Yield / Hectare</p>
-        <p class="text-2xl font-bold"><?= number_format($avg_yield_per_ha, 1) ?> <span class="text-sm font-normal text-gray-500">kg/ha</span></p>
+        <p class="text-xl sm:text-2xl font-bold"><?= number_format($avg_yield_per_ha, 1) ?> <span class="text-sm font-normal text-gray-500">kg/ha</span></p>
         <p class="text-xs text-gray-400 mt-1">within selected range</p>
     </a>
 
     <a href="plantings/index.php" class="bg-white p-4 hover:bg-gray-50">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Active Plantings</p>
-        <p class="text-2xl font-bold"><?= number_format($active_plantings) ?></p>
+        <p class="text-xl sm:text-2xl font-bold"><?= number_format($active_plantings) ?></p>
         <p class="text-xs text-gray-400 mt-1">planted or growing</p>
     </a>
 
     <a href="plantings/index.php" class="bg-white p-4 hover:bg-gray-50">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Harvest Due Soon</p>
-        <p class="text-2xl font-bold"><?= number_format($due_soon) ?></p>
+        <p class="text-xl sm:text-2xl font-bold"><?= number_format($due_soon) ?></p>
         <p class="text-xs text-gray-400 mt-1">expected within 14 days</p>
     </a>
 
     <a href="farmers/index.php" class="bg-white p-4 hover:bg-gray-50">
         <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Total Farmers</p>
-        <p class="text-2xl font-bold"><?= number_format($total_farmers) ?></p>
+        <p class="text-xl sm:text-2xl font-bold"><?= number_format($total_farmers) ?></p>
         <p class="text-xs text-gray-400 mt-1">active records</p>
     </a>
 
@@ -251,7 +252,7 @@ require "includes/header.php";
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Harvest Volume Chart -->
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="font-semibold">Harvest Volume</h2>
@@ -262,12 +263,12 @@ require "includes/header.php";
                 <?php if (count($monthly) === 0): ?>
                     <div class="border border-dashed border-gray-300 rounded-lg px-4 py-10 text-center text-sm text-gray-500">No harvest data in this range.</div>
                 <?php else: ?>
-                    <div class="relative h-64"><canvas id="volumeChart"></canvas></div>
+                    <div class="relative h-56 sm:h-64"><canvas id="volumeChart"></canvas></div>
                 <?php endif; ?>
             </div>
 
             <!-- Revenue Chart -->
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="font-semibold">Revenue</h2>
@@ -278,14 +279,14 @@ require "includes/header.php";
                 <?php if (count($monthly) === 0): ?>
                     <div class="border border-dashed border-gray-300 rounded-lg px-4 py-10 text-center text-sm text-gray-500">No revenue data in this range.</div>
                 <?php else: ?>
-                    <div class="relative h-64"><canvas id="revenueChart"></canvas></div>
+                    <div class="relative h-56 sm:h-64"><canvas id="revenueChart"></canvas></div>
                 <?php endif; ?>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
             <!-- Top Crops Chart -->
-            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+            <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
                 <div class="flex items-center justify-between mb-4">
                     <div>
                         <h2 class="font-semibold">Top Crops by Yield</h2>
@@ -296,7 +297,7 @@ require "includes/header.php";
                 <?php if (count($top_crops) === 0): ?>
                     <div class="border border-dashed border-gray-300 rounded-lg px-4 py-10 text-center text-sm text-gray-500">No harvest data in this range.</div>
                 <?php else: ?>
-                    <div class="relative h-56"><canvas id="cropsChart"></canvas></div>
+                    <div class="relative h-52 sm:h-56"><canvas id="cropsChart"></canvas></div>
                 <?php endif; ?>
             </div>
 
@@ -343,7 +344,7 @@ require "includes/header.php";
     <aside class="xl:w-96 shrink-0 space-y-6">
 
         <!-- Upcoming Harvests -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="font-semibold">Upcoming Harvests</h2>
                 <span class="text-xs text-gray-400">next 14 days</span>
@@ -365,7 +366,7 @@ require "includes/header.php";
         </div>
 
         <!-- Recent Plantings -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="font-semibold">Recent Plantings</h2>
                 <a href="plantings/index.php" class="text-sm text-green-700 hover:underline">View all &rarr;</a>
@@ -387,7 +388,7 @@ require "includes/header.php";
         </div>
 
         <!-- Recent Harvests -->
-        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-6">
+        <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 sm:p-6">
             <div class="flex items-center justify-between mb-4">
                 <h2 class="font-semibold">Recent Harvests</h2>
                 <a href="harvests/index.php" class="text-sm text-green-700 hover:underline">View all &rarr;</a>

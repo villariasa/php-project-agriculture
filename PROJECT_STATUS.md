@@ -11,7 +11,12 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### Rainbow background app-wide (2026-11-04, latest) — user request
+### Dashboard mobile layout polish (2026-11-04, latest)
+- Date-range filter wraps as full-width **pill inputs** on phones (matches toolbar style); Apply is a pill button.
+- KPI strip on mobile: **Revenue is a hero tile spanning both columns** (peso amount never clips), remaining 5 tiles in the 2-col grid with `text-xl` numbers (`sm:text-2xl` upward).
+- Density: all dashboard cards `p-4 sm:p-6`; chart heights stepped down one notch on phones (`h-56 sm:h-64`, crops `h-52 sm:h-56`).
+
+### Rainbow background app-wide (2026-11-04) — user request
 - The login's pastel radial "rainbow" wash now backs ALL app pages via `includes/header.php`: same four glows at slightly lower alpha (.14–.22) over `#fafafa`, `background-attachment: fixed` so it stays steady while scrolling; `bg-gray-50` removed from the body tag; `@media print` forces a plain white background so reports print clean. White sidebar/topbar/cards sit on top unchanged.
 
 ### Login restyle per sample.webp reference (2026-11-04, latest)
