@@ -65,9 +65,10 @@ if ($is_admin) {
 
 <div class="flex min-h-screen">
 
-    <!-- Sidebar (desktop only — mobile uses the bottom navigation bar) -->
+    <!-- Sidebar (desktop only — mobile uses the bottom navigation bar).
+         Sticky + h-screen keeps the user panel (logout) always visible; nav scrolls inside. -->
     <aside id="app-sidebar"
-           class="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-gray-200 print:hidden">
+           class="hidden lg:flex w-60 shrink-0 flex-col bg-white border-r border-gray-200 lg:sticky lg:top-0 lg:h-screen print:hidden">
         <!-- Logo -->
         <a href="<?= $base ?>index.php" class="flex items-center gap-2.5 h-14 px-4 border-b border-gray-200 shrink-0">
             <img src="<?= $base ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain">
@@ -160,7 +161,7 @@ if ($is_admin) {
                             <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                         </svg>
                         <input type="text" name="q" id="global-search" value="<?= htmlspecialchars($_GET['q'] ?? '') ?>" placeholder="Search farmers, farms, crops..."
-                               class="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-lg
+                               class="w-full pl-9 pr-3 py-1.5 text-sm bg-gray-50 border border-gray-200 rounded-full
                                       focus:bg-white focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     </form>
                     <div id="global-search-results"

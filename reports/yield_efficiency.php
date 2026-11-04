@@ -90,6 +90,19 @@ require "../includes/header.php";
     <?php reportActions(); ?>
 </div>
 
+<!-- Filter toolbar -->
+<form method="GET" class="flex flex-wrap items-center gap-2 mb-4 print:hidden">
+    <select name="category_id" onchange="this.form.submit()" aria-label="Filter by category"
+            class="py-2.5 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-full shadow-sm text-gray-700
+                   focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        <option value="0">All categories</option>
+        <?php foreach ($categories as $cat): ?>
+            <option value="<?= $cat['id'] ?>" <?= $category_id === (int) $cat['id'] ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
+        <?php endforeach; ?>
+    </select>
+    <span class="text-xs text-gray-400"><?= count($rows) ?> row(s) shown</span>
+</form>
+
 <?php summaryStrip([
     "Crops"           => number_format(count($rows)),
     "Harvested"       => number_format($sum_kg, 2) . " <span class='text-sm font-normal text-gray-500'>kg</span>",
@@ -97,25 +110,6 @@ require "../includes/header.php";
     "Overall Yield"   => number_format($overall_yield, 1) . " <span class='text-sm font-normal text-gray-500'>kg/ha</span>",
 ]); ?>
 
-<div class="flex flex-col xl:flex-row gap-6">
-
-<!-- Right rail: filter -->
-<aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
-    <form method="GET" class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-2 xl:sticky xl:top-20">
-        <label class="block text-sm text-gray-500">Filter by category</label>
-        <select name="category_id" onchange="this.form.submit()"
-                class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-            <option value="0">All</option>
-            <?php foreach ($categories as $cat): ?>
-                <option value="<?= $cat['id'] ?>" <?= $category_id === (int) $cat['id'] ? 'selected' : '' ?>><?= htmlspecialchars($cat['name']) ?></option>
-            <?php endforeach; ?>
-        </select>
-        <p class="text-xs text-gray-400 pt-2"><?= count($rows) ?> row(s) shown</p>
-    </form>
-</aside>
-
-<!-- Primary feed: report table -->
-<div class="flex-1 min-w-0 xl:order-1">
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
@@ -161,9 +155,6 @@ require "../includes/header.php";
             </tfoot>
         <?php endif; ?>
     </table>
-</div>
-</div>
-
 </div>
 
 <?php require "../includes/footer.php"; ?>

@@ -72,39 +72,29 @@ require "../includes/header.php";
 
 <?php require "../includes/alert.php"; ?>
 
-<div class="flex flex-col xl:flex-row gap-6">
+<!-- Filter toolbar above the log -->
+<form method="GET" class="flex flex-wrap gap-2 mb-4 print:hidden">
+    <select name="user_id" onchange="this.form.submit()" aria-label="Filter by user"
+            class="flex-1 min-w-[160px] sm:flex-none py-2.5 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-full shadow-sm text-gray-700
+                   focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        <option value="0">All users</option>
+        <?php foreach ($users as $u): ?>
+            <option value="<?= $u['user_id'] ?>" <?= $filter_user_id === (int) $u['user_id'] ? 'selected' : '' ?>><?= htmlspecialchars($u['username']) ?></option>
+        <?php endforeach; ?>
+    </select>
+    <select name="entity" onchange="this.form.submit()" aria-label="Filter by record type"
+            class="flex-1 min-w-[160px] sm:flex-none py-2.5 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-full shadow-sm text-gray-700
+                   focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        <option value="">All types</option>
+        <?php foreach ($entities as $e): ?>
+            <option value="<?= $e ?>" <?= $filter_entity === $e ? 'selected' : '' ?>><?= ucfirst($e) ?></option>
+        <?php endforeach; ?>
+    </select>
+    <?php if ($filter_user_id > 0 || $filter_entity !== ""): ?>
+        <a href="activity.php" class="self-center text-sm text-gray-500 hover:text-gray-700 px-2">Clear filters</a>
+    <?php endif; ?>
+</form>
 
-<!-- Right rail: filters -->
-<aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
-    <form method="GET" class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-3 xl:sticky xl:top-20">
-        <div>
-            <label class="block text-sm text-gray-500 mb-1">Filter by user</label>
-            <select name="user_id" onchange="this.form.submit()"
-                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-                <option value="0">All users</option>
-                <?php foreach ($users as $u): ?>
-                    <option value="<?= $u['user_id'] ?>" <?= $filter_user_id === (int) $u['user_id'] ? 'selected' : '' ?>><?= htmlspecialchars($u['username']) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <div>
-            <label class="block text-sm text-gray-500 mb-1">Filter by record type</label>
-            <select name="entity" onchange="this.form.submit()"
-                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-                <option value="">All types</option>
-                <?php foreach ($entities as $e): ?>
-                    <option value="<?= $e ?>" <?= $filter_entity === $e ? 'selected' : '' ?>><?= ucfirst($e) ?></option>
-                <?php endforeach; ?>
-            </select>
-        </div>
-        <?php if ($filter_user_id > 0 || $filter_entity !== ""): ?>
-            <a href="activity.php" class="block text-center text-sm text-gray-500 hover:text-gray-700">Clear filters</a>
-        <?php endif; ?>
-    </form>
-</aside>
-
-<!-- Primary feed: log table -->
-<div class="flex-1 min-w-0 xl:order-1">
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm">
 <div class="hidden md:block overflow-x-auto">
     <table class="w-full text-sm">
@@ -172,9 +162,6 @@ require "../includes/header.php";
 </div>
 
     <?php paginationBar($page, $total_rows); ?>
-</div>
-</div>
-
 </div>
 
 <?php require "../includes/footer.php"; ?>

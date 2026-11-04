@@ -30,13 +30,21 @@ class Harvest {
         return $stmt->fetchAll();
     }
 
-    // Count of active harvests, optionally filtered by quality grade (for pagination)
-    public function countAll(int $grade_id = 0) {
-        $sql    = "SELECT COUNT(*) FROM harvest WHERE is_deleted = FALSE";
+    // Count of active harvests matching the optional filter + search term (for pagination)
+    public function countAll(int $grade_id = 0, string $term = "") {
+        $sql    = "SELECT COUNT(*) FROM harvest h
+                   JOIN planting p ON h.planting_id = p.planting_id
+                   JOIN farm f ON p.farm_id = f.farm_id
+                   JOIN crop c ON p.crop_id = c.crop_id
+                   WHERE h.is_deleted = FALSE";
         $params = [];
         if ($grade_id > 0) {
-            $sql .= " AND grade_id = :grade_id";
+            $sql .= " AND h.grade_id = :grade_id";
             $params["grade_id"] = $grade_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (f.farm_name ILIKE :term OR c.crop_name ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -44,10 +52,12 @@ class Harvest {
     }
 
     // One page of harvests with JOINed names. $order comes only from the page's sort whitelist.
-    public function getPage(int $grade_id, string $order, string $dir, int $limit, int $offset) {
+    public function getPage(int $grade_id, string $term, string $order, string $dir, int $limit, int $offset) {
         $sql = "SELECT
                     h.harvest_id,
                     h.planting_id,
+                    h.grade_id,
+                    h.remark_id,
                     f.farm_name,
                     c.crop_name,
                     c.variety,
@@ -67,6 +77,10 @@ class Harvest {
         if ($grade_id > 0) {
             $sql .= " AND h.grade_id = :grade_id";
             $params["grade_id"] = $grade_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (f.farm_name ILIKE :term OR c.crop_name ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
         $stmt = $this->pdo->prepare($sql);

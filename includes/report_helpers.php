@@ -2,6 +2,16 @@
 // Shared report helpers: CSV export, print header block, and the summary strip.
 // Every report supports ?export=csv using the same filtered rows it displays.
 
+// Guard against CSV formula injection: spreadsheet apps execute cells that
+// start with = + - @ or tab/CR as formulas, so prefix those with a quote.
+function csvEscape($value) {
+    $text = (string) $value;
+    if ($text !== "" && in_array($text[0], ["=", "+", "-", "@", "\t", "\r"], true)) {
+        return "'" . $text;
+    }
+    return $text;
+}
+
 // Stream the report as a CSV download and stop the request.
 // $headers = column labels, $rows = array of arrays in the same column order.
 function csvDownload(string $filename_base, array $headers, array $rows) {
@@ -10,7 +20,7 @@ function csvDownload(string $filename_base, array $headers, array $rows) {
     $out = fopen("php://output", "w");
     fputcsv($out, $headers);
     foreach ($rows as $row) {
-        fputcsv($out, $row);
+        fputcsv($out, array_map("csvEscape", $row));
     }
     fclose($out);
     exit;

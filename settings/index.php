@@ -43,9 +43,18 @@ $breadcrumbs = [["Settings", null]];
 require "../includes/header.php";
 ?>
 
-<div class="mb-6">
-    <h1 class="text-2xl font-bold">Settings</h1>
-    <p class="text-sm text-gray-500">Manage the dropdown values (lookup tables) used across the system.</p>
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Settings</h1>
+        <p class="text-sm text-gray-500">Manage the dropdown values (lookup tables) used across the system.</p>
+    </div>
+    <button type="button" onclick="openAddCard()"
+            class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2 self-start sm:self-auto print:hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add <?= $types[$type] ?> Value
+    </button>
 </div>
 
 <?php require "../includes/alert.php"; ?>
@@ -62,9 +71,9 @@ require "../includes/header.php";
     <?php endforeach; ?>
 </div>
 
-<div class="flex flex-col xl:flex-row gap-6">
+<div class="max-w-3xl">
     <!-- Values List -->
-    <div class="flex-1 min-w-0 xl:order-1 bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto h-fit">
+    <div id="records-panel" class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
         <table class="w-full text-sm">
             <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
                 <tr>
@@ -105,19 +114,7 @@ require "../includes/header.php";
         </table>
     </div>
 
-    <!-- Right rail: actions -->
-    <aside class="xl:w-80 shrink-0 xl:order-2">
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4 h-fit xl:sticky xl:top-20">
-        <button type="button" onclick="openAddCard()"
-                class="w-full bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center justify-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Add <?= $types[$type] ?> Value
-        </button>
-        <p class="text-xs text-gray-400">Values in use by active records cannot be deleted. Deleted values are hidden from dropdowns but kept for historical records.</p>
-    </div>
-    </aside>
+    <p class="text-xs text-gray-400 mt-3">Values in use by active records cannot be deleted. Deleted values are hidden from dropdowns but kept for historical records.</p>
 </div>
 
 <!-- Side card overlay -->
@@ -214,6 +211,34 @@ document.addEventListener("keydown", function (event) {
 document.addEventListener("DOMContentLoaded", function () {
     if (new URLSearchParams(window.location.search).get("add") === "1") {
         openAddCard();
+    }
+
+    // Edit slider saves via fetch: toast + background list refresh, no reload
+    var editForm = document.querySelector("#edit-card form");
+    if (editForm) {
+        editForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            fetch(editForm.action, {
+                method: "POST",
+                body: new FormData(editForm),
+                headers: { "X-Requested-With": "fetch" }
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (result) {
+                if (result.ok) {
+                    closeSideCards();
+                    fetch(window.location.href, { headers: { "X-Requested-With": "fetch" } })
+                        .then(function (r) { return r.text(); })
+                        .then(function (html) {
+                            var fresh = new DOMParser().parseFromString(html, "text/html").getElementById("records-panel");
+                            var panel = document.getElementById("records-panel");
+                            if (fresh && panel) { panel.innerHTML = fresh.innerHTML; }
+                        });
+                }
+                showToast(result.message, result.ok ? "success" : "error");
+            })
+            .catch(function () { editForm.submit(); }); // classic redirect fallback
+        });
     }
 });
 </script>

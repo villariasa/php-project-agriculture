@@ -12,8 +12,8 @@ if ($toast_error === "" && isset($error) && $error !== "") {
 }
 ?>
 <?php if (!defined("TOAST_INCLUDED")): define("TOAST_INCLUDED", true); ?>
-<!-- Sits above the mobile bottom navigation bar; back to the corner on desktop -->
-<div id="toast-stack" class="fixed bottom-20 lg:bottom-4 right-4 z-[70] w-80 max-w-[calc(100vw-2rem)] space-y-2 print:hidden"></div>
+<!-- Toasts: top-center on all screens -->
+<div id="toast-stack" class="fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-80 max-w-[calc(100vw-2rem)] space-y-2 print:hidden"></div>
 
 <script>
 function showToast(message, type) {

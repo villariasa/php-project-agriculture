@@ -63,6 +63,28 @@ function openEditCard() {
     }
 }
 
+// Instant edit (no page reload): fill the edit card's fields from the
+// clicked row's data-edit JSON (form field name => raw value) and open it.
+function fillAndOpenEditCard(sourceEl) {
+    var card = document.getElementById("edit-card");
+    if (!card || !sourceEl || !sourceEl.dataset.edit) {
+        return false;
+    }
+    var data = JSON.parse(sourceEl.dataset.edit);
+    Object.keys(data).forEach(function (name) {
+        var field = card.querySelector('[name="' + name + '"]');
+        if (field) {
+            field.value = data[name];
+        }
+    });
+    var title = card.querySelector("h2");
+    if (title && sourceEl.dataset.title) {
+        title.textContent = "Edit " + sourceEl.dataset.title;
+    }
+    openEditCard();
+    return true;
+}
+
 function openDetailCard(row) {
     var data = JSON.parse(row.dataset.detail);
     var body = document.getElementById("detail-card-body");
@@ -82,7 +104,14 @@ function openDetailCard(row) {
     });
 
     document.getElementById("detail-card-title").textContent = row.dataset.title || "Details";
-    document.getElementById("detail-card-edit").href = row.dataset.editUrl;
+    var editLink = document.getElementById("detail-card-edit");
+    editLink.href = row.dataset.editUrl;
+    // Prefer the instant in-place edit; the href reload is only a fallback
+    editLink.onclick = function (event) {
+        if (fillAndOpenEditCard(row)) {
+            event.preventDefault();
+        }
+    };
 
     var deleteButton = document.getElementById("detail-card-delete");
     if (deleteButton) {
@@ -112,14 +141,98 @@ document.addEventListener("keydown", function (event) {
     }
 });
 
-// Re-open the Add card after a create.php validation redirect (?add=1),
-// or the prefilled Edit card when ?edit=<id> is present.
+// ---------- Dynamic list: sort, paginate, filter, and save WITHOUT reloads ----------
+// Fetches the same page in the background and swaps the server-rendered
+// records panel (and header count) in place. Falls back to normal navigation
+// when fetch fails.
+function loadRecords(url, mode) {
+    fetch(url, { headers: { "X-Requested-With": "fetch" } })
+        .then(function (response) { return response.text(); })
+        .then(function (html) {
+            var doc = new DOMParser().parseFromString(html, "text/html");
+            ["records-panel", "records-count"].forEach(function (id) {
+                var current = document.getElementById(id);
+                var fresh   = doc.getElementById(id);
+                if (current && fresh) {
+                    current.innerHTML = fresh.innerHTML;
+                }
+            });
+            if (mode === "replace") {
+                window.history.replaceState(null, "", url);
+            } else if (mode !== "silent") {
+                window.history.pushState(null, "", url);
+            }
+        })
+        .catch(function () { window.location.href = url; });
+}
+
+// Toolbar selects / clear button call this instead of form.submit() so the
+// submit event fires and gets intercepted below.
+function submitToolbar(form) {
+    if (form.requestSubmit) {
+        form.requestSubmit();
+    } else {
+        form.submit();
+    }
+}
+
 document.addEventListener("DOMContentLoaded", function () {
+    // Re-open the Add card after a create.php validation redirect (?add=1),
+    // or the prefilled Edit card when ?edit=<id> is present (deep link).
     var params = new URLSearchParams(window.location.search);
     if (params.get("add") === "1") {
         openAddCard();
     } else if (params.get("edit") && document.getElementById("edit-card")) {
         openEditCard();
+    }
+
+    // Sort headers + pagination links inside the records panel
+    document.addEventListener("click", function (event) {
+        var link = event.target.closest("#records-panel a[href^='?']");
+        if (link) {
+            event.preventDefault();
+            loadRecords(link.getAttribute("href"));
+        }
+    });
+
+    // Filter toolbar (search / filter select / sort select)
+    var toolbar = document.getElementById("filter-toolbar");
+    if (toolbar) {
+        toolbar.addEventListener("submit", function (event) {
+            event.preventDefault();
+            var query = new URLSearchParams(new FormData(toolbar));
+            loadRecords("?" + query.toString());
+        });
+    }
+
+    // Back/forward buttons re-render the panel for that URL
+    window.addEventListener("popstate", function () {
+        loadRecords(window.location.href, "silent");
+    });
+
+    // Edit slider saves via fetch: toast + background panel refresh, no reload
+    var editCard = document.getElementById("edit-card");
+    if (editCard) {
+        var editForm = editCard.querySelector("form");
+        editForm.addEventListener("submit", function (event) {
+            event.preventDefault();
+            fetch(editForm.action, {
+                method: "POST",
+                body: new FormData(editForm),
+                headers: { "X-Requested-With": "fetch" }
+            })
+            .then(function (response) { return response.json(); })
+            .then(function (result) {
+                if (result.ok) {
+                    closeSideCards();
+                    var url = new URL(window.location.href);
+                    ["edit", "add", "msg", "error"].forEach(function (p) { url.searchParams.delete(p); });
+                    loadRecords(url.toString(), "replace");
+                }
+                showToast(result.message, result.ok ? "success" : "error");
+            })
+            .catch(function () { editForm.submit(); }); // classic redirect fallback
+        });
     }
 });
 </script>

@@ -1,8 +1,10 @@
 <?php
-// POST-only handler — the Edit Value form lives in the side card on index.php.
+// POST-only handler — the Edit Value form lives in the slider on index.php.
+// Saves via fetch() (JSON, no reload) with a redirect fallback.
 $base = "../";
 require_once "../includes/auth_check.php";
 require_once "../includes/activity_log.php";
+require_once "../includes/form_response.php";
 require_once "../config/Database.php";
 require_once "../models/Lookup.php";
 
@@ -25,22 +27,19 @@ $id   = (int) ($_POST["id"] ?? 0);
 $name = (string) trim($_POST["name"] ?? "");
 
 if (!$lookup->isValidType($type)) {
-    header("Location: index.php?error=" . urlencode("Invalid lookup type."));
-    exit;
+    respondAndExit(false, "Invalid lookup type.", "index.php?error=" . urlencode("Invalid lookup type."));
 }
 
 $row = $lookup->getById($type, $id);
 if (!$row) {
-    header("Location: index.php?type={$type}&error=" . urlencode("Value not found."));
-    exit;
+    respondAndExit(false, "Value not found.", "index.php?type={$type}&error=" . urlencode("Value not found."));
 }
 
 if ($name === "") {
-    header("Location: index.php?type={$type}&error=" . urlencode("Please enter a value."));
-    exit;
+    respondAndExit(false, "Please enter a value.", "index.php?type={$type}&error=" . urlencode("Please enter a value."));
 }
 
 $lookup->update($type, $id, $name);
 logActivity($pdo, "update", "lookup", $id, "Renamed {$lookup->getLabel($type)} value to: {$name}");
-header("Location: index.php?type={$type}&msg=" . urlencode("Value updated successfully."));
-exit;
+respondAndExit(true, "Value updated successfully.",
+    "index.php?type={$type}&msg=" . urlencode("Value updated successfully."));

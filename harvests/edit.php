@@ -1,8 +1,10 @@
 <?php
-// POST-only handler — the Edit Harvest form lives in the slider on index.php (?edit=<id>).
+// POST-only handler — the Edit Harvest form lives in the slider on index.php.
+// Saves via fetch() (JSON, no reload) with a redirect fallback.
 $base = "../";
 require_once "../includes/auth_check.php";
 require_once "../includes/activity_log.php";
+require_once "../includes/form_response.php";
 require_once "../config/Database.php";
 require_once "../models/Harvest.php";
 
@@ -17,8 +19,7 @@ if ($_SERVER["REQUEST_METHOD"] !== "POST") {
 
 $harvest_id = (int) ($_POST["id"] ?? 0);
 if (!$harvestModel->getById($harvest_id)) {
-    header("Location: index.php?error=" . urlencode("Harvest record not found."));
-    exit;
+    respondAndExit(false, "Harvest record not found.", "index.php?error=" . urlencode("Harvest record not found."));
 }
 
 $planting_id          = (int) $_POST["planting_id"];
@@ -29,11 +30,11 @@ $grade_id             = (int) $_POST["grade_id"];
 $remark_id            = (int) $_POST["remark_id"];
 
 if ($planting_id <= 0 || $harvest_date === "" || $quantity_kg <= 0 || $selling_price_per_kg <= 0 || $grade_id <= 0 || $remark_id <= 0) {
-    header("Location: index.php?edit={$harvest_id}&error=" . urlencode("All fields are required and amounts must be greater than zero."));
-    exit;
+    respondAndExit(false, "All fields are required and amounts must be greater than zero.",
+        "index.php?edit={$harvest_id}&error=" . urlencode("All fields are required and amounts must be greater than zero."));
 }
 
 $harvestModel->update($harvest_id, $planting_id, $harvest_date, $quantity_kg, $selling_price_per_kg, $grade_id, $remark_id);
 logActivity($pdo, "update", "harvest", $harvest_id, "Updated harvest of {$quantity_kg} kg");
-header("Location: index.php?msg=" . urlencode("Harvest record updated successfully."));
-exit;
+respondAndExit(true, "Harvest record updated successfully.",
+    "index.php?msg=" . urlencode("Harvest record updated successfully."));

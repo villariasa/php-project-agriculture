@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: agriculture-information-system
+    runtime: docker
+    plan: free
+    region: singapore
+    envVars:
+      - key: DB_HOST
+        value: aws-0-ap-southeast-1.pooler.supabase.com
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USER
+        value: postgres.aastraaiknwrhrwwucuj
+      - key: DB_PASS
+        sync: false

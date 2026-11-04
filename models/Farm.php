@@ -22,13 +22,17 @@ class Farm {
         return $stmt->fetchAll();
     }
 
-    // Count of active farms, optionally filtered by irrigation type (for pagination)
-    public function countAll(int $irrigation_type_id = 0) {
+    // Count of active farms matching the optional filter + search term (for pagination)
+    public function countAll(int $irrigation_type_id = 0, string $term = "") {
         $sql    = "SELECT COUNT(*) FROM farm WHERE is_deleted = FALSE";
         $params = [];
         if ($irrigation_type_id > 0) {
             $sql .= " AND irrigation_type_id = :irrigation_type_id";
             $params["irrigation_type_id"] = $irrigation_type_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (farm_name ILIKE :term OR location ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -36,7 +40,7 @@ class Farm {
     }
 
     // One page of farms with lookup names. $order comes only from the page's sort whitelist.
-    public function getPage(int $irrigation_type_id, string $order, string $dir, int $limit, int $offset) {
+    public function getPage(int $irrigation_type_id, string $term, string $order, string $dir, int $limit, int $offset) {
         $sql = "SELECT
                     f.*,
                     fm.first_name || ' ' || fm.last_name AS owner_name,
@@ -51,6 +55,10 @@ class Farm {
         if ($irrigation_type_id > 0) {
             $sql .= " AND f.irrigation_type_id = :irrigation_type_id";
             $params["irrigation_type_id"] = $irrigation_type_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (f.farm_name ILIKE :term OR f.location ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
         $stmt = $this->pdo->prepare($sql);

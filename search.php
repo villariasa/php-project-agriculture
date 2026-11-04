@@ -148,7 +148,7 @@ require "includes/header.php";
         </svg>
         <input type="text" name="q" id="page-search" value="<?= htmlspecialchars($q) ?>" autofocus autocomplete="off"
                placeholder="Search farmers, farms, crops..."
-               class="w-full pl-12 pr-4 py-3 text-base bg-white border border-gray-300 rounded-xl shadow-sm
+               class="w-full pl-12 pr-4 py-3 text-base bg-white border border-gray-300 rounded-full shadow-sm
                       focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
     </div>
     <p class="text-xs text-gray-400 mt-2 px-1">Results appear as you type.</p>

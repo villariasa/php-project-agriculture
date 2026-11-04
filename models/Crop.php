@@ -20,13 +20,17 @@ class Crop {
         return $stmt->fetchAll();
     }
 
-    // Count of active crops, optionally filtered by category (for pagination)
-    public function countAll(int $category_id = 0) {
+    // Count of active crops matching the optional filter + search term (for pagination)
+    public function countAll(int $category_id = 0, string $term = "") {
         $sql    = "SELECT COUNT(*) FROM crop WHERE is_deleted = FALSE";
         $params = [];
         if ($category_id > 0) {
             $sql .= " AND category_id = :category_id";
             $params["category_id"] = $category_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (crop_name ILIKE :term OR variety ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -34,7 +38,7 @@ class Crop {
     }
 
     // One page of crops with lookup names. $order comes only from the page's sort whitelist.
-    public function getPage(int $category_id, string $order, string $dir, int $limit, int $offset) {
+    public function getPage(int $category_id, string $term, string $order, string $dir, int $limit, int $offset) {
         $sql = "SELECT
                     c.*,
                     cc.category_name,
@@ -47,6 +51,10 @@ class Crop {
         if ($category_id > 0) {
             $sql .= " AND c.category_id = :category_id";
             $params["category_id"] = $category_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (c.crop_name ILIKE :term OR c.variety ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
         $stmt = $this->pdo->prepare($sql);

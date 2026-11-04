@@ -29,9 +29,10 @@ $edit_id     = (int) ($_GET["edit"] ?? 0);
 $edit_record = $edit_id > 0 ? $harvestModel->getById($edit_id) : null;
 
 $grade_id   = (int) ($_GET["grade_id"] ?? 0);
+$search     = (string) trim($_GET["search"] ?? "");
 $page       = currentPage();
-$total_rows = $harvestModel->countAll($grade_id);
-$harvests   = $harvestModel->getPage($grade_id, $order, $dir, PER_PAGE, pageOffset($page));
+$total_rows = $harvestModel->countAll($grade_id, $search);
+$harvests   = $harvestModel->getPage($grade_id, $search, $order, $dir, PER_PAGE, pageOffset($page));
 
 // Data for the filter + Add side card form
 $plantings = (new Planting($pdo))->getAll();
@@ -54,7 +55,7 @@ require "../includes/header.php";
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
     <div>
         <h1 class="text-2xl font-bold">Harvest Records</h1>
-        <p class="text-sm text-gray-500"><?= number_format($total_rows) ?> harvest yield record(s)</p>
+        <p id="records-count" class="text-sm text-gray-500"><?= number_format($total_rows) ?> harvest yield record(s)</p>
     </div>
     <button type="button" onclick="openAddCard()"
             class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2 self-start sm:self-auto print:hidden">
@@ -67,50 +68,48 @@ require "../includes/header.php";
 
 <?php require "../includes/alert.php"; ?>
 
-<div class="flex flex-col xl:flex-row gap-6">
-
-<!-- Right rail: filter -->
-<aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
-    <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4 xl:sticky xl:top-20">
-        <form method="GET" class="space-y-2">
-            <label class="block text-sm text-gray-500">Filter by quality grade</label>
-            <select name="grade_id" onchange="this.form.submit()"
-                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-                <option value="0">All</option>
-                <?php foreach ($grades as $grade): ?>
-                    <option value="<?= $grade['id'] ?>" <?= $grade_id === (int) $grade['id'] ? 'selected' : '' ?>><?= htmlspecialchars($grade['name']) ?></option>
-                <?php endforeach; ?>
-            </select>
-            <!-- Mobile sort controls (desktop sorts via the column headers) -->
-            <div class="grid grid-cols-2 gap-2 md:hidden pt-1">
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Sort by</label>
-                    <select name="sort" onchange="this.form.submit()"
-                            class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-                        <option value="id" <?= $sort_key === 'id' ? 'selected' : '' ?>>ID</option>
-                        <option value="date" <?= $sort_key === 'date' ? 'selected' : '' ?>>Harvest date</option>
-                        <option value="quantity" <?= $sort_key === 'quantity' ? 'selected' : '' ?>>Quantity</option>
-                        <option value="value" <?= $sort_key === 'value' ? 'selected' : '' ?>>Total value</option>
-                    </select>
-                </div>
-                <div>
-                    <label class="block text-xs text-gray-500 mb-1">Order</label>
-                    <select name="dir" onchange="this.form.submit()"
-                            class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
-                        <option value="asc" <?= $dir === 'ASC' ? 'selected' : '' ?>>Ascending</option>
-                        <option value="desc" <?= $dir === 'DESC' ? 'selected' : '' ?>>Descending</option>
-                    </select>
-                </div>
-            </div>
-        </form>
-        <p class="text-xs text-gray-400 hidden md:block">Click a column header to sort &middot; click a row for details</p>
-        <p class="text-xs text-gray-400 md:hidden">Tap a record for details and actions</p>
+<!-- Filter toolbar: search + filter + sort inline above the table -->
+<form method="GET" id="filter-toolbar" class="flex flex-wrap gap-2 mb-4 print:hidden">
+    <input type="hidden" name="sort" value="<?= htmlspecialchars(strtolower($sort_key)) ?>">
+    <input type="hidden" name="dir" value="<?= strtolower($dir) ?>">
+    <div class="relative flex-1 min-w-[180px]">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+             class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search by farm or crop..."
+               class="w-full pl-9 pr-9 py-2.5 text-sm bg-white border border-gray-300 rounded-full shadow-sm
+                      focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        <?php if ($search !== ""): ?>
+            <button type="button" onclick="this.form.search.value = ''; submitToolbar(this.form);" aria-label="Clear search"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+                </svg>
+            </button>
+        <?php endif; ?>
     </div>
-</aside>
+    <select name="grade_id" onchange="submitToolbar(this.form)" aria-label="Filter by quality grade"
+            class="shrink-0 py-2.5 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-full shadow-sm text-gray-700
+                   focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        <option value="0">All grades</option>
+        <?php foreach ($grades as $grade): ?>
+            <option value="<?= $grade['id'] ?>" <?= $grade_id === (int) $grade['id'] ? 'selected' : '' ?>><?= htmlspecialchars($grade['name']) ?></option>
+        <?php endforeach; ?>
+    </select>
+    <select aria-label="Sort by"
+            onchange="var p = this.value.split(':'); this.form.sort.value = p[0]; this.form.dir.value = p[1]; submitToolbar(this.form);"
+            class="shrink-0 py-2.5 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-full shadow-sm text-gray-700
+                   focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        <option value="id:desc" <?= $sort_key === 'id' && $dir === 'DESC' ? 'selected' : '' ?>>Newest</option>
+        <option value="id:asc" <?= $sort_key === 'id' && $dir === 'ASC' ? 'selected' : '' ?>>Oldest</option>
+        <option value="date:desc" <?= $sort_key === 'date' && $dir === 'DESC' ? 'selected' : '' ?>>Latest harvest</option>
+        <option value="quantity:desc" <?= $sort_key === 'quantity' && $dir === 'DESC' ? 'selected' : '' ?>>Highest kg</option>
+        <option value="value:desc" <?= $sort_key === 'value' && $dir === 'DESC' ? 'selected' : '' ?>>Highest value</option>
+    </select>
+</form>
 
-<!-- Primary feed: table -->
-<div class="flex-1 min-w-0 xl:order-1">
-<div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+<div id="records-panel" class="bg-white rounded-lg border border-gray-200 shadow-sm">
 <div class="hidden md:block overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
@@ -146,6 +145,15 @@ require "../includes/header.php";
                     data-edit-url="index.php?edit=<?= $row['harvest_id'] ?>"
                     data-delete-url="delete.php?id=<?= $row['harvest_id'] ?>"
                     data-delete-msg="Are you sure you want to delete harvest #<?= $row['harvest_id'] ?> (<?= htmlspecialchars($row['crop_name'] . ' from ' . $row['farm_name'], ENT_QUOTES) ?>)?"
+                    data-edit="<?= htmlspecialchars(json_encode([
+                        "id"                   => $row["harvest_id"],
+                        "planting_id"          => $row["planting_id"],
+                        "harvest_date"         => $row["harvest_date"],
+                        "quantity_kg"          => $row["quantity_kg"],
+                        "selling_price_per_kg" => $row["selling_price_per_kg"],
+                        "grade_id"             => $row["grade_id"],
+                        "remark_id"            => $row["remark_id"],
+                    ]), ENT_QUOTES) ?>"
                     data-detail="<?= htmlspecialchars(json_encode([
                         "ID"                 => $row["harvest_id"],
                         "Farm"               => $row["farm_name"],
@@ -172,7 +180,9 @@ require "../includes/header.php";
                     <td class="px-4 py-3"><?= htmlspecialchars($row['remark_description']) ?></td>
                     <td class="px-4 py-3 text-right">
                         <div class="inline-flex items-center gap-2" onclick="event.stopPropagation()">
-                            <a href="index.php?edit=<?= $row['harvest_id'] ?>" title="Edit" class="text-blue-600 hover:text-blue-800">
+                            <a href="index.php?edit=<?= $row['harvest_id'] ?>" title="Edit"
+                               onclick="event.stopPropagation(); if (fillAndOpenEditCard(this.closest('[data-edit]'))) return false;"
+                               class="text-blue-600 hover:text-blue-800">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                 </svg>
@@ -212,6 +222,15 @@ require "../includes/header.php";
              data-edit-url="index.php?edit=<?= $row['harvest_id'] ?>"
              data-delete-url="delete.php?id=<?= $row['harvest_id'] ?>"
              data-delete-msg="Are you sure you want to delete harvest #<?= $row['harvest_id'] ?> (<?= htmlspecialchars($row['crop_name'] . ' from ' . $row['farm_name'], ENT_QUOTES) ?>)?"
+                    data-edit="<?= htmlspecialchars(json_encode([
+                        "id"                   => $row["harvest_id"],
+                        "planting_id"          => $row["planting_id"],
+                        "harvest_date"         => $row["harvest_date"],
+                        "quantity_kg"          => $row["quantity_kg"],
+                        "selling_price_per_kg" => $row["selling_price_per_kg"],
+                        "grade_id"             => $row["grade_id"],
+                        "remark_id"            => $row["remark_id"],
+                    ]), ENT_QUOTES) ?>"
              data-detail="<?= htmlspecialchars(json_encode([
                  "ID"            => $row["harvest_id"],
                  "Farm"          => $row["farm_name"],
@@ -223,6 +242,11 @@ require "../includes/header.php";
                  "Quality Grade" => $row["quality_grade"],
                  "Remark"        => $row["remark_description"],
              ]), ENT_QUOTES) ?>">
+            <div class="w-10 h-10 rounded-full bg-green-50 text-green-600 flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="m20.25 7.5-.625 10.632a2.25 2.25 0 0 1-2.247 2.118H6.622a2.25 2.25 0 0 1-2.247-2.118L3.75 7.5m8.25 3v6.75m0 0-3-3m3 3 3-3M3.375 7.5h17.25c.621 0 1.125-.504 1.125-1.125v-1.5c0-.621-.504-1.125-1.125-1.125H3.375c-.621 0-1.125.504-1.125 1.125v1.5c0 .621.504 1.125 1.125 1.125Z" />
+                </svg>
+            </div>
             <div class="min-w-0 flex-1">
                 <p class="text-sm font-medium truncate"><?= htmlspecialchars($row['crop_name']) ?> <span class="font-normal text-gray-500">@ <?= htmlspecialchars($row['farm_name']) ?></span></p>
                 <p class="text-xs text-gray-500"><?= htmlspecialchars($row['harvest_date']) ?>
@@ -241,9 +265,6 @@ require "../includes/header.php";
 </div>
 
     <?php paginationBar($page, $total_rows); ?>
-</div>
-</div>
-
 </div>
 
 <!-- Add Harvest side card -->
@@ -314,11 +335,11 @@ require "../includes/header.php";
     </form>
 </aside>
 
-<?php if ($edit_record): ?>
-<!-- Edit Harvest slider (opens automatically via ?edit=<id>) -->
+<!-- Edit Harvest slider: filled instantly by JS from the clicked row (no reload);
+     server-prefilled only for ?edit=<id> deep links -->
 <aside id="edit-card" class="fixed inset-x-0 bottom-0 w-full max-h-[85vh] rounded-t-2xl border-t border-gray-200 md:inset-x-auto md:left-auto md:top-0 md:right-0 md:bottom-0 md:h-full md:max-h-none md:max-w-md md:rounded-none md:border-t-0 md:border-l bg-white shadow-lg z-50 hidden flex-col print:hidden">
     <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
-        <h2 class="text-lg font-semibold">Edit Harvest #<?= $edit_id ?></h2>
+        <h2 class="text-lg font-semibold">Edit Harvest<?= $edit_record ? " #" . $edit_id : "" ?></h2>
         <button type="button" onclick="closeSideCards()" aria-label="Close" class="text-gray-400 hover:text-gray-600">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
@@ -333,7 +354,7 @@ require "../includes/header.php";
                 <select name="planting_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <?php foreach ($plantings as $p): ?>
-                        <option value="<?= $p['planting_id'] ?>" <?= (int) $edit_record['planting_id'] === (int) $p['planting_id'] ? 'selected' : '' ?>>
+                        <option value="<?= $p['planting_id'] ?>" <?= (int) ($edit_record['planting_id'] ?? 0) === (int) $p['planting_id'] ? 'selected' : '' ?>>
                             <?= htmlspecialchars($p['farm_name'] . " — " . $p['crop_name'] . " (" . $p['planting_date'] . ")") ?>
                         </option>
                     <?php endforeach; ?>
@@ -341,17 +362,17 @@ require "../includes/header.php";
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Harvest Date</label>
-                <input type="date" name="harvest_date" required value="<?= htmlspecialchars($edit_record['harvest_date']) ?>"
+                <input type="date" name="harvest_date" required value="<?= htmlspecialchars($edit_record['harvest_date'] ?? '') ?>"
                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Quantity Harvested (kg)</label>
-                <input type="number" step="0.01" min="0.01" name="quantity_kg" required value="<?= htmlspecialchars($edit_record['quantity_kg']) ?>"
+                <input type="number" step="0.01" min="0.01" name="quantity_kg" required value="<?= htmlspecialchars($edit_record['quantity_kg'] ?? '') ?>"
                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
             </div>
             <div>
                 <label class="block text-sm text-gray-500 mb-1">Selling Price per kg (&#8369;)</label>
-                <input type="number" step="0.01" min="0.01" name="selling_price_per_kg" required value="<?= htmlspecialchars($edit_record['selling_price_per_kg']) ?>"
+                <input type="number" step="0.01" min="0.01" name="selling_price_per_kg" required value="<?= htmlspecialchars($edit_record['selling_price_per_kg'] ?? '') ?>"
                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
             </div>
             <div>
@@ -359,7 +380,7 @@ require "../includes/header.php";
                 <select name="grade_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <?php foreach ($grades as $grade): ?>
-                        <option value="<?= $grade['id'] ?>" <?= (int) $edit_record['grade_id'] === (int) $grade['id'] ? 'selected' : '' ?>><?= htmlspecialchars($grade['name']) ?></option>
+                        <option value="<?= $grade['id'] ?>" <?= (int) ($edit_record['grade_id'] ?? 0) === (int) $grade['id'] ? 'selected' : '' ?>><?= htmlspecialchars($grade['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -368,7 +389,7 @@ require "../includes/header.php";
                 <select name="remark_id" required
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <?php foreach ($remarks as $rem): ?>
-                        <option value="<?= $rem['id'] ?>" <?= (int) $edit_record['remark_id'] === (int) $rem['id'] ? 'selected' : '' ?>><?= htmlspecialchars($rem['name']) ?></option>
+                        <option value="<?= $rem['id'] ?>" <?= (int) ($edit_record['remark_id'] ?? 0) === (int) $rem['id'] ? 'selected' : '' ?>><?= htmlspecialchars($rem['name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -380,7 +401,6 @@ require "../includes/header.php";
         </div>
     </form>
 </aside>
-<?php endif; ?>
 
 <?php require "../includes/sidecard.php"; ?>
 <?php require "../includes/confirm_modal.php"; ?>

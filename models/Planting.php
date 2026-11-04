@@ -37,13 +37,22 @@ class Planting {
         return $stmt->fetchAll();
     }
 
-    // Count of active plantings, optionally filtered by status (for pagination)
-    public function countAll(int $status_id = 0) {
-        $sql    = "SELECT COUNT(*) FROM planting WHERE is_deleted = FALSE";
+    // Count of active plantings matching the optional filter + search term (for pagination)
+    public function countAll(int $status_id = 0, string $term = "") {
+        $sql    = "SELECT COUNT(*) FROM planting p
+                   JOIN farm f ON p.farm_id = f.farm_id
+                   JOIN farmer fm ON f.farmer_id = fm.farmer_id
+                   JOIN crop c ON p.crop_id = c.crop_id
+                   WHERE p.is_deleted = FALSE";
         $params = [];
         if ($status_id > 0) {
-            $sql .= " AND status_id = :status_id";
+            $sql .= " AND p.status_id = :status_id";
             $params["status_id"] = $status_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (f.farm_name ILIKE :term OR c.crop_name ILIKE :term
+                           OR fm.first_name ILIKE :term OR fm.last_name ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute($params);
@@ -51,7 +60,7 @@ class Planting {
     }
 
     // One page of plantings with JOINed names. $order comes only from the page's sort whitelist.
-    public function getPage(int $status_id, string $order, string $dir, int $limit, int $offset) {
+    public function getPage(int $status_id, string $term, string $order, string $dir, int $limit, int $offset) {
         $sql = "SELECT
                     p.planting_id,
                     p.farm_id,
@@ -76,6 +85,11 @@ class Planting {
         if ($status_id > 0) {
             $sql .= " AND p.status_id = :status_id";
             $params["status_id"] = $status_id;
+        }
+        if ($term !== "") {
+            $sql .= " AND (f.farm_name ILIKE :term OR c.crop_name ILIKE :term
+                           OR fm.first_name ILIKE :term OR fm.last_name ILIKE :term)";
+            $params["term"] = "%{$term}%";
         }
         $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
         $stmt = $this->pdo->prepare($sql);
