@@ -37,6 +37,52 @@ class Planting {
         return $stmt->fetchAll();
     }
 
+    // Count of active plantings, optionally filtered by status (for pagination)
+    public function countAll(int $status_id = 0) {
+        $sql    = "SELECT COUNT(*) FROM planting WHERE is_deleted = FALSE";
+        $params = [];
+        if ($status_id > 0) {
+            $sql .= " AND status_id = :status_id";
+            $params["status_id"] = $status_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // One page of plantings with JOINed names. $order comes only from the page's sort whitelist.
+    public function getPage(int $status_id, string $order, string $dir, int $limit, int $offset) {
+        $sql = "SELECT
+                    p.planting_id,
+                    p.farm_id,
+                    p.crop_id,
+                    p.status_id,
+                    f.farm_name,
+                    c.crop_name,
+                    c.variety,
+                    fm.first_name || ' ' || fm.last_name AS farmer_name,
+                    p.planting_date,
+                    p.area_planted,
+                    p.seed_quantity,
+                    p.expected_harvest_date,
+                    ps.status_name AS status
+                FROM planting p
+                JOIN farm f ON p.farm_id = f.farm_id
+                JOIN farmer fm ON f.farmer_id = fm.farmer_id
+                JOIN crop c ON p.crop_id = c.crop_id
+                JOIN planting_status ps ON p.status_id = ps.status_id
+                WHERE p.is_deleted = FALSE";
+        $params = [];
+        if ($status_id > 0) {
+            $sql .= " AND p.status_id = :status_id";
+            $params["status_id"] = $status_id;
+        }
+        $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getById(int $planting_id) {
         $sql = "SELECT * FROM planting WHERE planting_id = :planting_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);

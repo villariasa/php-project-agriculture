@@ -1,6 +1,7 @@
 <?php
 $base = "../";
 require_once "../includes/auth_check.php";
+require_once "../includes/activity_log.php";
 require_once "../config/Database.php";
 require_once "../models/Crop.php";
 
@@ -22,5 +23,6 @@ if ($cropModel->hasActivePlantings($crop_id)) {
 }
 
 $cropModel->delete($crop_id); // soft delete (is_deleted flag)
+logActivity($pdo, "delete", "crop", $crop_id);
 header("Location: index.php?msg=" . urlencode("Crop deleted successfully."));
 exit;

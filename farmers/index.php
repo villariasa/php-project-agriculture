@@ -1,31 +1,84 @@
 <?php
 $base = "../";
 require_once "../includes/auth_check.php";
+require_once "../includes/table_helpers.php";
 require_once "../config/Database.php";
 require_once "../models/Farmer.php";
 
 $pdo         = (new Database())->connect();
 $farmerModel = new Farmer($pdo);
 
-$search  = (string) trim($_GET["search"] ?? "");
-$farmers = $search !== "" ? $farmerModel->search($search) : $farmerModel->getAll();
+// Sort whitelist: URL key => SQL column (identifiers never come from the URL)
+$sort_whitelist = [
+    "id"         => "farmer_id",
+    "name"       => "last_name",
+    "contact"    => "contact_number",
+    "address"    => "address",
+    "registered" => "date_registered",
+];
+[$order, $dir, $sort_key] = resolveSort($sort_whitelist, "id");
 
-$page_title = "Farmers";
-$active     = "farmers";
+// Record being edited via the Edit slider (?edit=<id> prefills and auto-opens it)
+$edit_id     = (int) ($_GET["edit"] ?? 0);
+$edit_record = $edit_id > 0 ? $farmerModel->getById($edit_id) : null;
+
+$search     = (string) trim($_GET["search"] ?? "");
+$page       = currentPage();
+$total_rows = $farmerModel->countAll($search);
+$farmers    = $farmerModel->getPage($search, $order, $dir, PER_PAGE, pageOffset($page));
+
+$page_title  = "Farmers";
+$active      = "farmers";
+$breadcrumbs = [["Farmers", null]];
 require "../includes/header.php";
 ?>
 
-<div class="mb-6">
-    <h1 class="text-2xl font-bold">Farmers</h1>
-    <p class="text-sm text-gray-500">Registered farmer records</p>
+<!-- Page header -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Farmers</h1>
+        <p class="text-sm text-gray-500"><?= number_format($total_rows) ?> registered farmer record(s)</p>
+    </div>
+    <button type="button" onclick="openAddCard()"
+            class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2 self-start sm:self-auto print:hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add Farmer
+    </button>
 </div>
 
 <?php require "../includes/alert.php"; ?>
 
+<!-- Mobile filter bar: search + sort inline (rail is desktop-only) -->
+<form method="GET" class="md:hidden flex gap-2 mb-4 print:hidden">
+    <input type="hidden" name="sort" value="<?= htmlspecialchars(strtolower($sort_key)) ?>">
+    <input type="hidden" name="dir" value="<?= strtolower($dir) ?>">
+    <div class="relative flex-1 min-w-0">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor"
+             class="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none">
+            <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
+        </svg>
+        <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search by name or address..."
+               class="w-full pl-9 pr-3 py-2.5 text-sm bg-white border border-gray-300 rounded-xl shadow-sm
+                      focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+    </div>
+    <select aria-label="Sort by"
+            onchange="var p = this.value.split(':'); this.form.sort.value = p[0]; this.form.dir.value = p[1]; this.form.submit();"
+            class="shrink-0 py-2.5 pl-3 pr-8 text-sm bg-white border border-gray-300 rounded-xl shadow-sm text-gray-700
+                   focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        <option value="id:asc" <?= $sort_key === 'id' && $dir === 'ASC' ? 'selected' : '' ?>>Oldest</option>
+        <option value="id:desc" <?= $sort_key === 'id' && $dir === 'DESC' ? 'selected' : '' ?>>Newest</option>
+        <option value="name:asc" <?= $sort_key === 'name' && $dir === 'ASC' ? 'selected' : '' ?>>Name A&ndash;Z</option>
+        <option value="name:desc" <?= $sort_key === 'name' && $dir === 'DESC' ? 'selected' : '' ?>>Name Z&ndash;A</option>
+        <option value="registered:desc" <?= $sort_key === 'registered' && $dir === 'DESC' ? 'selected' : '' ?>>Recently registered</option>
+    </select>
+</form>
+
 <div class="flex flex-col xl:flex-row gap-6">
 
-<!-- Right rail: search + actions -->
-<aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
+<!-- Right rail: search (desktop) -->
+<aside class="hidden md:block xl:w-80 shrink-0 xl:order-2 print:hidden">
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4 xl:sticky xl:top-20">
         <form method="GET" class="space-y-2">
             <label class="block text-sm text-gray-500">Search</label>
@@ -39,51 +92,84 @@ require "../includes/header.php";
                 </svg>
                 Search
             </button>
+            <?php if ($search !== ""): ?>
+                <a href="index.php" class="block text-center text-sm text-gray-500 hover:text-gray-700">Clear search</a>
+            <?php endif; ?>
+            <!-- Mobile sort controls (desktop sorts via the column headers) -->
+            <div class="grid grid-cols-2 gap-2 md:hidden pt-1">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Sort by</label>
+                    <select name="sort" onchange="this.form.submit()"
+                            class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                        <option value="id" <?= $sort_key === 'id' ? 'selected' : '' ?>>ID</option>
+                        <option value="name" <?= $sort_key === 'name' ? 'selected' : '' ?>>Name</option>
+                        <option value="registered" <?= $sort_key === 'registered' ? 'selected' : '' ?>>Date registered</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Order</label>
+                    <select name="dir" onchange="this.form.submit()"
+                            class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                        <option value="asc" <?= $dir === 'ASC' ? 'selected' : '' ?>>Ascending</option>
+                        <option value="desc" <?= $dir === 'DESC' ? 'selected' : '' ?>>Descending</option>
+                    </select>
+                </div>
+            </div>
         </form>
-        <div class="border-t border-gray-100 pt-4">
-            <a href="create.php"
-               class="w-full bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center justify-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-                </svg>
-                Add Farmer
-            </a>
-        </div>
-        <p class="text-xs text-gray-400"><?= count($farmers) ?> record(s) shown</p>
+        <p class="text-xs text-gray-400 hidden md:block">Click a column header to sort &middot; click a row for details</p>
+        <p class="text-xs text-gray-400 md:hidden">Tap a record for details and actions</p>
     </div>
 </aside>
 
 <!-- Primary feed: table -->
 <div class="flex-1 min-w-0 xl:order-1">
-<!-- Farmers Table -->
-<div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
+<div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+<div class="hidden md:block overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
             <tr>
-                <th class="px-4 py-3 text-left">ID</th>
-                <th class="px-4 py-3 text-left">Full Name</th>
-                <th class="px-4 py-3 text-left">Contact</th>
-                <th class="px-4 py-3 text-left">Address</th>
-                <th class="px-4 py-3 text-left">Registered</th>
+                <?php sortableTh("id", "ID", $sort_key, $dir); ?>
+                <?php sortableTh("name", "Full Name", $sort_key, $dir); ?>
+                <?php sortableTh("contact", "Contact", $sort_key, $dir); ?>
+                <?php sortableTh("address", "Address", $sort_key, $dir); ?>
+                <?php sortableTh("registered", "Registered", $sort_key, $dir); ?>
                 <th class="px-4 py-3 text-right">Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php if (count($farmers) === 0): ?>
                 <tr>
-                    <td colspan="6" class="px-4 py-8 text-center text-gray-500">No farmers found.</td>
+                    <td colspan="6" class="px-4 py-10">
+                        <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
+                            No farmers found.
+                            <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farmer</button>
+                        </div>
+                    </td>
                 </tr>
             <?php endif; ?>
             <?php foreach ($farmers as $row): ?>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                    onclick="openDetailCard(this)"
+                    data-title="Farmer #<?= $row['farmer_id'] ?>"
+                    data-edit-url="index.php?edit=<?= $row['farmer_id'] ?>"
+                    data-delete-url="delete.php?id=<?= $row['farmer_id'] ?>"
+                    data-delete-msg="Are you sure you want to delete farmer <?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name'], ENT_QUOTES) ?>?"
+                    data-detail="<?= htmlspecialchars(json_encode([
+                        "ID"              => $row["farmer_id"],
+                        "First Name"      => $row["first_name"],
+                        "Last Name"       => $row["last_name"],
+                        "Contact Number"  => $row["contact_number"],
+                        "Address"         => $row["address"],
+                        "Date Registered" => $row["date_registered"],
+                    ]), ENT_QUOTES) ?>">
                     <td class="px-4 py-3"><?= $row['farmer_id'] ?></td>
                     <td class="px-4 py-3 font-medium"><?= htmlspecialchars($row['first_name'] . " " . $row['last_name']) ?></td>
                     <td class="px-4 py-3"><?= htmlspecialchars($row['contact_number']) ?></td>
                     <td class="px-4 py-3"><?= htmlspecialchars($row['address']) ?></td>
                     <td class="px-4 py-3"><?= htmlspecialchars($row['date_registered']) ?></td>
                     <td class="px-4 py-3 text-right">
-                        <div class="inline-flex items-center gap-2">
-                            <a href="edit.php?id=<?= $row['farmer_id'] ?>" title="Edit" class="text-blue-600 hover:text-blue-800">
+                        <div class="inline-flex items-center gap-2" onclick="event.stopPropagation()">
+                            <a href="index.php?edit=<?= $row['farmer_id'] ?>" title="Edit" class="text-blue-600 hover:text-blue-800">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                 </svg>
@@ -104,9 +190,135 @@ require "../includes/header.php";
         </tbody>
     </table>
 </div>
+
+<!-- Mobile card list (same records, tap for details) -->
+<div class="md:hidden divide-y divide-gray-100">
+    <?php if (count($farmers) === 0): ?>
+        <div class="p-4">
+            <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
+                No farmers found.
+                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farmer</button>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php foreach ($farmers as $row): ?>
+        <div class="flex items-center gap-3 px-4 py-3 active:bg-gray-50 cursor-pointer"
+             onclick="openDetailCard(this)"
+             data-title="Farmer #<?= $row['farmer_id'] ?>"
+             data-edit-url="index.php?edit=<?= $row['farmer_id'] ?>"
+             data-delete-url="delete.php?id=<?= $row['farmer_id'] ?>"
+             data-delete-msg="Are you sure you want to delete farmer <?= htmlspecialchars($row['first_name'] . ' ' . $row['last_name'], ENT_QUOTES) ?>?"
+             data-detail="<?= htmlspecialchars(json_encode([
+                 "ID"              => $row["farmer_id"],
+                 "First Name"      => $row["first_name"],
+                 "Last Name"       => $row["last_name"],
+                 "Contact Number"  => $row["contact_number"],
+                 "Address"         => $row["address"],
+                 "Date Registered" => $row["date_registered"],
+             ]), ENT_QUOTES) ?>">
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium truncate"><?= htmlspecialchars($row['first_name'] . " " . $row['last_name']) ?></p>
+                <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($row['address']) ?></p>
+                <p class="text-xs text-gray-400 mt-0.5"><?= htmlspecialchars($row['contact_number']) ?> &middot; since <?= htmlspecialchars($row['date_registered']) ?></p>
+            </div>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-300 shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+    <?php paginationBar($page, $total_rows); ?>
+</div>
 </div>
 
 </div>
 
+<!-- Add Farmer side card -->
+<aside id="add-card" class="fixed inset-x-0 bottom-0 w-full max-h-[85vh] rounded-t-2xl border-t border-gray-200 md:inset-x-auto md:left-auto md:top-0 md:right-0 md:bottom-0 md:h-full md:max-h-none md:max-w-md md:rounded-none md:border-t-0 md:border-l bg-white shadow-lg z-50 hidden flex-col print:hidden">
+    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <h2 class="text-lg font-semibold">Add Farmer</h2>
+        <button type="button" onclick="closeSideCards()" aria-label="Close" class="text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <form method="POST" action="create.php" class="flex-1 flex flex-col overflow-y-auto">
+        <div class="flex-1 px-5 py-4 space-y-4">
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">First Name</label>
+                <input type="text" name="first_name" required
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Last Name</label>
+                <input type="text" name="last_name" required
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Contact Number</label>
+                <input type="text" name="contact_number" required
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Address</label>
+                <input type="text" name="address" required
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+        </div>
+        <div class="border-t border-gray-200 px-5 py-4 flex justify-end gap-2">
+            <button type="button" onclick="closeSideCards()"
+                    class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">Cancel</button>
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg">Save Farmer</button>
+        </div>
+    </form>
+</aside>
+
+<?php if ($edit_record): ?>
+<!-- Edit Farmer slider (opens automatically via ?edit=<id>) -->
+<aside id="edit-card" class="fixed inset-x-0 bottom-0 w-full max-h-[85vh] rounded-t-2xl border-t border-gray-200 md:inset-x-auto md:left-auto md:top-0 md:right-0 md:bottom-0 md:h-full md:max-h-none md:max-w-md md:rounded-none md:border-t-0 md:border-l bg-white shadow-lg z-50 hidden flex-col print:hidden">
+    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <h2 class="text-lg font-semibold">Edit Farmer #<?= $edit_id ?></h2>
+        <button type="button" onclick="closeSideCards()" aria-label="Close" class="text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <form method="POST" action="edit.php" class="flex-1 flex flex-col overflow-y-auto">
+        <input type="hidden" name="id" value="<?= $edit_id ?>">
+        <div class="flex-1 px-5 py-4 space-y-4">
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">First Name</label>
+                <input type="text" name="first_name" required value="<?= htmlspecialchars($edit_record['first_name']) ?>"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Last Name</label>
+                <input type="text" name="last_name" required value="<?= htmlspecialchars($edit_record['last_name']) ?>"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Contact Number</label>
+                <input type="text" name="contact_number" required value="<?= htmlspecialchars($edit_record['contact_number']) ?>"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Address</label>
+                <input type="text" name="address" required value="<?= htmlspecialchars($edit_record['address']) ?>"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+        </div>
+        <div class="border-t border-gray-200 px-5 py-4 flex justify-end gap-2">
+            <button type="button" onclick="closeSideCards()"
+                    class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">Cancel</button>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg">Update Farmer</button>
+        </div>
+    </form>
+</aside>
+<?php endif; ?>
+
+<?php require "../includes/sidecard.php"; ?>
 <?php require "../includes/confirm_modal.php"; ?>
 <?php require "../includes/footer.php"; ?>

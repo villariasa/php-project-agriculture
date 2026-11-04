@@ -1,10 +1,11 @@
 <!-- Delete Confirmation Modal (hidden by default) -->
-<div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-center justify-center p-4">
+<!-- Bottom slider on mobile, centered modal on md+ -->
+<div id="deleteModal" class="hidden fixed inset-0 z-50 flex items-end md:items-center justify-center md:p-4">
     <!-- Backdrop -->
     <div class="absolute inset-0 bg-gray-900/40" onclick="closeDeleteModal()"></div>
 
     <!-- Modal Card -->
-    <div class="relative bg-white rounded-lg border border-gray-200 shadow-lg w-full max-w-sm p-6">
+    <div class="relative bg-white rounded-t-2xl md:rounded-lg border-t md:border border-gray-200 shadow-lg w-full md:max-w-sm p-6 pb-8 md:pb-6">
         <div class="flex items-start gap-3">
             <div class="bg-red-50 text-red-600 rounded-lg p-2">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">

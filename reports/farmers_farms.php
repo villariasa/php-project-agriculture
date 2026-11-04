@@ -1,6 +1,7 @@
 <?php
 $base = "../";
 require_once "../includes/auth_check.php";
+require_once "../includes/report_helpers.php";
 require_once "../config/Database.php";
 
 $pdo = (new Database())->connect();
@@ -20,26 +21,48 @@ $rows = $pdo->query(
      ORDER BY fm.farmer_id"
 )->fetchAll();
 
-$page_title = "Farmers & Farm Ownership Report";
-$active     = "reports";
+// Headline totals
+$sum_farms    = 0;
+$sum_hectares = 0;
+foreach ($rows as $row) {
+    $sum_farms    += $row['farm_count'];
+    $sum_hectares += $row['total_hectares'];
+}
+
+// CSV export uses the same rows the page shows
+if (($_GET["export"] ?? "") === "csv") {
+    csvDownload("farmers_farms",
+        ["ID", "Farmer", "Contact", "Address", "Farms Owned", "Total Area (ha)"],
+        array_map(fn($r) => [
+            $r["farmer_id"], $r["farmer_name"], $r["contact_number"],
+            $r["address"], $r["farm_count"], number_format($r["total_hectares"], 2, ".", "")
+        ], $rows)
+    );
+}
+
+$page_title  = "Farmers & Farm Ownership Report";
+$active      = "reports";
+$breadcrumbs = [["Reports", "index.php"], ["Farmers & Farm Ownership", null]];
 require "../includes/header.php";
 ?>
 
 <div class="max-w-5xl mx-auto">
 
-<div class="flex items-center justify-between mb-6">
+<?php reportPrintHeader("Farmers & Farm Ownership"); ?>
+
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
     <div>
         <h1 class="text-2xl font-bold">Farmers &amp; Farm Ownership</h1>
         <p class="text-sm text-gray-500">Farm count and total land area per registered farmer.</p>
     </div>
-    <button onclick="window.print()"
-            class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg inline-flex items-center gap-2 print:hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
-        </svg>
-        Print
-    </button>
+    <?php reportActions(); ?>
 </div>
+
+<?php summaryStrip([
+    "Farmers"           => number_format(count($rows)),
+    "Farms Owned"       => number_format($sum_farms),
+    "Total Area"        => number_format($sum_hectares, 2) . " <span class='text-sm font-normal text-gray-500'>ha</span>",
+]); ?>
 
 <div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
     <table class="w-full text-sm">
@@ -68,6 +91,15 @@ require "../includes/header.php";
                 </tr>
             <?php endforeach; ?>
         </tbody>
+        <?php if (count($rows) > 0): ?>
+            <tfoot class="bg-gray-50 font-semibold">
+                <tr>
+                    <td colspan="4" class="px-4 py-3 text-right">TOTAL:</td>
+                    <td class="px-4 py-3 text-right"><?= number_format($sum_farms) ?></td>
+                    <td class="px-4 py-3 text-right"><?= number_format($sum_hectares, 2) ?> ha</td>
+                </tr>
+            </tfoot>
+        <?php endif; ?>
     </table>
 </div>
 

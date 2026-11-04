@@ -1,6 +1,7 @@
 <?php
 $base = "../";
 require_once "../includes/auth_check.php";
+require_once "../includes/activity_log.php";
 require_once "../config/Database.php";
 require_once "../models/Farm.php";
 
@@ -22,5 +23,6 @@ if ($farmModel->hasActivePlantings($farm_id)) {
 }
 
 $farmModel->delete($farm_id); // soft delete (is_deleted flag)
+logActivity($pdo, "delete", "farm", $farm_id);
 header("Location: index.php?msg=" . urlencode("Farm deleted successfully."));
 exit;

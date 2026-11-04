@@ -30,6 +30,50 @@ class Harvest {
         return $stmt->fetchAll();
     }
 
+    // Count of active harvests, optionally filtered by quality grade (for pagination)
+    public function countAll(int $grade_id = 0) {
+        $sql    = "SELECT COUNT(*) FROM harvest WHERE is_deleted = FALSE";
+        $params = [];
+        if ($grade_id > 0) {
+            $sql .= " AND grade_id = :grade_id";
+            $params["grade_id"] = $grade_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // One page of harvests with JOINed names. $order comes only from the page's sort whitelist.
+    public function getPage(int $grade_id, string $order, string $dir, int $limit, int $offset) {
+        $sql = "SELECT
+                    h.harvest_id,
+                    h.planting_id,
+                    f.farm_name,
+                    c.crop_name,
+                    c.variety,
+                    h.harvest_date,
+                    h.quantity_kg,
+                    h.selling_price_per_kg,
+                    qg.grade_name AS quality_grade,
+                    r.remark_description
+                FROM harvest h
+                JOIN planting p ON h.planting_id = p.planting_id
+                JOIN farm f ON p.farm_id = f.farm_id
+                JOIN crop c ON p.crop_id = c.crop_id
+                JOIN quality_grades qg ON h.grade_id = qg.grade_id
+                JOIN harvest_remarks r ON h.remark_id = r.remark_id
+                WHERE h.is_deleted = FALSE";
+        $params = [];
+        if ($grade_id > 0) {
+            $sql .= " AND h.grade_id = :grade_id";
+            $params["grade_id"] = $grade_id;
+        }
+        $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getById(int $harvest_id) {
         $sql = "SELECT * FROM harvest WHERE harvest_id = :harvest_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);

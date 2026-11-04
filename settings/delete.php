@@ -1,6 +1,7 @@
 <?php
 $base = "../";
 require_once "../includes/auth_check.php";
+require_once "../includes/activity_log.php";
 require_once "../config/Database.php";
 require_once "../models/Lookup.php";
 
@@ -28,5 +29,6 @@ if ($lookup->isInUse($type, $id)) {
 }
 
 $lookup->delete($type, $id); // soft delete (is_deleted flag)
+logActivity($pdo, "delete", "lookup", $id, "Deleted {$lookup->getLabel($type)} value");
 header("Location: index.php?type={$type}&msg=" . urlencode("Value deleted successfully."));
 exit;

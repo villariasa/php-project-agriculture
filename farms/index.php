@@ -1,65 +1,150 @@
 <?php
 $base = "../";
 require_once "../includes/auth_check.php";
+require_once "../includes/table_helpers.php";
 require_once "../config/Database.php";
 require_once "../models/Farm.php";
+require_once "../models/Farmer.php";
+require_once "../models/Lookup.php";
 
 $pdo       = (new Database())->connect();
 $farmModel = new Farm($pdo);
-$farms     = $farmModel->getAll();
 
-$page_title = "Farms";
-$active     = "farms";
+// Sort whitelist: URL key => SQL column (identifiers never come from the URL)
+$sort_whitelist = [
+    "id"         => "f.farm_id",
+    "name"       => "f.farm_name",
+    "owner"      => "owner_name",
+    "location"   => "f.location",
+    "area"       => "f.area_hectares",
+    "soil"       => "st.soil_type_name",
+    "irrigation" => "it.irrigation_type_name",
+];
+[$order, $dir, $sort_key] = resolveSort($sort_whitelist, "id");
+
+// Record being edited via the Edit slider (?edit=<id> prefills and auto-opens it)
+$edit_id     = (int) ($_GET["edit"] ?? 0);
+$edit_record = $edit_id > 0 ? $farmModel->getById($edit_id) : null;
+
+$irrigation_type_id = (int) ($_GET["irrigation_type_id"] ?? 0);
+$page               = currentPage();
+$total_rows         = $farmModel->countAll($irrigation_type_id);
+$farms              = $farmModel->getPage($irrigation_type_id, $order, $dir, PER_PAGE, pageOffset($page));
+
+// Data for the filter + Add side card form
+$farmers          = (new Farmer($pdo))->getAll();
+$lookup           = new Lookup($pdo);
+$soil_types       = $lookup->getAll("soil_types");
+$irrigation_types = $lookup->getAll("irrigation_types");
+
+$page_title  = "Farms";
+$active      = "farms";
+$breadcrumbs = [["Farms", null]];
 require "../includes/header.php";
 ?>
 
-<div class="mb-6">
-    <h1 class="text-2xl font-bold">Farms</h1>
-    <p class="text-sm text-gray-500">Registered farm records</p>
+<!-- Page header -->
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+    <div>
+        <h1 class="text-2xl font-bold">Farms</h1>
+        <p class="text-sm text-gray-500"><?= number_format($total_rows) ?> registered farm record(s)</p>
+    </div>
+    <button type="button" onclick="openAddCard()"
+            class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2 self-start sm:self-auto print:hidden">
+        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+        </svg>
+        Add Farm
+    </button>
 </div>
 
 <?php require "../includes/alert.php"; ?>
 
 <div class="flex flex-col xl:flex-row gap-6">
 
-<!-- Right rail: actions -->
+<!-- Right rail: filter -->
 <aside class="xl:w-80 shrink-0 xl:order-2 print:hidden">
     <div class="bg-white rounded-lg border border-gray-200 shadow-sm p-4 space-y-4 xl:sticky xl:top-20">
-        <a href="create.php"
-           class="w-full bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center justify-center gap-2">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
-            </svg>
-            Add Farm
-        </a>
-        <p class="text-xs text-gray-400"><?= count($farms) ?> record(s) shown</p>
+        <form method="GET" class="space-y-2">
+            <label class="block text-sm text-gray-500">Filter by irrigation type</label>
+            <select name="irrigation_type_id" onchange="this.form.submit()"
+                    class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                <option value="0">All</option>
+                <?php foreach ($irrigation_types as $irr): ?>
+                    <option value="<?= $irr['id'] ?>" <?= $irrigation_type_id === (int) $irr['id'] ? 'selected' : '' ?>><?= htmlspecialchars($irr['name']) ?></option>
+                <?php endforeach; ?>
+            </select>
+            <!-- Mobile sort controls (desktop sorts via the column headers) -->
+            <div class="grid grid-cols-2 gap-2 md:hidden pt-1">
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Sort by</label>
+                    <select name="sort" onchange="this.form.submit()"
+                            class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                        <option value="id" <?= $sort_key === 'id' ? 'selected' : '' ?>>ID</option>
+                        <option value="name" <?= $sort_key === 'name' ? 'selected' : '' ?>>Farm name</option>
+                        <option value="owner" <?= $sort_key === 'owner' ? 'selected' : '' ?>>Owner</option>
+                        <option value="area" <?= $sort_key === 'area' ? 'selected' : '' ?>>Area</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs text-gray-500 mb-1">Order</label>
+                    <select name="dir" onchange="this.form.submit()"
+                            class="w-full p-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                        <option value="asc" <?= $dir === 'ASC' ? 'selected' : '' ?>>Ascending</option>
+                        <option value="desc" <?= $dir === 'DESC' ? 'selected' : '' ?>>Descending</option>
+                    </select>
+                </div>
+            </div>
+        </form>
+        <p class="text-xs text-gray-400 hidden md:block">Click a column header to sort &middot; click a row for details</p>
+        <p class="text-xs text-gray-400 md:hidden">Tap a record for details and actions</p>
     </div>
 </aside>
 
 <!-- Primary feed: table -->
 <div class="flex-1 min-w-0 xl:order-1">
-<div class="bg-white rounded-lg border border-gray-200 shadow-sm overflow-x-auto">
+<div class="bg-white rounded-lg border border-gray-200 shadow-sm">
+<div class="hidden md:block overflow-x-auto">
     <table class="w-full text-sm">
         <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
             <tr>
-                <th class="px-4 py-3 text-left">ID</th>
-                <th class="px-4 py-3 text-left">Farm Name</th>
-                <th class="px-4 py-3 text-left">Owner</th>
-                <th class="px-4 py-3 text-left">Location</th>
-                <th class="px-4 py-3 text-right">Area (ha)</th>
-                <th class="px-4 py-3 text-left">Soil Type</th>
-                <th class="px-4 py-3 text-left">Irrigation</th>
+                <?php sortableTh("id", "ID", $sort_key, $dir); ?>
+                <?php sortableTh("name", "Farm Name", $sort_key, $dir); ?>
+                <?php sortableTh("owner", "Owner", $sort_key, $dir); ?>
+                <?php sortableTh("location", "Location", $sort_key, $dir); ?>
+                <?php sortableTh("area", "Area (ha)", $sort_key, $dir, "right"); ?>
+                <?php sortableTh("soil", "Soil Type", $sort_key, $dir); ?>
+                <?php sortableTh("irrigation", "Irrigation", $sort_key, $dir); ?>
                 <th class="px-4 py-3 text-right">Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php if (count($farms) === 0): ?>
                 <tr>
-                    <td colspan="8" class="px-4 py-8 text-center text-gray-500">No farms found.</td>
+                    <td colspan="8" class="px-4 py-10">
+                        <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
+                            No farms found.
+                            <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farm</button>
+                        </div>
+                    </td>
                 </tr>
             <?php endif; ?>
             <?php foreach ($farms as $row): ?>
-                <tr class="border-b border-gray-100 hover:bg-gray-50">
+                <tr class="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                    onclick="openDetailCard(this)"
+                    data-title="Farm #<?= $row['farm_id'] ?>"
+                    data-edit-url="index.php?edit=<?= $row['farm_id'] ?>"
+                    data-delete-url="delete.php?id=<?= $row['farm_id'] ?>"
+                    data-delete-msg="Are you sure you want to delete farm <?= htmlspecialchars($row['farm_name'], ENT_QUOTES) ?>?"
+                    data-detail="<?= htmlspecialchars(json_encode([
+                        "ID"              => $row["farm_id"],
+                        "Farm Name"       => $row["farm_name"],
+                        "Owner"           => $row["owner_name"],
+                        "Location"        => $row["location"],
+                        "Area (hectares)" => number_format($row["area_hectares"], 2),
+                        "Soil Type"       => $row["soil_type_name"],
+                        "Irrigation Type" => $row["irrigation_type_name"],
+                    ]), ENT_QUOTES) ?>">
                     <td class="px-4 py-3"><?= $row['farm_id'] ?></td>
                     <td class="px-4 py-3 font-medium"><?= htmlspecialchars($row['farm_name']) ?></td>
                     <td class="px-4 py-3"><?= htmlspecialchars($row['owner_name']) ?></td>
@@ -68,8 +153,8 @@ require "../includes/header.php";
                     <td class="px-4 py-3"><?= htmlspecialchars($row['soil_type_name']) ?></td>
                     <td class="px-4 py-3"><?= htmlspecialchars($row['irrigation_type_name']) ?></td>
                     <td class="px-4 py-3 text-right">
-                        <div class="inline-flex items-center gap-2">
-                            <a href="edit.php?id=<?= $row['farm_id'] ?>" title="Edit" class="text-blue-600 hover:text-blue-800">
+                        <div class="inline-flex items-center gap-2" onclick="event.stopPropagation()">
+                            <a href="index.php?edit=<?= $row['farm_id'] ?>" title="Edit" class="text-blue-600 hover:text-blue-800">
                                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                 </svg>
@@ -90,9 +175,186 @@ require "../includes/header.php";
         </tbody>
     </table>
 </div>
+
+<!-- Mobile card list (same records, tap for details) -->
+<div class="md:hidden divide-y divide-gray-100">
+    <?php if (count($farms) === 0): ?>
+        <div class="p-4">
+            <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
+                No farms found.
+                <button type="button" onclick="openAddCard()" class="text-green-700 font-medium hover:underline">Add the first farm</button>
+            </div>
+        </div>
+    <?php endif; ?>
+    <?php foreach ($farms as $row): ?>
+        <div class="flex items-center gap-3 px-4 py-3 active:bg-gray-50 cursor-pointer"
+             onclick="openDetailCard(this)"
+             data-title="Farm #<?= $row['farm_id'] ?>"
+             data-edit-url="index.php?edit=<?= $row['farm_id'] ?>"
+             data-delete-url="delete.php?id=<?= $row['farm_id'] ?>"
+             data-delete-msg="Are you sure you want to delete farm <?= htmlspecialchars($row['farm_name'], ENT_QUOTES) ?>?"
+             data-detail="<?= htmlspecialchars(json_encode([
+                 "ID"              => $row["farm_id"],
+                 "Farm Name"       => $row["farm_name"],
+                 "Owner"           => $row["owner_name"],
+                 "Location"        => $row["location"],
+                 "Area (hectares)" => number_format($row["area_hectares"], 2),
+                 "Soil Type"       => $row["soil_type_name"],
+                 "Irrigation Type" => $row["irrigation_type_name"],
+             ]), ENT_QUOTES) ?>">
+            <div class="min-w-0 flex-1">
+                <p class="text-sm font-medium truncate"><?= htmlspecialchars($row['farm_name']) ?></p>
+                <p class="text-xs text-gray-500 truncate"><?= htmlspecialchars($row['owner_name']) ?> &middot; <?= htmlspecialchars($row['location']) ?></p>
+                <p class="text-xs text-gray-400 mt-0.5"><?= number_format($row['area_hectares'], 2) ?> ha &middot; <?= htmlspecialchars($row['soil_type_name']) ?></p>
+            </div>
+            <span class="px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-700 shrink-0"><?= htmlspecialchars($row['irrigation_type_name']) ?></span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-300 shrink-0">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m8.25 4.5 7.5 7.5-7.5 7.5" />
+            </svg>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+    <?php paginationBar($page, $total_rows); ?>
+</div>
 </div>
 
 </div>
 
+<!-- Add Farm side card -->
+<aside id="add-card" class="fixed inset-x-0 bottom-0 w-full max-h-[85vh] rounded-t-2xl border-t border-gray-200 md:inset-x-auto md:left-auto md:top-0 md:right-0 md:bottom-0 md:h-full md:max-h-none md:max-w-md md:rounded-none md:border-t-0 md:border-l bg-white shadow-lg z-50 hidden flex-col print:hidden">
+    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <h2 class="text-lg font-semibold">Add Farm</h2>
+        <button type="button" onclick="closeSideCards()" aria-label="Close" class="text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <form method="POST" action="create.php" class="flex-1 flex flex-col overflow-y-auto">
+        <div class="flex-1 px-5 py-4 space-y-4">
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Owner (Farmer)</label>
+                <select name="farmer_id" required
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    <option value="">-- Select Farmer --</option>
+                    <?php foreach ($farmers as $fm): ?>
+                        <option value="<?= $fm['farmer_id'] ?>"><?= htmlspecialchars($fm['first_name'] . " " . $fm['last_name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Farm Name</label>
+                <input type="text" name="farm_name" required
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Location</label>
+                <input type="text" name="location" required
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Area (Hectares)</label>
+                <input type="number" step="0.01" min="0.01" name="area_hectares" required
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Soil Type</label>
+                <select name="soil_type_id" required
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    <option value="">-- Select Soil Type --</option>
+                    <?php foreach ($soil_types as $soil): ?>
+                        <option value="<?= $soil['id'] ?>"><?= htmlspecialchars($soil['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Irrigation Type</label>
+                <select name="irrigation_type_id" required
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    <option value="">-- Select Irrigation --</option>
+                    <?php foreach ($irrigation_types as $irr): ?>
+                        <option value="<?= $irr['id'] ?>"><?= htmlspecialchars($irr['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div class="border-t border-gray-200 px-5 py-4 flex justify-end gap-2">
+            <button type="button" onclick="closeSideCards()"
+                    class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">Cancel</button>
+            <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg">Save Farm</button>
+        </div>
+    </form>
+</aside>
+
+<?php if ($edit_record): ?>
+<!-- Edit Farm slider (opens automatically via ?edit=<id>) -->
+<aside id="edit-card" class="fixed inset-x-0 bottom-0 w-full max-h-[85vh] rounded-t-2xl border-t border-gray-200 md:inset-x-auto md:left-auto md:top-0 md:right-0 md:bottom-0 md:h-full md:max-h-none md:max-w-md md:rounded-none md:border-t-0 md:border-l bg-white shadow-lg z-50 hidden flex-col print:hidden">
+    <div class="flex items-center justify-between border-b border-gray-200 px-5 py-4">
+        <h2 class="text-lg font-semibold">Edit Farm #<?= $edit_id ?></h2>
+        <button type="button" onclick="closeSideCards()" aria-label="Close" class="text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
+    <form method="POST" action="edit.php" class="flex-1 flex flex-col overflow-y-auto">
+        <input type="hidden" name="id" value="<?= $edit_id ?>">
+        <div class="flex-1 px-5 py-4 space-y-4">
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Owner (Farmer)</label>
+                <select name="farmer_id" required
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    <?php foreach ($farmers as $fm): ?>
+                        <option value="<?= $fm['farmer_id'] ?>" <?= (int) $edit_record['farmer_id'] === (int) $fm['farmer_id'] ? 'selected' : '' ?>>
+                            <?= htmlspecialchars($fm['first_name'] . " " . $fm['last_name']) ?>
+                        </option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Farm Name</label>
+                <input type="text" name="farm_name" required value="<?= htmlspecialchars($edit_record['farm_name']) ?>"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Location</label>
+                <input type="text" name="location" required value="<?= htmlspecialchars($edit_record['location']) ?>"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Area (Hectares)</label>
+                <input type="number" step="0.01" min="0.01" name="area_hectares" required value="<?= htmlspecialchars($edit_record['area_hectares']) ?>"
+                       class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Soil Type</label>
+                <select name="soil_type_id" required
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    <?php foreach ($soil_types as $soil): ?>
+                        <option value="<?= $soil['id'] ?>" <?= (int) $edit_record['soil_type_id'] === (int) $soil['id'] ? 'selected' : '' ?>><?= htmlspecialchars($soil['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+            <div>
+                <label class="block text-sm text-gray-500 mb-1">Irrigation Type</label>
+                <select name="irrigation_type_id" required
+                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+                    <?php foreach ($irrigation_types as $irr): ?>
+                        <option value="<?= $irr['id'] ?>" <?= (int) $edit_record['irrigation_type_id'] === (int) $irr['id'] ? 'selected' : '' ?>><?= htmlspecialchars($irr['name']) ?></option>
+                    <?php endforeach; ?>
+                </select>
+            </div>
+        </div>
+        <div class="border-t border-gray-200 px-5 py-4 flex justify-end gap-2">
+            <button type="button" onclick="closeSideCards()"
+                    class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-2 rounded-lg">Cancel</button>
+            <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg">Update Farm</button>
+        </div>
+    </form>
+</aside>
+<?php endif; ?>
+
+<?php require "../includes/sidecard.php"; ?>
 <?php require "../includes/confirm_modal.php"; ?>
 <?php require "../includes/footer.php"; ?>

@@ -20,6 +20,40 @@ class Crop {
         return $stmt->fetchAll();
     }
 
+    // Count of active crops, optionally filtered by category (for pagination)
+    public function countAll(int $category_id = 0) {
+        $sql    = "SELECT COUNT(*) FROM crop WHERE is_deleted = FALSE";
+        $params = [];
+        if ($category_id > 0) {
+            $sql .= " AND category_id = :category_id";
+            $params["category_id"] = $category_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // One page of crops with lookup names. $order comes only from the page's sort whitelist.
+    public function getPage(int $category_id, string $order, string $dir, int $limit, int $offset) {
+        $sql = "SELECT
+                    c.*,
+                    cc.category_name,
+                    s.season_name
+                FROM crop c
+                JOIN crop_categories cc ON c.category_id = cc.category_id
+                JOIN seasons s ON c.season_id = s.season_id
+                WHERE c.is_deleted = FALSE";
+        $params = [];
+        if ($category_id > 0) {
+            $sql .= " AND c.category_id = :category_id";
+            $params["category_id"] = $category_id;
+        }
+        $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getById(int $crop_id) {
         $sql = "SELECT * FROM crop WHERE crop_id = :crop_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);

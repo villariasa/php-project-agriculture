@@ -22,6 +22,42 @@ class Farm {
         return $stmt->fetchAll();
     }
 
+    // Count of active farms, optionally filtered by irrigation type (for pagination)
+    public function countAll(int $irrigation_type_id = 0) {
+        $sql    = "SELECT COUNT(*) FROM farm WHERE is_deleted = FALSE";
+        $params = [];
+        if ($irrigation_type_id > 0) {
+            $sql .= " AND irrigation_type_id = :irrigation_type_id";
+            $params["irrigation_type_id"] = $irrigation_type_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // One page of farms with lookup names. $order comes only from the page's sort whitelist.
+    public function getPage(int $irrigation_type_id, string $order, string $dir, int $limit, int $offset) {
+        $sql = "SELECT
+                    f.*,
+                    fm.first_name || ' ' || fm.last_name AS owner_name,
+                    st.soil_type_name,
+                    it.irrigation_type_name
+                FROM farm f
+                JOIN farmer fm ON f.farmer_id = fm.farmer_id
+                JOIN soil_types st ON f.soil_type_id = st.soil_type_id
+                JOIN irrigation_types it ON f.irrigation_type_id = it.irrigation_type_id
+                WHERE f.is_deleted = FALSE";
+        $params = [];
+        if ($irrigation_type_id > 0) {
+            $sql .= " AND f.irrigation_type_id = :irrigation_type_id";
+            $params["irrigation_type_id"] = $irrigation_type_id;
+        }
+        $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getById(int $farm_id) {
         $sql = "SELECT * FROM farm WHERE farm_id = :farm_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);

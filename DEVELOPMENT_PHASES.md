@@ -290,6 +290,101 @@ Every page in the system uses the same visual language. **No dark mode, no gradi
 
 ---
 
+## Phase 12 — <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/table-cells.svg" width="18" height="18" align="center" /> Data Tables v2 — Pagination, Sorting & Full Filters
+
+**Goal:** Close the remaining spec items (Data Tables and Pagination; Search, Filter, Sorting) with one shared, reusable table toolbar pattern applied to all 5 modules.
+
+### 12.1 Shared helpers (`includes/table_helpers.php`)
+- [ ] Pagination helper: reads `(int) $_GET['page']` (default 1) and a fixed per-page (e.g. 10); builds `LIMIT/OFFSET`; model methods gain `countAll($filters)` + `getPage($filters, $limit, $offset)`.
+- [ ] Sorting helper: `?sort=col&dir=asc|desc` — column names resolved ONLY through a per-module whitelist array (never interpolate raw GET into `ORDER BY`); clickable `<th>` headers with an up/down Heroicon on the active column.
+- [ ] Pagination bar partial: "Showing X–Y of Z" + Prev / numbered / Next links that preserve all current GET filters (`http_build_query`).
+
+### 12.2 Apply to every module index
+- [ ] Farmers, Farms, Crops, Plantings, Harvests: paginated + sortable lists; search/filter/sort/page all compose in the query string.
+- [ ] New filters (spec examples): farms by **irrigation type**, crops by **category**, harvests by **quality grade** — each a DB-driven lookup `<select>` in the existing right-rail filter form (plantings-by-status already done).
+- [ ] Settings lists get pagination only if any lookup exceeds one page (optional).
+
+**Exit criteria:** Every list page pages, sorts, and filters correctly in combination; all ORDER BY columns whitelisted; soft-deleted rows never counted.
+
+---
+
+## Phase 13 — <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/presentation-chart-line.svg" width="18" height="18" align="center" /> Dashboard v2 — Upgraded KPIs & Analytics
+
+**Goal:** Turn the dashboard into a real decision view — comparative KPIs and drill-down, still all live queries, no decorative data.
+
+### 13.1 KPI strip v2 (replaces the 6-tile strip)
+- [ ] **Revenue this month** (SUM qty × price, current month) with small "vs last month" +/-% line (green/red text, no chart junk).
+- [ ] **Harvested kg this month** with same vs-last-month comparison.
+- [ ] **Avg yield per hectare** (SUM quantity_kg / SUM area_planted of harvested plantings).
+- [ ] **Active plantings** (status ≠ Harvested) and **Harvest-due soon** count (expected_harvest_date within next 14 days).
+- [ ] Every KPI tile links to the module/report that explains it.
+
+### 13.2 Charts & panels
+- [ ] Revenue by month (12 mo) line chart added beside the existing harvest-volume chart (Chart.js v4, same CDN).
+- [ ] Top 5 crops by harvested kg (horizontal bars) and Top 5 farms by revenue (plain table card, not a chart).
+- [ ] "Upcoming harvests" panel in the right rail: plantings with expected_harvest_date in the next 14 days (farm, crop, date, days-left pill).
+- [ ] Dashboard date-range selector (`?from=&to=` GET form) scoping the KPI strip and charts; defaults to last 12 months; empty-state text when no data in range.
+
+**Exit criteria:** All numbers verifiable by hand against the DB; comparisons correct across month boundaries; charts and KPIs respect `is_deleted = FALSE` everywhere.
+
+---
+
+## Phase 14 — <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/document-arrow-down.svg" width="18" height="18" align="center" /> Reports v2 — New Reports & CSV Export
+
+**Goal:** Expand from 4 reports to 7 and make every report exportable and print-professional.
+
+### 14.1 New reports
+- [ ] `reports/farmer_profitability.php` — per farmer: farms, total area, harvested kg, total revenue; sortable, date-range filter.
+- [ ] `reports/seasonal_performance.php` — per season (lookup JOIN): plantings, harvested kg, revenue; shows which season performs best.
+- [ ] `reports/yield_efficiency.php` — per crop: avg kg per hectare across completed harvests, filterable by category.
+
+### 14.2 Report platform upgrades (all 7 reports)
+- [ ] **CSV export**: each report accepts `?export=csv` — same query, `header('Content-Type: text/csv')` + `fputcsv` on `php://output`, filename like `harvest_revenue_2026-11-04.csv`. Native PHP only.
+- [ ] Summary strip above each results table (e.g. record count, SUM totals) so the headline numbers are visible before the rows.
+- [ ] Print header block (visible only in print via `hidden print:block`): system name, report title, applied filters, generated date.
+- [ ] Report hub cards updated to list all 7 reports.
+
+**Exit criteria:** CSV downloads open correctly in a spreadsheet and match on-screen data; totals in summary strips match footer SUMs; print layout shows the header block and hides nav/rails.
+
+---
+
+## Phase 15 — <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/user-group.svg" width="18" height="18" align="center" /> Administration — Users, Profile & Activity Log
+
+**Goal:** Round out the system with the admin features a real deployment needs.
+
+### 15.1 User management (`users/`, admin-only)
+- [ ] `users/index.php` — list users (username, full name, role badge, created, status); server-side admin guard like Settings.
+- [ ] `users/create.php` / `edit.php` — add/edit user, role `<select>` (admin/staff), `password_hash()` on save; edit leaves password unchanged when blank.
+- [ ] Soft delete (deactivate) a user — blocked for your own account and the last active admin; login rejects deactivated users.
+
+### 15.2 Profile (all roles)
+- [ ] `auth/profile.php` — change own full name + password (current password verified with `password_verify()` first).
+
+### 15.3 Activity log (audit trail)
+- [ ] New table `activity_log (log_id PK, user_id FK, action VARCHAR, entity VARCHAR, entity_id INT, created_at)` — appended via a small `logActivity()` helper called from every create/update/soft-delete handler.
+- [ ] `users/activity.php` (admin-only): paginated log, filter by user and entity; replaces nothing — purely additive.
+- [ ] Dashboard right rail: "Recent activity" panel (last 8 log rows) replacing or complementing the current recent panels.
+
+**Exit criteria:** Staff cannot reach any `users/` page server-side; last-admin lockout impossible; every write action produces exactly one log row.
+
+---
+
+## Phase 16 — <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/sparkles.svg" width="18" height="18" align="center" /> UI Layout v3 & UX Polish
+
+**Goal:** A tighter, more application-like shell — still white theme, still human-designed (see `UI_STYLE_GUIDE.md`), zero logic changes.
+
+- [ ] **Sidebar layout option:** fixed left sidebar nav (white, bordered, icon + label, active state `bg-green-50 text-green-700`) on ≥ lg screens, collapsing to the existing top-nav + hamburger below; nav defined once in `header.php` from a single links array.
+- [ ] **Breadcrumbs** under the header on sub-pages (e.g. Farms / Edit), generated from a `$breadcrumbs` array per page.
+- [ ] **Standard page header pattern:** title + record-count subtitle on the left, primary actions on the right — identical structure on all list pages.
+- [ ] **Global quick search** in the header: one input, GET to a small `search.php` that queries farmers/farms/crops by name (prepared `ILIKE`), grouped results list with links.
+- [ ] **Consistent empty states:** every table and panel gets a bordered dashed box with one line of text + the relevant Add action (no illustrations).
+- [ ] **Keyboard/UX details:** autofocus first field on forms, `Esc` already closes side cards — verify after layout change; focus rings per the style guide.
+- [ ] Responsive re-verify at desktop / 768px / 375px after the sidebar change.
+
+**Exit criteria:** Same functionality, cleaner shell; no route/DB changes; passes the UI_STYLE_GUIDE "not AI-template" review (no gradients, glow, or decorative data).
+
+---
+
 ## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/light-bulb.svg" width="22" height="22" align="center" /> Working Rules Reminder
 
 1. **One phase at a time** — never start a module before its dependencies pass exit criteria.

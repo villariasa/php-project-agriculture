@@ -22,6 +22,33 @@ class Farmer {
         return $stmt->fetchAll();
     }
 
+    // Count of active farmers matching the optional search term (for pagination)
+    public function countAll(string $term = "") {
+        $sql    = "SELECT COUNT(*) FROM farmer WHERE is_deleted = FALSE";
+        $params = [];
+        if ($term !== "") {
+            $sql .= " AND (first_name ILIKE :term OR last_name ILIKE :term OR address ILIKE :term)";
+            $params["term"] = "%{$term}%";
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    // One page of farmers. $order comes only from the page's sort whitelist.
+    public function getPage(string $term, string $order, string $dir, int $limit, int $offset) {
+        $sql    = "SELECT * FROM farmer WHERE is_deleted = FALSE";
+        $params = [];
+        if ($term !== "") {
+            $sql .= " AND (first_name ILIKE :term OR last_name ILIKE :term OR address ILIKE :term)";
+            $params["term"] = "%{$term}%";
+        }
+        $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function getById(int $farmer_id) {
         $sql = "SELECT * FROM farmer WHERE farmer_id = :farmer_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);

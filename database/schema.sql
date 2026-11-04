@@ -6,6 +6,7 @@
 -- ============================================================
 
 -- ---------- Drop old tables (safe re-run) ----------
+DROP TABLE IF EXISTS activity_log;
 DROP TABLE IF EXISTS harvest;
 DROP TABLE IF EXISTS planting;
 DROP TABLE IF EXISTS crop;
@@ -157,6 +158,18 @@ CREATE TABLE users (
     is_deleted    BOOLEAN NOT NULL DEFAULT FALSE,
     created_at    TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at    TIMESTAMP NOT NULL DEFAULT NOW()
+);
+
+-- ---------- 7. ACTIVITY_LOG (audit trail) ----------
+-- Append-only record of every create / update / delete performed in the app.
+CREATE TABLE activity_log (
+    log_id     SERIAL PRIMARY KEY,
+    user_id    INT NOT NULL REFERENCES users(user_id),
+    action     VARCHAR(20)  NOT NULL CHECK (action IN ('create', 'update', 'delete')),
+    entity     VARCHAR(50)  NOT NULL,
+    entity_id  INT NOT NULL,
+    details    VARCHAR(200) NOT NULL DEFAULT '',
+    created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 
 -- ============================================================
