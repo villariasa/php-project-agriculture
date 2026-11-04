@@ -265,7 +265,8 @@ function openUserEdit(id, fullName, role, username) {
 
 <script>
 function showSideCard(card) {
-    document.getElementById("sidecard-overlay").classList.remove("hidden");
+    var overlay = document.getElementById("sidecard-overlay");
+    if (overlay) { overlay.classList.remove("hidden"); }
     card.classList.remove("hidden");
     card.classList.add("flex");
     var firstField = card.querySelector("input:not([type=hidden]):not([disabled]), select");
@@ -280,8 +281,10 @@ function openEditCard() {
     var card = document.getElementById("edit-card");
     if (card) { showSideCard(card); }
 }
+// Null-safe: outlives its page under PJAX (other pages lack these elements)
 function closeSideCards() {
-    document.getElementById("sidecard-overlay").classList.add("hidden");
+    var overlay = document.getElementById("sidecard-overlay");
+    if (overlay) { overlay.classList.add("hidden"); }
     ["add-card", "edit-card"].forEach(function (id) {
         var card = document.getElementById(id);
         if (card) {
