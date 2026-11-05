@@ -161,10 +161,26 @@ require "../includes/header.php";
 <div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
     <div>
         <h1 class="text-2xl font-bold">Reports &amp; Analytics</h1>
-        <p class="text-sm text-gray-500">Production and revenue overview &middot; <?= htmlspecialchars($date_from) ?> to <?= htmlspecialchars($date_to) ?></p>
+        <!-- Date range is already shown by the pill/filter on the right — only
+             repeat it here on desktop, where there's room, and formatted compactly. -->
+        <p class="text-sm text-gray-500">Production and revenue overview
+            <span class="hidden sm:inline">&middot; <?= htmlspecialchars(date("M j, Y", strtotime($date_from))) ?> to <?= htmlspecialchars(date("M j, Y", strtotime($date_to))) ?></span>
+        </p>
     </div>
-    <div class="flex flex-wrap items-end gap-2 print:hidden">
-        <form method="GET" class="flex flex-wrap items-end gap-2 w-full sm:w-auto">
+    <div class="flex items-center gap-2 print:hidden">
+        <!-- Mobile: one-line summary pill opens a bottom sheet with the real filter -->
+        <button type="button" onclick="openDateSheet()" class="sm:hidden inline-flex items-center gap-2 bg-white border border-gray-300 rounded-full shadow-sm px-4 py-2 text-sm text-gray-700">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 text-gray-400">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6.75 3v2.25M17.25 3v2.25M3 18.75V7.5a2.25 2.25 0 0 1 2.25-2.25h13.5A2.25 2.25 0 0 1 21 7.5v11.25m-18 0A2.25 2.25 0 0 0 5.25 21h13.5A2.25 2.25 0 0 0 21 18.75m-18 0v-7.5A2.25 2.25 0 0 1 5.25 9h13.5A2.25 2.25 0 0 1 21 11.25v7.5" />
+            </svg>
+            <?= htmlspecialchars(date("M j", strtotime($date_from))) ?> &ndash; <?= htmlspecialchars(date("M j", strtotime($date_to))) ?>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3.5 h-3.5 text-gray-400">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m19.5 8.25-7.5 7.5-7.5-7.5" />
+            </svg>
+        </button>
+
+        <!-- Desktop: full inline filter, unchanged -->
+        <form method="GET" class="hidden sm:flex flex-wrap items-end gap-2 w-full sm:w-auto">
             <div class="flex-1 min-w-[8.5rem] sm:flex-none">
                 <label class="block text-xs text-gray-500 mb-1">From</label>
                 <input type="date" name="from" value="<?= htmlspecialchars($date_from) ?>"
@@ -178,44 +194,131 @@ require "../includes/header.php";
             <button type="submit" class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-1.5 rounded-full text-sm">Apply</button>
             <a href="index.php" class="text-sm text-gray-500 hover:text-gray-700 pb-2">Reset</a>
         </form>
-        <button onclick="window.print()"
-                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-4 py-1.5 rounded-full text-sm shadow-sm inline-flex items-center gap-2">
+
+        <!-- Print: icon-only on mobile, full label on desktop -->
+        <button onclick="window.print()" title="Print"
+                class="bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 p-2 sm:px-4 sm:py-1.5 rounded-full text-sm shadow-sm inline-flex items-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M6.72 13.829c-.24.03-.48.062-.72.096m.72-.096a42.415 42.415 0 0 1 10.56 0m-10.56 0L6.34 18m10.94-4.171c.24.03.48.062.72.096m-.72-.096L17.66 18m0 0 .229 2.523a1.125 1.125 0 0 1-1.12 1.227H7.231c-.662 0-1.18-.568-1.12-1.227L6.34 18m11.318 0h1.091A2.25 2.25 0 0 0 21 15.75V9.456c0-1.081-.768-2.015-1.837-2.175a48.055 48.055 0 0 0-1.913-.247M6.34 18H5.25A2.25 2.25 0 0 1 3 15.75V9.456c0-1.081.768-2.015 1.837-2.175a48.041 48.041 0 0 1 1.913-.247m10.5 0a48.536 48.536 0 0 0-10.5 0m10.5 0V3.375c0-.621-.504-1.125-1.125-1.125h-8.25c-.621 0-1.125.504-1.125 1.125v3.659M18 10.5h.008v.008H18V10.5Zm-3 0h.008v.008H15V10.5Z" />
             </svg>
-            Print
+            <span class="hidden sm:inline">Print</span>
         </button>
     </div>
 </div>
 
-<!-- KPI strip -->
-<div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">
-    <!-- Hero metric: full width on phones so the peso amount has room -->
-    <div class="bg-white p-4 col-span-2 sm:col-span-1">
-        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Revenue</p>
-        <p class="text-lg sm:text-xl font-bold">&#8369;<?= number_format((float) $kpi['total_revenue'], 2) ?></p>
+<!-- Mobile date-filter sheet (same visual language as the app's Records/Menu sheets) -->
+<div id="date-sheet-overlay" class="sm:hidden fixed inset-0 bg-black/40 backdrop-blur-sm z-40 opacity-0 pointer-events-none transition-opacity duration-300 print:hidden" onclick="closeDateSheet()"></div>
+<div id="date-sheet" class="sm:hidden fixed inset-x-0 bottom-0 z-50 bg-white border-t border-gray-200 rounded-t-2xl shadow-lg translate-y-full print:hidden">
+    <div class="pt-2.5 flex justify-center"><span class="w-10 h-1 rounded-full bg-gray-300"></span></div>
+    <div class="flex items-center justify-between px-5 pt-1.5 pb-3 border-b border-gray-100">
+        <h2 class="font-semibold">Filter by Date</h2>
+        <button type="button" onclick="closeDateSheet()" aria-label="Close" class="text-gray-400 hover:text-gray-600">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
+            </svg>
+        </button>
     </div>
-    <div class="bg-white p-4">
-        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Harvested</p>
-        <p class="text-lg sm:text-xl font-bold"><?= number_format((float) $kpi['total_kg'], 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
-    </div>
-    <div class="bg-white p-4">
-        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Harvests</p>
-        <p class="text-lg sm:text-xl font-bold"><?= number_format((int) $kpi['harvest_count']) ?></p>
-    </div>
-    <div class="bg-white p-4">
-        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Avg Price / kg</p>
-        <p class="text-lg sm:text-xl font-bold">&#8369;<?= number_format($avg_price, 2) ?></p>
-    </div>
-    <div class="bg-white p-4">
-        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Avg Yield / ha</p>
-        <p class="text-lg sm:text-xl font-bold"><?= number_format($avg_yield_per_ha, 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
-    </div>
-    <div class="bg-white p-4">
-        <p class="text-xs uppercase tracking-wide text-gray-500 mb-1">Active Plantings</p>
-        <p class="text-lg sm:text-xl font-bold"><?= number_format($active_plantings) ?></p>
-    </div>
+    <form method="GET" class="p-5 pb-7 space-y-4">
+        <div>
+            <label class="block text-sm text-gray-500 mb-1">From</label>
+            <input type="date" name="from" value="<?= htmlspecialchars($date_from) ?>"
+                   class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        </div>
+        <div>
+            <label class="block text-sm text-gray-500 mb-1">To</label>
+            <input type="date" name="to" value="<?= htmlspecialchars($date_to) ?>"
+                   class="w-full p-2.5 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
+        </div>
+        <div class="flex gap-2 pt-1">
+            <button type="submit" class="flex-1 bg-green-600 hover:bg-green-700 text-white font-medium py-2.5 rounded-lg">Apply</button>
+            <a href="index.php" class="flex-1 text-center bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 py-2.5 rounded-lg">Reset</a>
+        </div>
+    </form>
 </div>
+
+<script>
+(function () {
+    window.openDateSheet = function () {
+        var overlay = document.getElementById("date-sheet-overlay");
+        var sheet   = document.getElementById("date-sheet");
+        if (overlay) { overlay.classList.remove("opacity-0", "pointer-events-none"); }
+        if (sheet)   { sheet.classList.remove("translate-y-full"); }
+    };
+    window.closeDateSheet = function () {
+        var overlay = document.getElementById("date-sheet-overlay");
+        var sheet   = document.getElementById("date-sheet");
+        if (overlay) { overlay.classList.add("opacity-0", "pointer-events-none"); }
+        if (sheet)   { sheet.classList.add("translate-y-full"); }
+    };
+    document.addEventListener("keydown", function (event) {
+        if (event.key === "Escape") { closeDateSheet(); }
+    });
+
+    // Swipe-down to dismiss (same technique as the app's other bottom sheets)
+    var sheet = document.getElementById("date-sheet");
+    if (sheet) {
+        var startY = 0, dragY = 0, dragging = false;
+        sheet.addEventListener("touchstart", function (event) {
+            if (sheet.classList.contains("translate-y-full")) { return; }
+            startY = event.touches[0].clientY;
+            dragY = 0;
+            dragging = true;
+            sheet.style.transition = "none";
+        }, { passive: true });
+        sheet.addEventListener("touchmove", function (event) {
+            if (!dragging) { return; }
+            dragY = Math.max(0, event.touches[0].clientY - startY);
+            sheet.style.transform = "translateY(" + dragY + "px)";
+        }, { passive: true });
+        sheet.addEventListener("touchend", function () {
+            if (!dragging) { return; }
+            dragging = false;
+            sheet.style.transition = "";
+            sheet.style.transform  = "";
+            if (dragY > 90) { closeDateSheet(); }
+            dragY = 0;
+        });
+    }
+})();
+</script>
+
+<?php
+// Shared KPI data so the mobile scroll-row and desktop grid render from one list
+$overview_tiles = [
+    ["label" => "Revenue", "value" => "&#8369;" . number_format((float) $kpi['total_revenue'], 2)],
+    ["label" => "Harvested", "value" => number_format((float) $kpi['total_kg'], 1) . " <span class='text-sm font-normal text-gray-500'>kg</span>"],
+    ["label" => "Harvests", "value" => number_format((int) $kpi['harvest_count'])],
+    ["label" => "Avg Price / kg", "value" => "&#8369;" . number_format($avg_price, 2)],
+    ["label" => "Avg Yield / ha", "value" => number_format($avg_yield_per_ha, 1) . " <span class='text-sm font-normal text-gray-500'>kg</span>"],
+    ["label" => "Active Plantings", "value" => number_format($active_plantings)],
+];
+?>
+
+<!-- KPI strip: mobile = horizontal scroll-snap row (saves vertical space,
+     next-card peek signals swipeability); desktop = full grid, all visible. -->
+<div id="overview-scroll" class="sm:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+    <?php foreach ($overview_tiles as $tile): ?>
+        <div class="snap-start shrink-0 w-[42%] min-w-[9.5rem] bg-white rounded-lg border border-gray-200 shadow-sm p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1"><?= $tile['label'] ?></p>
+            <p class="text-lg font-bold"><?= $tile['value'] ?></p>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+<div class="hidden sm:grid sm:grid-cols-3 xl:grid-cols-6 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">
+    <?php foreach ($overview_tiles as $tile): ?>
+        <div class="bg-white p-4">
+            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1"><?= $tile['label'] ?></p>
+            <p class="text-lg sm:text-xl font-bold"><?= $tile['value'] ?></p>
+        </div>
+    <?php endforeach; ?>
+</div>
+
+<style>
+    /* Hide the scrollbar on the KPI row — snap + peek is the only affordance needed */
+    #overview-scroll { scrollbar-width: none; -ms-overflow-style: none; }
+    #overview-scroll::-webkit-scrollbar { display: none; }
+</style>
 
 <?php if (!$has_data): ?>
     <div class="border border-dashed border-gray-300 rounded-lg px-4 py-12 text-center text-sm text-gray-500 mb-6">
