@@ -11,7 +11,19 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### CRITICAL FIX: missing viewport meta tag (2026-11-04, latest) — mobile was rendering as zoomed-out desktop
+### Date-range filter: compact pill + bottom sheet on mobile (2026-11-05, latest)
+- User feedback: the From/To inputs + Apply/Reset/Print row above the KPI strip wrapped onto multiple lines on mobile, wasting vertical space. Agreed approach (not a carousel): collapse to a **one-line summary pill** ("📅 Oct 7 – Nov 5 ▾") that opens a **bottom sheet** with the real From/To/Apply/Reset — reuses the app's existing sheet visual language (drag handle, `rounded-t-2xl`, fade backdrop, swipe-to-dismiss) rather than inventing a new pattern.
+- Applied to **both** `index.php` (dashboard) and `reports/index.php` (analytics overview): `sm:hidden` pill + sheet, `hidden sm:flex` original inline form preserved untouched for desktop. Reports' Print button goes icon-only on mobile (`sm:inline` label) to keep the row tidy next to the new pill.
+- Self-contained per-page sheet (own `openDateSheet()`/`closeDateSheet()` + swipe-to-dismiss touch handlers, same technique as the global Records/Menu sheets but independent — avoids touching header.php's shared sheet system). Both new script blocks isolated and syntax-checked; template if/foreach balance verified on both files.
+
+### Reports analytics-overview KPI strip: same scroll-snap treatment (2026-11-05)
+- Applied the identical pattern to `reports/index.php`'s 6-tile strip (Revenue/Harvested/Harvests/Avg Price/Avg Yield/Active Plantings): `$overview_tiles` array feeds both a mobile `sm:hidden` scroll-snap row (`w-[42%]`, peek, hidden scrollbar) and the unchanged desktop grid. Same orphaned-half-row fix as the dashboard. Template balance verified.
+
+### Dashboard KPI strip: horizontal scroll-snap on mobile (2026-11-05)
+- User asked for a recommendation on the 6-tile KPI strip on mobile (a carousel was considered and rejected — dashboards should be scannable, and auto-rotating carousels bury metrics users rarely swipe to). Agreed approach: a **user-controlled horizontal scroll-snap row**, not an auto-advancing carousel.
+- `index.php`: KPI data extracted once into a `$kpi_tiles` array feeding both layouts (no duplication). Mobile (`sm:hidden`) renders one flex row, `overflow-x-auto snap-x snap-mandatory`, each card `w-[42%]` so the next card visibly peeks in as a swipe affordance; scrollbar hidden. Desktop (`hidden sm:grid`) keeps the original grid unchanged. Fixes the previous 5-tile grid's orphaned half-row (now all 6 tiles are equal, reachable via a quick swipe, zero JS).
+
+### CRITICAL FIX: missing viewport meta tag (2026-11-04) — mobile was rendering as zoomed-out desktop
 - Root cause of the user's "mobile looks like desktop, tiny letters, zoomed out" report: `<meta name="viewport" content="width=device-width, initial-scale=1.0">` was missing from BOTH `includes/header.php` and `auth/login.php`'s `<head>` — likely dropped during an earlier `<head>` edit (favicon tags were added around the same region). Without it, phone browsers render the page at a ~980px desktop viewport and scale the whole thing down to fit, which is exactly this symptom: all the mobile-only CSS (bottom nav, card lists, etc.) technically applies, but at desktop-viewport breakpoints it doesn't activate, AND everything looks tiny/zoomed because the browser is faking a desktop screen.
 - **Fixed:** re-added the viewport tag to both files, right after `<meta charset>`. This is a full-page-load-only concern — PJAX never touches `<head>`, so the fix takes effect on next login/hard refresh for the whole session.
 - **User action needed: hard-refresh the page on the phone** (or close/reopen the browser tab) — the broken viewport was cached in the already-loaded page; the fix only applies on a fresh document load.
