@@ -45,7 +45,7 @@ require "../includes/header.php";
 ?>
 
 <!-- LAYER 1 (Blue Box): Top Hero Header with Title, Count, Add Crop Button & Foliage Illustration -->
-<div class="relative mb-5 print:hidden">
+<div class="relative mb-5 min-h-[9.25rem] sm:min-h-[11.25rem] print:hidden">
     <!-- Top-right foliage & hills illustration matching reference design -->
     <div class="absolute -top-3 right-0 w-48 sm:w-64 h-36 sm:h-44 pointer-events-none select-none overflow-hidden z-0">
         <svg viewBox="0 0 220 170" class="w-full h-full object-contain object-right-bottom" fill="none" xmlns="http://www.w3.org/2000/svg">

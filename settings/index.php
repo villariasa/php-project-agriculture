@@ -48,83 +48,120 @@ $breadcrumbs = [["Settings", null]];
 require "../includes/header.php";
 ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
-    <div>
-        <h1 class="text-2xl font-bold">Settings</h1>
-        <p class="text-sm text-gray-500">Manage the dropdown values (lookup tables) used across the system.</p>
-    </div>
-    <button type="button" onclick="openAddCard()"
-            class="bg-green-600 hover:bg-green-700 text-white font-medium px-4 py-2 rounded-lg inline-flex items-center gap-2 self-start sm:self-auto print:hidden">
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+<!-- LAYER 1: Top Hero Header with Title, Count, Add Value Button & Foliage Illustration -->
+<div class="relative mb-5 min-h-[8.25rem] sm:min-h-[10.25rem] print:hidden">
+    <!-- Top-right foliage & hills illustration matching reference design -->
+    <div class="absolute -top-3 right-0 w-48 sm:w-64 h-36 sm:h-44 pointer-events-none select-none overflow-hidden z-0">
+        <svg viewBox="0 0 220 170" class="w-full h-full object-contain object-right-bottom" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <!-- Soft ambient mounds / hills -->
+            <path d="M100 170 C100 115 145 85 195 85 C215 85 230 92 240 100 L240 170 Z" fill="#edf6ef" />
+            <path d="M120 170 C120 120 160 95 205 95 C220 95 235 100 240 105 L240 170 Z" fill="#e0eee2" />
+            <!-- Small side leaf tip at right -->
+            <path d="M210 115 C215 105 220 100 225 98 C225 108 220 118 215 125 Z" fill="#5a9661" opacity="0.8"/>
+            <!-- Back leaf (olive green) -->
+            <path d="M140 145 C125 110 140 75 168 65 C180 95 165 130 140 145 Z" fill="#8db98e" />
+            <path d="M140 145 C152 118 160 92 168 65" stroke="#72a373" stroke-width="2.5" stroke-linecap="round"/>
+            <!-- Front leaf (rich forest green) -->
+            <path d="M162 150 C162 112 188 88 212 82 C218 118 198 145 162 150 Z" fill="#4d8b54" />
+            <path d="M162 150 C178 128 195 105 212 82" stroke="#366b3c" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
-        Add <?= $types[$type] ?> Value
-    </button>
+    </div>
+
+    <div class="relative z-10 pt-1 flex items-center justify-between gap-3">
+        <div class="min-w-0">
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight">Settings</h1>
+            <p id="records-count" class="text-xs sm:text-sm text-gray-500 font-normal mt-0.5 sm:mt-1"><?= number_format($total_rows) ?> <?= strtolower($types[$type]) ?> value(s)</p>
+        </div>
+        <div class="shrink-0">
+            <button type="button" onclick="openAddCard()"
+                    class="bg-[#2e7d32] hover:bg-[#256829] active:scale-95 text-white font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-full inline-flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs sm:text-sm transition-all">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
+                </svg>
+                <span>Add <?= $types[$type] ?> Value</span>
+            </button>
+        </div>
+    </div>
 </div>
 
 <?php require "../includes/alert.php"; ?>
 
-<!-- Mobile: horizontal pill scroller for the 7 lookup types -->
-<div class="lg:hidden flex gap-2 overflow-x-auto pb-1 mb-4 -mx-4 px-4 print:hidden">
-    <?php foreach ($types as $key => $label): ?>
-        <a href="index.php?type=<?= $key ?>"
-           class="shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors <?= $type === $key
-               ? 'bg-green-600 text-white'
-               : 'bg-gray-100 text-gray-600 hover:bg-gray-200' ?>">
-            <?= $label ?>
-        </a>
-    <?php endforeach; ?>
-</div>
+<!-- LAYER 2: Middle warm-toned rounded container holding the type switcher and inner white card -->
+<div class="bg-[#f6f4ec] rounded-[2.25rem] sm:rounded-3xl p-3.5 sm:p-5 border border-[#ede9de] shadow-[0_4px_20px_rgba(0,0,0,0.03)] mb-6">
 
-<div class="flex flex-col lg:flex-row gap-6">
+    <!-- Mobile: horizontal pill scroller for the 7 lookup types -->
+    <div id="type-tabs" class="lg:hidden flex gap-2 overflow-x-auto pb-1 mb-3.5 print:hidden">
+        <?php foreach ($types as $key => $label): ?>
+            <a href="index.php?type=<?= $key ?>"
+               <?= $type === $key ? 'data-active="1"' : '' ?>
+               class="shrink-0 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap shadow-sm transition-colors <?= $type === $key
+                   ? 'bg-[#2e7d32] text-white'
+                   : 'bg-white text-gray-600 hover:bg-gray-50 border border-gray-200/70' ?>">
+                <?= $label ?>
+            </a>
+        <?php endforeach; ?>
+    </div>
+    <script>
+    (function () {
+        var scroller = document.getElementById("type-tabs");
+        var active   = scroller && scroller.querySelector('[data-active="1"]');
+        if (scroller && active) {
+            var target = active.offsetLeft - (scroller.clientWidth - active.offsetWidth) / 2;
+            scroller.scrollLeft = Math.max(0, target);
+        }
+    })();
+    </script>
 
-    <!-- Desktop: vertical settings-style sidebar nav -->
-    <aside class="hidden lg:block w-56 shrink-0 print:hidden">
-        <nav class="space-y-1">
-            <?php foreach ($types as $key => $label): ?>
-                <a href="index.php?type=<?= $key ?>"
-                   class="block px-3 py-2 rounded-lg text-sm font-medium transition-colors <?= $type === $key
-                       ? 'bg-green-50 text-green-700'
-                       : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900' ?>">
-                    <?= $label ?>
-                </a>
-            <?php endforeach; ?>
-        </nav>
-    </aside>
+    <div class="flex flex-col lg:flex-row lg:gap-5">
 
-    <!-- Values list for the selected type -->
-    <div class="flex-1 min-w-0 max-w-2xl">
-        <div id="records-panel" class="bg-white rounded-lg border border-gray-200 shadow-sm divide-y divide-gray-100">
-            <?php if (count($rows) === 0): ?>
-                <div class="px-4 py-8 text-center text-sm text-gray-500">No values defined yet.</div>
-            <?php endif; ?>
-            <?php foreach ($rows as $row): ?>
-                <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
-                    <span class="text-sm font-medium text-gray-900 truncate"><?= htmlspecialchars($row['name']) ?></span>
-                    <div class="inline-flex items-center gap-2 shrink-0">
-                        <a href="#" title="Edit"
-                           onclick="openEditCard(<?= (int) $row['id'] ?>, <?= htmlspecialchars(json_encode($row['name']), ENT_QUOTES) ?>); return false;"
-                           class="text-blue-600 hover:text-blue-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
-                            </svg>
-                        </a>
-                        <a href="#" title="Delete"
-                           onclick="openDeleteModal('delete.php?type=<?= $type ?>&id=<?= $row['id'] ?>', 'Are you sure you want to delete <?= htmlspecialchars(addslashes($row['name']), ENT_QUOTES) ?>?'); return false;"
-                           class="text-red-600 hover:text-red-800">
-                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
-                            </svg>
-                        </a>
+        <!-- Desktop: vertical settings-style sidebar nav -->
+        <aside class="hidden lg:block w-56 shrink-0 print:hidden">
+            <nav class="space-y-1">
+                <?php foreach ($types as $key => $label): ?>
+                    <a href="index.php?type=<?= $key ?>"
+                       class="block px-3 py-2 rounded-lg text-sm font-medium transition-colors <?= $type === $key
+                           ? 'bg-white text-[#2e7d32] shadow-sm'
+                           : 'text-gray-600 hover:bg-white/70 hover:text-gray-900' ?>">
+                        <?= $label ?>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
+        </aside>
+
+        <!-- LAYER 3: Inner pure white card holding the values list -->
+        <div class="flex-1 min-w-0 max-w-2xl">
+            <div id="records-panel" class="bg-white rounded-[1.75rem] border border-gray-100 shadow-sm divide-y divide-gray-100 overflow-hidden">
+                <?php if (count($rows) === 0): ?>
+                    <div class="px-4 py-8 text-center text-sm text-gray-500">No values defined yet.</div>
+                <?php endif; ?>
+                <?php foreach ($rows as $row): ?>
+                    <div class="flex items-center justify-between gap-3 px-4 py-3 hover:bg-gray-50">
+                        <span class="text-sm font-medium text-gray-900 truncate"><?= htmlspecialchars($row['name']) ?></span>
+                        <div class="inline-flex items-center gap-2 shrink-0">
+                            <a href="#" title="Edit"
+                               onclick="openEditCard(<?= (int) $row['id'] ?>, <?= htmlspecialchars(json_encode($row['name']), ENT_QUOTES) ?>); return false;"
+                               class="text-blue-600 hover:text-blue-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
+                                </svg>
+                            </a>
+                            <a href="#" title="Delete"
+                               onclick="openDeleteModal('delete.php?type=<?= $type ?>&id=<?= $row['id'] ?>', 'Are you sure you want to delete <?= htmlspecialchars(addslashes($row['name']), ENT_QUOTES) ?>?'); return false;"
+                               class="text-red-600 hover:text-red-800">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
+                                </svg>
+                            </a>
+                        </div>
                     </div>
-                </div>
-            <?php endforeach; ?>
-            <?php paginationBar($page, $total_rows); ?>
+                <?php endforeach; ?>
+                <?php paginationBar($page, $total_rows); ?>
+            </div>
+
+            <p class="text-xs text-gray-400 mt-3">Values in use by active records cannot be deleted. Deleted values are hidden from dropdowns but kept for historical records.</p>
         </div>
 
-        <p class="text-xs text-gray-400 mt-3">Values in use by active records cannot be deleted. Deleted values are hidden from dropdowns but kept for historical records.</p>
     </div>
-
 </div>
 
 <!-- Side card overlay -->
