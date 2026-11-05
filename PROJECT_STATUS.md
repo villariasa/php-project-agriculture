@@ -11,7 +11,22 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### Reports subtitle date-range overlap fixed (2026-11-05, latest)
+### Home redesign extended to desktop + mobile header tweaks (2026-11-05, latest)
+- **Desktop now shares the new design** (was mobile-only): the avatar "Hello, [name]" greeting replaces the h1 on all sizes; hero + tinted cards restructured into ONE responsive grid (`grid-cols-2 xl:grid-cols-4`): green-950 revenue hero spans 2 cols, Active Plantings (blue) + Harvest Due Soon (amber) beside it on xl / under it on mobile; tinted cards got hover states. Inside the hero, the date pill stays a tappable sheet-opener on mobile but renders as a static range chip on sm+ (the header's inline From/To form owns the range there). Quick-actions row now shows on desktop too (`sm:max-w-md` so tiles don't stretch).
+- **KPI strip de-duplicated everywhere** (not just mobile): Active Plantings + Harvest Due Soon removed from `$kpi_tiles` entirely (they live in the tinted cards); desktop grid tightened from 6 to 4 columns (`sm:grid-cols-2 xl:grid-cols-4`); the mobile scroll row's `mobile_hide` filter removed as obsolete.
+- **Mobile topbar (user request):** breadcrumb home icon + its paired first "/" separator removed (the logo already links home and the bottom nav has a Home tab); logo enlarged `w-8`→`w-10`; breadcrumb separators now simply render between crumbs (`$i > 0`).
+
+### Home redesign per sample-dashboard.jpeg + Dashboard→Home rename (2026-11-05)
+- **Rename:** "Dashboard" is now "Home" everywhere user-facing — sidebar label, bottom-nav tab, `$page_title`, desktop h1, breadcrumb home-icon tooltip ($active key stays `dashboard` internally; no route changes).
+- **Mobile Home top section rebuilt** (all `sm:hidden`, desktop layout untouched):
+  - **Greeting:** avatar initial circle + "Hello, [full name]" (replaces plain title).
+  - **Hero card** (`bg-green-950`, rounded-2xl): "Revenue" with a big peso number = **sum of the selected range** (`array_sum` over the existing `$monthly` series — zero new queries); the date pill moved INSIDE the card (opens the existing date sheet, mirroring the sample's "This week ▾"); working **Hide balance** eye toggle (masks to "₱ ••••••", label flips to Show, persists via sessionStorage `ais-hide-balance`).
+  - **Two tinted stat cards:** Active Plantings (blue-50, blue icon chip) + Harvest Due Soon (amber-50, amber chip), both linking to plantings.
+  - **Quick actions row:** 4 real shortcuts — Add Harvest (`?add=1`), Add Planting (`?add=1`), Reports, Search — green rounded-2xl icon tiles with labels, press-scale.
+- KPI scroll-row de-duplicated on mobile: Active Plantings + Harvest Due Soon get `mobile_hide` (they're the tinted cards now); desktop grid still shows all 6. Note: the inline `mobile_hide` filter uses a brace-style `if { continue; }`, so template if/endif counts intentionally differ by one.
+- JS (hide-balance + date sheet block) isolated and syntax-checked; no "Dashboard" labels remain in code.
+
+### Reports subtitle date-range overlap fixed (2026-11-05)
 - The subtitle ("Production and revenue overview · 2025-12-01 to 2026-11-05") was wrapping to 2 lines on mobile — redundant now that the date pill shows the range compactly, and the raw `Y-m-d` format was unnecessarily long anyway. Fixed: the date portion is `hidden sm:inline` (mobile just reads "Production and revenue overview," clean one line; the pill covers the dates) and reformatted to `M j, Y` on desktop where it still shows.
 
 ### Date-range filter: compact pill + bottom sheet on mobile (2026-11-05)
