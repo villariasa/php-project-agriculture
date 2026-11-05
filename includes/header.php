@@ -17,7 +17,7 @@ $is_admin    = ($_SESSION['role'] ?? '') === 'admin';
 // Sidebar navigation, grouped into sections. Icons are Heroicons outline paths.
 $nav_sections = [
     "Overview" => [
-        "dashboard" => ["label" => "Dashboard", "url" => "index.php",
+        "dashboard" => ["label" => "Home", "url" => "index.php",
             "icon" => "m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75"],
     ],
     "Records" => [
@@ -469,25 +469,19 @@ if ($is_admin) {
         <!-- Top bar -->
         <header class="sticky top-0 z-30 bg-white border-b border-gray-200 print:hidden">
             <div class="flex items-center gap-3 h-14 px-4 sm:px-6">
-                <!-- Logo (mobile only — the sidebar carries it on desktop) -->
+                <!-- Logo (mobile only — the sidebar carries it on desktop).
+                     It links home, so no separate breadcrumb home icon is needed. -->
                 <a href="<?= $app_root ?>index.php" class="lg:hidden shrink-0">
-                    <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain">
+                    <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-10 h-10 object-contain">
                 </a>
 
                 <!-- Breadcrumbs -->
                 <nav id="breadcrumbs" class="flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
-                    <!-- Mobile only: the desktop sidebar already has a Dashboard/home icon -->
-                    <a href="<?= $app_root ?>index.php" class="lg:hidden text-gray-400 hover:text-gray-600 shrink-0" title="Dashboard">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
-                        </svg>
-                    </a>
                     <?php if (count($breadcrumbs) === 0 && ($page_title ?? "") !== "" && $active !== "dashboard"): ?>
                         <?php $breadcrumbs = [[$page_title, null]]; ?>
                     <?php endif; ?>
                     <?php foreach ($breadcrumbs as $i => $crumb): ?>
-                        <!-- First separator only shows on mobile, pairing with the home icon above -->
-                        <span class="text-gray-300 shrink-0 <?= $i === 0 ? 'lg:hidden' : '' ?>">/</span>
+                        <?php if ($i > 0): ?><span class="text-gray-300 shrink-0">/</span><?php endif; ?>
                         <?php if (!empty($crumb[1])): ?>
                             <a href="<?= $crumb[1] ?>" class="text-gray-500 hover:text-gray-800 truncate"><?= htmlspecialchars($crumb[0]) ?></a>
                         <?php else: ?>
@@ -693,7 +687,7 @@ $bottom_item_off = "text-gray-500";
                             <path stroke-linecap="round" stroke-linejoin="round" d="m2.25 12 8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75" />
                         </svg>
                     </span>
-                    <span class="text-[11px] <?= $active === 'dashboard' ? 'font-semibold' : '' ?>">Dashboard</span>
+                    <span class="text-[11px] <?= $active === 'dashboard' ? 'font-semibold' : '' ?>">Home</span>
                 </a>
                 <button type="button" onclick="openSheet('records-sheet')" data-goo="1" class="relative flex flex-col items-center justify-center gap-0.5 transition-transform active:scale-90 <?= $records_active ? $bottom_item_on : $bottom_item_off ?>">
                     <span class="<?= $records_active
