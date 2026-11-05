@@ -11,7 +11,10 @@
 ### ▶ RESUME HERE — prompt for the next session
 > **"Phases 12–16 are code-complete but never executed (static checks only). Fix the bugs I report from smoke-testing. The full test checklist is under 'Pending / Next Steps'. Remember: `database/schema.sql` must be re-run first — it now has 14 tables (new `activity_log`)."**
 
-### Date-range filter: compact pill + bottom sheet on mobile (2026-11-05, latest)
+### Reports subtitle date-range overlap fixed (2026-11-05, latest)
+- The subtitle ("Production and revenue overview · 2025-12-01 to 2026-11-05") was wrapping to 2 lines on mobile — redundant now that the date pill shows the range compactly, and the raw `Y-m-d` format was unnecessarily long anyway. Fixed: the date portion is `hidden sm:inline` (mobile just reads "Production and revenue overview," clean one line; the pill covers the dates) and reformatted to `M j, Y` on desktop where it still shows.
+
+### Date-range filter: compact pill + bottom sheet on mobile (2026-11-05)
 - User feedback: the From/To inputs + Apply/Reset/Print row above the KPI strip wrapped onto multiple lines on mobile, wasting vertical space. Agreed approach (not a carousel): collapse to a **one-line summary pill** ("📅 Oct 7 – Nov 5 ▾") that opens a **bottom sheet** with the real From/To/Apply/Reset — reuses the app's existing sheet visual language (drag handle, `rounded-t-2xl`, fade backdrop, swipe-to-dismiss) rather than inventing a new pattern.
 - Applied to **both** `index.php` (dashboard) and `reports/index.php` (analytics overview): `sm:hidden` pill + sheet, `hidden sm:flex` original inline form preserved untouched for desktop. Reports' Print button goes icon-only on mobile (`sm:inline` label) to keep the row tidy next to the new pill.
 - Self-contained per-page sheet (own `openDateSheet()`/`closeDateSheet()` + swipe-to-dismiss touch handlers, same technique as the global Records/Menu sheets but independent — avoids touching header.php's shared sheet system). Both new script blocks isolated and syntax-checked; template if/foreach balance verified on both files.
