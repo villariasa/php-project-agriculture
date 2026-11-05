@@ -127,9 +127,9 @@ require "includes/header.php";
 
 <!-- Hero row: revenue card spans 2 cols, the two actionable stats beside it.
      Mobile: 2-col grid -> hero full width, tinted cards side by side under it. -->
-<div class="grid grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4 mb-4 print:hidden">
+<div class="grid grid-cols-2 xl:grid-cols-6 gap-3 sm:gap-4 mb-5 sm:mb-6 print:hidden">
 
-<div class="col-span-2 bg-green-950 text-white rounded-2xl p-5 shadow-lg">
+<div class="col-span-2 bg-green-800 text-white rounded-2xl p-5 shadow-lg">
     <div class="flex items-center justify-between gap-2">
         <p class="text-sm text-green-200">Revenue</p>
         <!-- Mobile: opens the date sheet; desktop: static (header form sets the range) -->
@@ -145,7 +145,7 @@ require "includes/header.php";
         </span>
     </div>
     <p id="hero-revenue" class="text-3xl font-bold mt-2" data-amount="&#8369;<?= number_format($range_revenue, 2) ?>">&#8369;<?= number_format($range_revenue, 2) ?></p>
-    <button type="button" id="hide-balance" class="mt-3 inline-flex items-center gap-1.5 text-xs text-green-300">
+    <button type="button" id="hide-balance" class="mt-3 inline-flex items-center gap-1.5 text-xs text-green-200">
         <svg id="hero-eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
             <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
             <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
@@ -180,34 +180,33 @@ require "includes/header.php";
         </div>
         <p class="text-2xl font-bold text-gray-900"><?= number_format($due_soon) ?></p>
     </a>
+    <a href="reports/yield_efficiency.php" class="hidden sm:block bg-purple-50 rounded-2xl p-4 hover:bg-purple-100 transition-colors">
+        <div class="flex items-center justify-between gap-2 mb-2">
+            <p class="text-sm text-gray-600">Avg Yield / Ha</p>
+            <span class="w-7 h-7 rounded-lg bg-purple-600 text-white flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 0 1 3 19.875v-6.75ZM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V8.625ZM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 0 1-1.125-1.125V4.125Z" />
+                </svg>
+            </span>
+        </div>
+        <p class="text-2xl font-bold text-gray-900"><?= number_format($avg_yield_per_ha, 1) ?> <span class="text-sm font-normal text-gray-500">kg</span></p>
+    </a>
+    <a href="farmers/index.php" class="hidden sm:block bg-gray-50 rounded-2xl p-4 hover:bg-gray-100 transition-colors">
+        <div class="flex items-center justify-between gap-2 mb-2">
+            <p class="text-sm text-gray-600">Total Farmers</p>
+            <span class="w-7 h-7 rounded-lg bg-gray-600 text-white flex items-center justify-center shrink-0">
+                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+                </svg>
+            </span>
+        </div>
+        <p class="text-2xl font-bold text-gray-900"><?= number_format($total_farmers) ?></p>
+    </a>
 </div>
 
-<!-- Quick actions: add-shortcuts for the 5 core entities, in workflow order -->
-<div class="grid grid-cols-5 gap-2 mb-5 sm:mb-6 sm:max-w-lg print:hidden">
-    <a href="farms/index.php?add=1" class="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
-        <span class="w-12 h-12 rounded-2xl bg-green-600 text-white flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12l8.954-8.955c.44-.439 1.152-.439 1.591 0L21.75 12M4.5 9.75v10.125c0 .621.504 1.125 1.125 1.125H9.75v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21h4.125c.621 0 1.125-.504 1.125-1.125V9.75M8.25 21h8.25" />
-            </svg>
-        </span>
-        <span class="text-[11px] text-gray-600 text-center leading-tight">Farm</span>
-    </a>
-    <a href="farmers/index.php?add=1" class="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
-        <span class="w-12 h-12 rounded-2xl bg-green-600 text-white flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-            </svg>
-        </span>
-        <span class="text-[11px] text-gray-600 text-center leading-tight">Farmer</span>
-    </a>
-    <a href="crops/index.php?add=1" class="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
-        <span class="w-12 h-12 rounded-2xl bg-green-600 text-white flex items-center justify-center">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
-                <path stroke-linecap="round" stroke-linejoin="round" d="M12 21a9 9 0 0 0 9-9c0-4.97-9-13.5-9-13.5S3 7.03 3 12a9 9 0 0 0 9 9Zm0 0v-7.5" />
-            </svg>
-        </span>
-        <span class="text-[11px] text-gray-600 text-center leading-tight">Crop</span>
-    </a>
+<!-- Quick actions: mobile-only shortcuts for the two actions used every day.
+     Desktop already has the sidebar for everything else, so this row is dropped there. -->
+<div class="sm:hidden grid grid-cols-2 gap-2 mb-5 max-w-[12rem] print:hidden">
     <a href="plantings/index.php?add=1" class="flex flex-col items-center gap-1.5 active:scale-95 transition-transform">
         <span class="w-12 h-12 rounded-2xl bg-green-600 text-white flex items-center justify-center">
             <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
@@ -323,45 +322,6 @@ require "includes/header.php";
 })();
 </script>
 
-<?php
-// Shared KPI data so the mobile scroll-row and desktop grid render from one list
-$kpi_tiles = [
-    // Revenue + Harvested-this-month already live in the hero/tinted cards above
-    ["url" => "reports/yield_efficiency.php", "label" => "Avg Yield / Hectare",
-     "value" => number_format($avg_yield_per_ha, 1) . " <span class='text-sm font-normal text-gray-500'>kg/ha</span>",
-     "sub" => "<p class='text-xs text-gray-400 mt-1'>within selected range</p>"],
-    ["url" => "farmers/index.php", "label" => "Total Farmers",
-     "value" => number_format($total_farmers), "sub" => "<p class='text-xs text-gray-400 mt-1'>active records</p>"],
-];
-?>
-
-<!-- KPI Strip: mobile = horizontal scroll-snap row (saves vertical space,
-     next-card peek signals swipeability); desktop = full grid, all visible. -->
-<div id="kpi-scroll" class="sm:hidden flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 mb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
-    <?php foreach ($kpi_tiles as $tile): ?>
-        <a href="<?= $tile['url'] ?>" class="snap-start shrink-0 w-[42%] min-w-[9.5rem] bg-white rounded-lg border border-gray-200 shadow-sm p-4">
-            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1"><?= $tile['label'] ?></p>
-            <p class="text-xl font-bold"><?= $tile['value'] ?></p>
-            <?= $tile['sub'] ?>
-        </a>
-    <?php endforeach; ?>
-</div>
-
-<div class="hidden sm:grid sm:grid-cols-2 xl:grid-cols-4 gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">
-    <?php foreach ($kpi_tiles as $tile): ?>
-        <a href="<?= $tile['url'] ?>" class="bg-white p-4 hover:bg-gray-50">
-            <p class="text-xs uppercase tracking-wide text-gray-500 mb-1"><?= $tile['label'] ?></p>
-            <p class="text-xl sm:text-2xl font-bold"><?= $tile['value'] ?></p>
-            <?= $tile['sub'] ?>
-        </a>
-    <?php endforeach; ?>
-</div>
-
-<style>
-    /* Hide the scrollbar on the KPI row — snap + peek is the only affordance needed */
-    #kpi-scroll { scrollbar-width: none; -ms-overflow-style: none; }
-    #kpi-scroll::-webkit-scrollbar { display: none; }
-</style>
 
 <!-- Recents: the only "what's happening" feed Home needs — full analytics live in Reports -->
 <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
