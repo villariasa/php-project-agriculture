@@ -58,9 +58,9 @@ if ($is_admin) {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title><?= htmlspecialchars($page_title ?? "AIS") ?> | Agriculture Information System</title>
     <!-- Tab Favicon -->
-    <link rel="icon" type="image/png" href="<?= $assets_url ?>logo/tab-icon.png">
-    <link rel="shortcut icon" href="<?= $assets_url ?>logo/favicon.ico">
-    <link rel="apple-touch-icon" href="<?= $assets_url ?>logo/tab-icon.png">
+    <link rel="icon" type="image/png" href="<?= $app_root ?>assets/tab-icon.png">
+    <link rel="shortcut icon" href="<?= $app_root ?>favicon.ico">
+    <link rel="apple-touch-icon" href="<?= $app_root ?>assets/tab-icon.png">
 
     <!-- Tailwind Play CDN serves dynamic JS, so SRI hashes are not supported; required per class standard -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -396,7 +396,7 @@ if ($is_admin) {
         <!-- Logo + collapse toggle -->
         <div class="sidebar-header-row flex items-center justify-between gap-2 h-14 px-3.5 border-b border-gray-200 shrink-0">
             <a href="<?= $app_root ?>index.php" class="sidebar-logo-link flex items-center gap-2.5 min-w-0 flex-1 overflow-hidden">
-                <img src="<?= $assets_url ?>logo/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain shrink-0">
+                <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-8 h-8 object-contain shrink-0">
                 <span class="sidebar-block-label min-w-0 flex-1">
                     <span class="block font-bold text-gray-800 text-sm leading-tight">AIS</span>
                     <span class="block text-[10.5px] font-normal text-gray-500 whitespace-nowrap leading-tight">Agriculture Information System</span>
@@ -473,7 +473,7 @@ if ($is_admin) {
                 <!-- Logo (mobile only — the sidebar carries it on desktop).
                      It links home, so no separate breadcrumb home icon is needed. -->
                 <a href="<?= $app_root ?>index.php" class="lg:hidden shrink-0">
-                    <img src="<?= $assets_url ?>logo/image-cutout.png" alt="AIS logo" class="w-10 h-10 object-contain">
+                    <img src="<?= $app_root ?>assets/image-cutout.png" alt="AIS logo" class="w-10 h-10 object-contain">
                 </a>
 
                 <!-- Breadcrumbs -->
