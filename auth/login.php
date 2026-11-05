@@ -33,6 +33,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
         }
     }
 }
+$assets_url = "https://pub-61c51da16a4c4a07a98e2b704e994353.r2.dev/";
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -41,9 +42,9 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Login | Agriculture Information System</title>
     <!-- Tab Favicon -->
-    <link rel="icon" type="image/png" href="../assets/tab-icon.png">
-    <link rel="shortcut icon" href="../favicon.ico">
-    <link rel="apple-touch-icon" href="../assets/tab-icon.png">
+    <link rel="icon" type="image/png" href="<?= $assets_url ?>logo/tab-icon.png">
+    <link rel="shortcut icon" href="<?= $assets_url ?>logo/favicon.ico">
+    <link rel="apple-touch-icon" href="<?= $assets_url ?>logo/tab-icon.png">
 
     <!-- Tailwind Play CDN serves dynamic JS, so SRI hashes are not supported; required per class standard -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -120,7 +121,7 @@ if ($_SERVER["REQUEST_METHOD"] === "POST") {
 
         <!-- Card header: white, per reference -->
         <div class="px-8 pt-8 pb-6 text-center border-b border-gray-100">
-            <img src="../assets/image-cutout.png" alt="AIS logo" class="w-14 h-14 object-contain mx-auto mb-4 logo-drop">
+            <img src="<?= $assets_url ?>logo/image-cutout.png" alt="AIS logo" class="w-14 h-14 object-contain mx-auto mb-4 logo-drop">
             <h1 class="text-2xl font-bold text-gray-900 fade-up delay-1">Sign In</h1>
             <p class="text-sm text-gray-500 mt-1.5 fade-up delay-1">Agriculture Information System &mdash; sign in to your account.</p>
         </div>
