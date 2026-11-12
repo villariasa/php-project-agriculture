@@ -178,7 +178,6 @@ $assets_url = "https://pub-61c51da16a4c4a07a98e2b704e994353.r2.dev/";
 
         </div><!-- /card body -->
     </div>
-    <p class="text-center text-xs text-gray-400 mt-5 fade-up delay-3">AP 3 Web Application Development &copy; <?= date("Y") ?></p>
 </div>
 
 <script>

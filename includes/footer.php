@@ -307,12 +307,8 @@ document.addEventListener("submit", function (event) {
 })();
 </script>
 
-        <!-- mb clears the fixed mobile bottom navigation bar -->
-        <footer class="border-t border-gray-200 bg-white mb-16 lg:mb-0 print:hidden">
-            <div class="px-4 sm:px-6 py-4 text-center text-sm text-gray-500">
-                Agriculture Information System &copy; <?= date("Y") ?> | AP 3 Web Application Development
-            </div>
-        </footer>
+        <!-- Clears the fixed mobile bottom navigation bar -->
+        <div class="h-16 lg:h-0 print:hidden"></div>
 
     </div><!-- /content column -->
 
