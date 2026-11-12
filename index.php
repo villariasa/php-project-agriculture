@@ -144,17 +144,7 @@ require "includes/header.php";
             <?= htmlspecialchars(date("M j", strtotime($date_from))) ?> &ndash; <?= htmlspecialchars(date("M j", strtotime($date_to))) ?>
         </span>
     </div>
-    <p id="hero-revenue" class="text-3xl font-bold mt-2" data-amount="&#8369;<?= number_format($range_revenue, 2) ?>">&#8369;<?= number_format($range_revenue, 2) ?></p>
-    <button type="button" id="hide-balance" class="mt-3 inline-flex items-center gap-1.5 text-xs text-green-200">
-        <svg id="hero-eye-open" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 0 1 0-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178Z" />
-            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 1 1-6 0 3 3 0 0 1 6 0Z" />
-        </svg>
-        <svg id="hero-eye-closed" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4 hidden">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 0 0 1.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.451 10.451 0 0 1 12 4.5c4.756 0 8.773 3.162 10.065 7.498a10.522 10.522 0 0 1-4.293 5.774M6.228 6.228 3 3m3.228 3.228 3.65 3.65m7.894 7.894L21 21m-3.228-3.228-3.65-3.65m0 0a3 3 0 1 0-4.243-4.243m4.242 4.242L9.88 9.88" />
-        </svg>
-        <span id="hide-balance-label">Hide balance</span>
-    </button>
+    <p id="hero-revenue" class="text-3xl font-bold mt-2">&#8369;<?= number_format($range_revenue, 2) ?></p>
 </div>
 
 <!-- The two actionable stats as tinted cards (grid children, all sizes) -->
@@ -272,27 +262,6 @@ require "includes/header.php";
     document.addEventListener("keydown", function (event) {
         if (event.key === "Escape") { closeDateSheet(); }
     });
-
-    // Hide-balance toggle on the hero card (persists for the session)
-    var heroAmount = document.getElementById("hero-revenue");
-    var hideBtn    = document.getElementById("hide-balance");
-    function setBalanceHidden(hidden) {
-        if (!heroAmount || !hideBtn) { return; }
-        // data-amount arrives entity-decoded, so it's the display-ready string
-        heroAmount.textContent = hidden ? "₱ ••••••" : heroAmount.dataset.amount;
-        document.getElementById("hero-eye-open").classList.toggle("hidden", hidden);
-        document.getElementById("hero-eye-closed").classList.toggle("hidden", !hidden);
-        document.getElementById("hide-balance-label").textContent = hidden ? "Show balance" : "Hide balance";
-        sessionStorage.setItem("ais-hide-balance", hidden ? "1" : "0");
-    }
-    if (hideBtn) {
-        hideBtn.addEventListener("click", function () {
-            setBalanceHidden(sessionStorage.getItem("ais-hide-balance") !== "1");
-        });
-        if (sessionStorage.getItem("ais-hide-balance") === "1") {
-            setBalanceHidden(true);
-        }
-    }
 
     // Swipe-down to dismiss (same technique as the app's other bottom sheets)
     var sheet = document.getElementById("date-sheet");
