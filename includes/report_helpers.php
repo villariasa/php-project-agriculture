@@ -32,7 +32,7 @@ function reportPrintHeader(string $title, array $filters = [], string $subtitle 
     echo '<div class="hidden print:block mb-6 border-b border-gray-300 pb-3">';
     echo '<div class="flex justify-between items-start">';
     echo '<div>';
-    echo '<p class="text-xs uppercase tracking-wider text-green-700 font-bold">Agriculture Information System</p>';
+    echo '<p class="text-xs uppercase tracking-wider text-green-700 font-bold">GehTanum &mdash; Agriculture Information System</p>';
     echo '<h1 class="text-xl font-bold text-gray-900 mt-0.5">' . htmlspecialchars($title) . '</h1>';
     if ($subtitle !== "") {
         echo '<p class="text-xs text-gray-500 mt-0.5">' . htmlspecialchars($subtitle) . '</p>';

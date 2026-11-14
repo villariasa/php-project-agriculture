@@ -40,7 +40,7 @@ $assets_url = "https://pub-61c51da16a4c4a07a98e2b704e994353.r2.dev/";
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login | Agriculture Information System</title>
+    <title>Login | GehTanum</title>
     <!-- Tab Favicon -->
     <link rel="icon" type="image/png" href="../assets/tab-icon.png">
     <link rel="shortcut icon" href="../favicon.ico">
@@ -121,9 +121,9 @@ $assets_url = "https://pub-61c51da16a4c4a07a98e2b704e994353.r2.dev/";
 
         <!-- Card header: white, per reference -->
         <div class="px-8 pt-8 pb-6 text-center border-b border-gray-100">
-            <img src="../assets/image-cutout.png" alt="AIS logo" class="w-14 h-14 object-contain mx-auto mb-4 logo-drop">
+            <img src="../assets/image-cutout.png" alt="GehTanum logo" class="w-14 h-14 object-contain mx-auto mb-4 logo-drop">
             <h1 class="text-2xl font-bold text-gray-900 fade-up delay-1">Sign In</h1>
-            <p class="text-sm text-gray-500 mt-1.5 fade-up delay-1">Agriculture Information System &mdash; sign in to your account.</p>
+            <p class="text-sm text-gray-500 mt-1.5 fade-up delay-1">GehTanum &mdash; sign in to your account.</p>
         </div>
 
         <!-- Card body: light gray form section, per reference -->

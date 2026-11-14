@@ -1,4 +1,4 @@
-# <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/circle-stack.svg" width="32" height="32" align="center" /> Agriculture Information System (AIS)
+# <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/circle-stack.svg" width="32" height="32" align="center" /> GehTanum — Agriculture Information System
 ### Web Application Development (AP 3) — Midterm & Final Laboratory Project
 
 [![PHP](https://img.shields.io/badge/PHP-8.1+-777BB4?style=for-the-badge&logo=php&logoColor=white)](https://www.php.net/)
@@ -11,7 +11,7 @@
 
 ## <img src="https://raw.githubusercontent.com/tailwindlabs/heroicons/master/optimized/24/outline/sparkles.svg" width="22" height="22" align="center" /> Project Overview
 
-The **Agriculture Information System (AIS)** is a web-based database management application developed for **AP 3 (Web Application Development)**. It provides agricultural officers, farm managers, and administrative staff with centralized tools to manage farmers, farms, crop varieties, planting cycles, and harvest outputs — plus an analytics layer, user administration, and an activity audit trail.
+The **GehTanum (Agriculture Information System)** is a web-based database management application developed for **AP 3 (Web Application Development)**. It provides agricultural officers, farm managers, and administrative staff with centralized tools to manage farmers, farms, crop varieties, planting cycles, and harvest outputs — plus an analytics layer, user administration, and an activity audit trail.
 
 The system runs on a fully normalized (3NF) **PostgreSQL** database — **13 normalized domain tables** (6 core entities + 7 lookup tables) **plus 1 supplementary system table** (`activity_log`, an append-only audit trail outside the normalization exercise) — hosted locally or on **Supabase**, built with modular native **PHP (PDO)** OOP classes, and styled with a clean white-theme **Tailwind CSS** UI using **Heroicons**, a custom app shell (sidebar + mobile bottom navigation), and vanilla-JS interaction layer (no frameworks, no Composer).
 
@@ -412,7 +412,7 @@ Open `http://localhost:8000` — you will be redirected to the login page.
 - **Student Developer:** Medy Villarias (`villariasa`)
 - **Institution:** Cebu Technological University (CTU) — Cebu City Campus
 - **Course & Code:** AP 3 — Web Application Development
-- **Project:** Agriculture Information System (AIS)
+- **Project:** GehTanum — Agriculture Information System
 
 ---
 
