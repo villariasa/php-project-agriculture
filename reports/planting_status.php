@@ -50,9 +50,9 @@ $breadcrumbs = [["Reports", "index.php"], ["Planting Status", null]];
 require "../includes/header.php";
 ?>
 
-<?php reportPrintHeader("Planting Cycle Status", ["Status" => $status_filter_label]); ?>
+<?php reportPrintHeader("Planting Cycle Status", ["Status" => $status_filter_label], "All planting records filtered by cycle status."); ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Planting Cycle Status</h1>
         <p class="text-sm text-gray-500">All planting records filtered by cycle status.</p>

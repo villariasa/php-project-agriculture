@@ -72,9 +72,9 @@ $breadcrumbs = [["Reports", "index.php"], ["Harvest Yield & Revenue", null]];
 require "../includes/header.php";
 ?>
 
-<?php reportPrintHeader("Harvest Yield & Revenue", ["From" => $date_from, "To" => $date_to]); ?>
+<?php reportPrintHeader("Harvest Yield & Revenue", ["From" => $date_from, "To" => $date_to], "Harvest quantities and revenue within a date range."); ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Harvest Yield &amp; Revenue</h1>
         <p class="text-sm text-gray-500">Harvest quantities and revenue within a date range.</p>

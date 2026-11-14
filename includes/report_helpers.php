@@ -27,11 +27,19 @@ function csvDownload(string $filename_base, array $headers, array $rows) {
 }
 
 // Report heading shown only on the printed page: system name, title,
-// applied filters, and generation date.
-function reportPrintHeader(string $title, array $filters = []) {
-    echo '<div class="hidden print:block mb-6 border-b border-gray-300 pb-4">';
-    echo '<p class="text-sm text-gray-500">Agriculture Information System</p>';
-    echo '<h1 class="text-xl font-bold">' . htmlspecialchars($title) . '</h1>';
+// subtitle, applied filters, and generation date.
+function reportPrintHeader(string $title, array $filters = [], string $subtitle = "") {
+    echo '<div class="hidden print:block mb-6 border-b border-gray-300 pb-3">';
+    echo '<div class="flex justify-between items-start">';
+    echo '<div>';
+    echo '<p class="text-xs uppercase tracking-wider text-green-700 font-bold">Agriculture Information System</p>';
+    echo '<h1 class="text-xl font-bold text-gray-900 mt-0.5">' . htmlspecialchars($title) . '</h1>';
+    if ($subtitle !== "") {
+        echo '<p class="text-xs text-gray-500 mt-0.5">' . htmlspecialchars($subtitle) . '</p>';
+    }
+    echo '</div>';
+    echo '<div class="text-right text-xs text-gray-500 shrink-0">';
+    echo '<p class="font-medium text-gray-700">Generated: ' . date("F j, Y g:i A") . '</p>';
     $parts = [];
     foreach ($filters as $label => $value) {
         if ($value !== "" && $value !== null) {
@@ -39,15 +47,16 @@ function reportPrintHeader(string $title, array $filters = []) {
         }
     }
     if (count($parts) > 0) {
-        echo '<p class="text-sm text-gray-600 mt-1">Filters &mdash; ' . implode(" &middot; ", $parts) . '</p>';
+        echo '<p class="text-gray-600 mt-0.5">Filters &mdash; ' . implode(" &middot; ", $parts) . '</p>';
     }
-    echo '<p class="text-xs text-gray-400 mt-1">Generated ' . date("F j, Y g:i A") . '</p>';
+    echo '</div>';
+    echo '</div>';
     echo '</div>';
 }
 
 // Headline numbers strip above the results table. $items = label => value.
 function summaryStrip(array $items) {
-    echo '<div class="grid grid-cols-2 sm:grid-cols-' . min(4, count($items)) . ' gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">';
+    echo '<div class="summary-strip grid grid-cols-2 sm:grid-cols-' . min(4, count($items)) . ' gap-px bg-gray-200 border border-gray-200 rounded-lg overflow-hidden shadow-sm mb-6">';
     foreach ($items as $label => $value) {
         echo '<div class="bg-white p-4">';
         echo '<p class="text-xs uppercase tracking-wide text-gray-500 mb-1">' . htmlspecialchars($label) . '</p>';

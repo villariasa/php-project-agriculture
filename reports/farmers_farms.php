@@ -46,11 +46,11 @@ $breadcrumbs = [["Reports", "index.php"], ["Farmers & Farm Ownership", null]];
 require "../includes/header.php";
 ?>
 
-<div class="max-w-5xl mx-auto">
+<div class="max-w-5xl mx-auto print:max-w-none">
 
-<?php reportPrintHeader("Farmers & Farm Ownership"); ?>
+<?php reportPrintHeader("Farmers & Farm Ownership", [], "Farm count and total land area per registered farmer."); ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Farmers &amp; Farm Ownership</h1>
         <p class="text-sm text-gray-500">Farm count and total land area per registered farmer.</p>

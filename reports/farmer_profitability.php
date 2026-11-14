@@ -70,9 +70,9 @@ $breadcrumbs = [["Reports", "index.php"], ["Farmer Profitability", null]];
 require "../includes/header.php";
 ?>
 
-<?php reportPrintHeader("Farmer Profitability", ["From" => $date_from, "To" => $date_to]); ?>
+<?php reportPrintHeader("Farmer Profitability", ["From" => $date_from, "To" => $date_to], "Harvest volume and revenue earned per farmer, ranked by revenue."); ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Farmer Profitability</h1>
         <p class="text-sm text-gray-500">Harvest volume and revenue earned per farmer, ranked by revenue.</p>

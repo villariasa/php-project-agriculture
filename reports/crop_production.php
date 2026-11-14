@@ -66,9 +66,9 @@ $breadcrumbs = [["Reports", "index.php"], ["Crop Production", null]];
 require "../includes/header.php";
 ?>
 
-<?php reportPrintHeader("Crop Production per Farm", ["Farm" => $farm_filter_label]); ?>
+<?php reportPrintHeader("Crop Production per Farm", ["Farm" => $farm_filter_label], "Harvested quantity totals per crop on each farm."); ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Crop Production per Farm</h1>
         <p class="text-sm text-gray-500">Harvested quantity totals per crop on each farm.</p>

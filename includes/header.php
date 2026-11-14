@@ -366,7 +366,46 @@ if ($is_admin) {
             background-attachment: fixed;
         }
         @media print {
-            body { background: #fff; }
+            body { background: #fff !important; }
+
+            /* Prevent table footers (TOTAL row) from repeating on every printed page */
+            table tfoot {
+                display: table-row-group !important;
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            /* Table header repeats cleanly at the top of each page */
+            table thead {
+                display: table-header-group !important;
+            }
+
+            /* Prevent table rows from splitting across page breaks */
+            table tr {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            /* Color fidelity and shadow cleanup */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                print-color-adjust: exact !important;
+            }
+
+            .shadow-sm, .shadow-md, .shadow-lg, .shadow {
+                box-shadow: none !important;
+            }
+
+            /* Keep summary KPI cards intact without breaking */
+            .summary-strip {
+                page-break-inside: avoid !important;
+                break-inside: avoid !important;
+            }
+
+            main {
+                padding-bottom: 0 !important;
+                max-width: 100% !important;
+            }
         }
 
         @media (prefers-reduced-motion: reduce) {

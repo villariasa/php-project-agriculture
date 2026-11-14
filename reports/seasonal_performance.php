@@ -51,11 +51,11 @@ $breadcrumbs = [["Reports", "index.php"], ["Seasonal Performance", null]];
 require "../includes/header.php";
 ?>
 
-<div class="max-w-5xl mx-auto">
+<div class="max-w-5xl mx-auto print:max-w-none">
 
-<?php reportPrintHeader("Seasonal Performance"); ?>
+<?php reportPrintHeader("Seasonal Performance", [], "Plantings, harvested volume, and revenue grouped by the crop's recommended season."); ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Seasonal Performance</h1>
         <p class="text-sm text-gray-500">Plantings, harvested volume, and revenue grouped by the crop's recommended season.</p>

@@ -155,10 +155,10 @@ $breadcrumbs = [["Reports", null]];
 require "../includes/header.php";
 ?>
 
-<?php reportPrintHeader("Analytics Overview", ["From" => $date_from, "To" => $date_to]); ?>
+<?php reportPrintHeader("Analytics Overview", ["From" => $date_from, "To" => $date_to], "Production and revenue overview."); ?>
 
 <!-- Page header + date range -->
-<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Reports &amp; Analytics</h1>
         <!-- Date range is already shown by the pill/filter on the right — only

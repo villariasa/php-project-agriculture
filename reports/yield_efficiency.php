@@ -80,9 +80,9 @@ $breadcrumbs = [["Reports", "index.php"], ["Yield Efficiency", null]];
 require "../includes/header.php";
 ?>
 
-<?php reportPrintHeader("Yield Efficiency per Crop", ["Category" => $category_filter_label]); ?>
+<?php reportPrintHeader("Yield Efficiency per Crop", ["Category" => $category_filter_label], "Average kg harvested per hectare planted, ranked by efficiency."); ?>
 
-<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6">
+<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-6 print:hidden">
     <div>
         <h1 class="text-2xl font-bold">Yield Efficiency per Crop</h1>
         <p class="text-sm text-gray-500">Average kg harvested per hectare planted, ranked by efficiency.</p>
