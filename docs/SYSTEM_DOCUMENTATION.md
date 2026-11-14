@@ -1,4 +1,4 @@
-# Agriculture Information System (AIS) — System Documentation
+# GehTanum: Agriculture Information System (AIS) — System Documentation
 
 **Institution:** Cebu Technological University — Main Campus  
 **College:** College of Computer, Information and Communications Technology (CCICT)  
@@ -30,16 +30,16 @@
 ## 1. Project Title, Description, and Objectives
 
 ### 1.1 Project Title & Overview
-**Agriculture Information System (AIS)** — Centralized Web-Based Agricultural Operations, Land Parcel Mapping, Crop Lifecycle Tracking, and Yield Analytics Platform.
+**GehTanum (Agriculture Information System)** — Centralized Web-Based Agricultural Operations, Land Parcel Mapping, Crop Lifecycle Tracking, and Yield Analytics Platform.
 
 ### 1.2 Project Description
-The Agriculture Information System (AIS) is an enterprise-grade agricultural management web platform engineered to modernize rural and cooperative farm records administration. Traditional farming operations frequently suffer from fragmented paper records, uncoordinated planting schedules, manual calculations of farm yield, and inaccurate profitability estimates. AIS resolves these operational inefficiencies by establishing a centralized, relational database architecture that unifies farmer profiles, farm parcel boundaries, crop master catalogs, seasonal planting cycles, and harvest transactions.
+**GehTanum** (Agriculture Information System) is an enterprise-grade agricultural management web platform engineered to modernize rural and cooperative farm records administration. Traditional farming operations frequently suffer from fragmented paper records, uncoordinated planting schedules, manual calculations of farm yield, and inaccurate profitability estimates. GehTanum resolves these operational inefficiencies by establishing a centralized, relational database architecture that unifies farmer profiles, farm parcel boundaries, crop master catalogs, seasonal planting cycles, and harvest transactions.
 
-The system enforces strict domain integrity through controlled foreign key lookup tables, eliminates data redundancy via Third Normal Form (3NF) normalization, and delivers live operational intelligence through real-time KPI dashboards, automated cycle status workflows, and customizable reports with CSV data export capabilities. Built on PHP 8.2 and cloud-hosted Supabase PostgreSQL, AIS provides role-based access control, responsive mobile-first navigation, and an immutable transaction audit log to ensure administrative accountability across all farming communities.
+The system enforces strict domain integrity through controlled foreign key lookup tables, eliminates data redundancy via Third Normal Form (3NF) normalization, and delivers live operational intelligence through real-time KPI dashboards, automated cycle status workflows, and customizable reports with CSV data export capabilities. Built on PHP 8.2 and cloud-hosted Supabase PostgreSQL, GehTanum provides role-based access control, responsive mobile-first navigation, and an immutable transaction audit log to ensure administrative accountability across all farming communities.
 
 ### 1.3 Project Objectives
 #### 1.3.1 General Objective
-To architect, develop, and deploy a secure, fully normalized, web-based Agriculture Information System that centralizes agricultural operations, streamlines field transaction logging from planting through harvest, and delivers real-time operational analytics for farm administrators and extension workers.
+To architect, develop, and deploy a secure, fully normalized, web-based Agriculture Information System (**GehTanum**) that centralizes agricultural operations, streamlines field transaction logging from planting through harvest, and delivers real-time operational analytics for farm administrators and extension workers.
 
 #### 1.3.2 Specific Objectives
 1. **Farmer Directory & Land Tenure Management:** Establish a relational repository of agricultural producers and their corresponding farm parcels, recording geographic locations, land acreage in hectares, soil classifications, and irrigation systems.
@@ -472,7 +472,7 @@ To support high-concurrency enterprise environments and prevent data corruption 
 ## 7. User Guide or Basic Operating Instructions
 
 ### 7.1 System Authentication & Access
-1. Navigate to the AIS portal URL (`auth/login.php`).
+1. Navigate to the GehTanum portal URL (`auth/login.php`).
 2. Enter registered credentials (Username and Password).
 3. Click **Sign In**. The system validates credentials via bcrypt hashing, initializes session parameters, and redirects authorized users to the Executive Dashboard.
 4. To terminate an active session, click the **Logout** button in the header profile menu.
@@ -503,7 +503,7 @@ To support high-concurrency enterprise environments and prevent data corruption 
 
 ## 8. Screenshots or Evidence of All Major System Modules
 
-The Agriculture Information System user interface is engineered with responsive layouts for desktop, tablet, and mobile devices.
+The GehTanum user interface is engineered with responsive layouts for desktop, tablet, and mobile devices.
 
 ### 8.1 User Interface Catalog Summary
 
