@@ -47,33 +47,29 @@ $breadcrumbs = [["Farms", null]];
 require "../includes/header.php";
 ?>
 
-<!-- LAYER 1 (Blue Box): Top Hero Header with Title, Count, Add Farm Button & Foliage Illustration -->
-<div class="relative mb-5 min-h-[8.25rem] sm:min-h-[10.25rem] print:hidden">
-    <!-- Top-right foliage & hills illustration matching reference design -->
-    <div class="absolute -top-3 right-0 w-48 sm:w-64 h-36 sm:h-44 pointer-events-none select-none overflow-hidden z-0">
-        <svg viewBox="0 0 220 170" class="w-full h-full object-contain object-right-bottom" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Soft ambient mounds / hills -->
+<!-- LAYER 1 (Blue Box): Top Hero Header with Title, Count, Add Farm Button & Foliage Accent -->
+<div class="relative mb-3 print:hidden">
+    <!-- Top-right foliage accent placed subtly in background without stretching header -->
+    <div class="absolute -top-2 right-0 w-36 sm:w-48 h-16 sm:h-20 pointer-events-none select-none overflow-hidden z-0 opacity-60">
+        <svg viewBox="0 0 220 170" class="w-full h-full object-contain object-right" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M100 170 C100 115 145 85 195 85 C215 85 230 92 240 100 L240 170 Z" fill="#edf6ef" />
             <path d="M120 170 C120 120 160 95 205 95 C220 95 235 100 240 105 L240 170 Z" fill="#e0eee2" />
-            <!-- Small side leaf tip at right -->
             <path d="M210 115 C215 105 220 100 225 98 C225 108 220 118 215 125 Z" fill="#5a9661" opacity="0.8"/>
-            <!-- Back leaf (olive green) -->
             <path d="M140 145 C125 110 140 75 168 65 C180 95 165 130 140 145 Z" fill="#8db98e" />
             <path d="M140 145 C152 118 160 92 168 65" stroke="#72a373" stroke-width="2.5" stroke-linecap="round"/>
-            <!-- Front leaf (rich forest green) -->
             <path d="M162 150 C162 112 188 88 212 82 C218 118 198 145 162 150 Z" fill="#4d8b54" />
             <path d="M162 150 C178 128 195 105 212 82" stroke="#366b3c" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
     </div>
 
-    <div class="relative z-10 pt-1 flex items-center justify-between gap-3">
+    <div class="relative z-10 flex items-center justify-between gap-3">
         <div class="min-w-0">
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight">Farms</h1>
-            <p id="records-count" class="text-xs sm:text-sm text-gray-500 font-normal mt-0.5 sm:mt-1"><?= number_format($total_rows) ?> registered farm record(s)</p>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-[#111827] tracking-tight">Farms</h1>
+            <p id="records-count" class="text-xs text-gray-500 font-normal mt-0.5"><?= number_format($total_rows) ?> registered farm record(s)</p>
         </div>
         <div class="shrink-0">
             <button type="button" onclick="openAddCard()"
-                    class="bg-[#2e7d32] hover:bg-[#256829] active:scale-95 text-white font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-full inline-flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs sm:text-sm transition-all">
+                    class="bg-[#2e7d32] hover:bg-[#256829] active:scale-95 text-white font-medium px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full inline-flex items-center gap-1.5 shadow-sm text-xs sm:text-sm transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -86,26 +82,26 @@ require "../includes/header.php";
 <?php require "../includes/alert.php"; ?>
 
 <!-- LAYER 2 (Green Box): Middle warm-toned rounded container holding search, filters, and inner white card -->
-<div class="bg-[#f6f4ec] rounded-[2.25rem] sm:rounded-3xl p-3.5 sm:p-5 border border-[#ede9de] shadow-[0_4px_20px_rgba(0,0,0,0.03)] mb-6">
+<div class="bg-[#f6f4ec] rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 border border-[#ede9de] shadow-[0_4px_20px_rgba(0,0,0,0.03)] mb-4">
 
     <!-- Filter toolbar: search full-width pill above 2-column filter dropdowns -->
-    <form method="GET" id="filter-toolbar" class="mb-3.5 print:hidden">
+    <form method="GET" id="filter-toolbar" class="mb-2 sm:mb-2.5 print:hidden">
         <input type="hidden" name="sort" value="<?= htmlspecialchars(strtolower($sort_key)) ?>">
         <input type="hidden" name="dir" value="<?= strtolower($dir) ?>">
 
-        <div class="space-y-2.5 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+        <div class="space-y-2 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-2.5">
             <!-- Search input pill (pure white floating on Layer 2) -->
-            <div class="relative w-full md:w-72">
+            <div class="relative w-full md:w-64">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"
-                     class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                     class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                 </svg>
                 <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search farms..."
-                       class="w-full bg-white border border-gray-200/70 rounded-full shadow-sm pl-11 pr-10 py-3 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all">
+                       class="w-full bg-white border border-gray-200/70 rounded-full shadow-sm pl-9 pr-8 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all">
                 <?php if ($search !== ""): ?>
                     <button type="button" onclick="this.form.search.value = ''; submitToolbar(this.form);" aria-label="Clear search"
-                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -113,9 +109,9 @@ require "../includes/header.php";
             </div>
 
             <!-- Filter dropdown pills (pure white floating on Layer 2) -->
-            <div class="grid grid-cols-2 gap-2.5 md:flex md:gap-3 flex-1">
+            <div class="grid grid-cols-2 gap-2 md:flex md:gap-2.5 flex-1">
                 <select name="irrigation_type_id" onchange="submitToolbar(this.form)" aria-label="Filter by irrigation type"
-                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2.5 pl-4 pr-9 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
+                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2 sm:py-2.5 pl-3.5 pr-8 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
                     <option value="0">All irrigation types</option>
                     <?php foreach ($irrigation_types as $irr): ?>
                         <option value="<?= $irr['id'] ?>" <?= $irrigation_type_id === (int) $irr['id'] ? 'selected' : '' ?>><?= htmlspecialchars($irr['name']) ?></option>
@@ -123,7 +119,7 @@ require "../includes/header.php";
                 </select>
                 <select aria-label="Sort by"
                         onchange="var p = this.value.split(':'); this.form.sort.value = p[0]; this.form.dir.value = p[1]; submitToolbar(this.form);"
-                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2.5 pl-4 pr-9 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
+                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2 sm:py-2.5 pl-3.5 pr-8 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
                     <option value="id:asc" <?= $sort_key === 'id' && $dir === 'ASC' ? 'selected' : '' ?>>Oldest</option>
                     <option value="id:desc" <?= $sort_key === 'id' && $dir === 'DESC' ? 'selected' : '' ?>>Newest</option>
                     <option value="name:asc" <?= $sort_key === 'name' && $dir === 'ASC' ? 'selected' : '' ?>>Name A&ndash;Z</option>
@@ -135,10 +131,10 @@ require "../includes/header.php";
     </form>
 
     <!-- LAYER 3 (Orange Box): Inner pure white card holding the farm records -->
-    <div id="records-panel" class="bg-white rounded-[1.75rem] border border-gray-100 shadow-sm overflow-hidden">
+    <div id="records-panel" class="bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
     <div class="hidden md:block overflow-x-auto">
-        <table class="w-full text-sm">
-        <thead class="bg-gray-50 text-gray-500 uppercase text-xs tracking-wide">
+        <table class="w-full text-xs sm:text-sm">
+        <thead class="bg-gray-50 text-gray-500 uppercase text-[11px] sm:text-xs tracking-wider">
             <tr>
                 <?php sortableTh("id", "ID", $sort_key, $dir); ?>
                 <?php sortableTh("name", "Farm Name", $sort_key, $dir); ?>
@@ -147,14 +143,14 @@ require "../includes/header.php";
                 <?php sortableTh("area", "Area (ha)", $sort_key, $dir, "right"); ?>
                 <?php sortableTh("soil", "Soil Type", $sort_key, $dir); ?>
                 <?php sortableTh("irrigation", "Irrigation", $sort_key, $dir); ?>
-                <th class="px-4 py-3 text-right">Actions</th>
+                <th class="px-3.5 py-2 text-right">Actions</th>
             </tr>
         </thead>
         <tbody>
             <?php if (count($farms) === 0): ?>
                 <tr>
-                    <td colspan="8" class="px-4 py-10">
-                        <div class="border border-dashed border-gray-300 rounded-lg px-4 py-8 text-center text-sm text-gray-500">
+                    <td colspan="8" class="px-4 py-8">
+                        <div class="border border-dashed border-gray-300 rounded-lg px-4 py-6 text-center text-xs sm:text-sm text-gray-500">
                             <?php if ($is_filtered): ?>
                                 No farms match your search or filter.
                                 <a href="index.php" class="text-green-700 font-medium hover:underline">Clear filters</a>
@@ -191,27 +187,27 @@ require "../includes/header.php";
                         "Soil Type"       => $row["soil_type_name"],
                         "Irrigation Type" => $row["irrigation_type_name"],
                     ]), ENT_QUOTES) ?>">
-                    <td class="px-4 py-3"><?= $row['farm_id'] ?></td>
-                    <td class="px-4 py-3 font-medium"><?= htmlspecialchars($row['farm_name']) ?></td>
-                    <td class="px-4 py-3"><?= htmlspecialchars($row['owner_name']) ?></td>
-                    <td class="px-4 py-3"><?= htmlspecialchars($row['location']) ?></td>
-                    <td class="px-4 py-3 text-right"><?= number_format($row['area_hectares'], 2) ?></td>
-                    <td class="px-4 py-3"><?= htmlspecialchars($row['soil_type_name']) ?></td>
-                    <td class="px-4 py-3"><?= htmlspecialchars($row['irrigation_type_name']) ?></td>
-                    <td class="px-4 py-3 text-right">
-                        <div class="inline-flex items-center gap-2" onclick="event.stopPropagation()">
+                    <td class="px-3.5 py-2 font-mono text-gray-500"><?= $row['farm_id'] ?></td>
+                    <td class="px-3.5 py-2 font-medium text-gray-900"><?= htmlspecialchars($row['farm_name']) ?></td>
+                    <td class="px-3.5 py-2 text-gray-600"><?= htmlspecialchars($row['owner_name']) ?></td>
+                    <td class="px-3.5 py-2 text-gray-600 truncate max-w-[200px]" title="<?= htmlspecialchars($row['location']) ?>"><?= htmlspecialchars($row['location']) ?></td>
+                    <td class="px-3.5 py-2 text-right font-medium text-gray-700"><?= number_format($row['area_hectares'], 2) ?></td>
+                    <td class="px-3.5 py-2 text-gray-600"><?= htmlspecialchars($row['soil_type_name']) ?></td>
+                    <td class="px-3.5 py-2 text-gray-600"><?= htmlspecialchars($row['irrigation_type_name']) ?></td>
+                    <td class="px-3.5 py-2 text-right">
+                        <div class="inline-flex items-center gap-1.5" onclick="event.stopPropagation()">
                             <a href="index.php?edit=<?= $row['farm_id'] ?>" title="Edit"
                                onclick="event.stopPropagation(); if (fillAndOpenEditCard(this.closest('[data-edit]'))) return false;"
-                               class="text-blue-600 hover:text-blue-800">
-                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                               class="p-1 text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded">
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                     <path stroke-linecap="round" stroke-linejoin="round" d="m16.862 4.487 1.687-1.688a1.875 1.875 0 1 1 2.652 2.652L10.582 16.07a4.5 4.5 0 0 1-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 0 1 1.13-1.897l8.932-8.931Zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0 1 15.75 21H5.25A2.25 2.25 0 0 1 3 18.75V8.25A2.25 2.25 0 0 1 5.25 6H10" />
                                 </svg>
                             </a>
                             <?php if ($_SESSION['role'] === 'admin'): ?>
                                 <a href="#" title="Delete"
                                    onclick="openDeleteModal('delete.php?id=<?= $row['farm_id'] ?>', 'Are you sure you want to delete farm <?= htmlspecialchars(addslashes($row['farm_name']), ENT_QUOTES) ?>?'); return false;"
-                                   class="text-red-600 hover:text-red-800">
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-5 h-5">
+                                   class="p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
                                     </svg>
                                 </a>

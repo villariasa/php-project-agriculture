@@ -46,7 +46,7 @@ function sortableTh(string $key, string $label, string $sort_key, string $dir, s
         $arrow = '<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" class="w-3 h-3">'
                . '<path stroke-linecap="round" stroke-linejoin="round" d="' . $path . '" /></svg>';
     }
-    echo '<th class="px-4 py-3 text-' . $align . '">'
+    echo '<th class="px-3.5 py-2 text-' . $align . '">'
        . '<a href="?' . $query . '" class="inline-flex items-center gap-1 hover:text-gray-800 ' . ($is_active ? 'text-gray-800' : '') . '">'
        . htmlspecialchars($label) . $arrow
        . '</a></th>';
@@ -59,16 +59,16 @@ function paginationBar(int $page, int $total_rows) {
     $from        = $total_rows === 0 ? 0 : pageOffset($page) + 1;
     $to          = min($total_rows, $page * PER_PAGE);
 
-    echo '<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 px-4 py-3 border-t border-gray-200 text-sm print:hidden">';
+    echo '<div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 px-3.5 py-2 border-t border-gray-100 text-xs sm:text-sm print:hidden">';
     echo '<p class="text-gray-500">Showing <span class="font-medium text-gray-800">' . $from . '&ndash;' . $to
        . '</span> of <span class="font-medium text-gray-800">' . number_format($total_rows) . '</span> records</p>';
 
     if ($total_pages > 1) {
         echo '<nav class="inline-flex items-center gap-1" aria-label="Pagination">';
 
-        $link_class   = "px-3 py-1.5 rounded-lg border border-gray-300 bg-white text-gray-700 hover:bg-gray-50";
-        $active_class = "px-3 py-1.5 rounded-lg border border-green-600 bg-green-600 text-white font-medium";
-        $gap_class    = "px-2 text-gray-400";
+        $link_class   = "px-2.5 py-1 rounded-lg border border-gray-200 bg-white text-gray-700 hover:bg-gray-50 text-xs sm:text-sm transition-colors";
+        $active_class = "px-2.5 py-1 rounded-lg border border-green-600 bg-green-600 text-white font-medium text-xs sm:text-sm shadow-xs";
+        $gap_class    = "px-1.5 text-gray-400 text-xs";
 
         if ($page > 1) {
             echo '<a href="?' . buildQuery(["page" => $page - 1]) . '" class="' . $link_class . '">Prev</a>';

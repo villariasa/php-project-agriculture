@@ -44,33 +44,29 @@ $breadcrumbs = [["Users", null]];
 require "../includes/header.php";
 ?>
 
-<!-- LAYER 1: Top Hero Header with Title, Count, Add User Button & Foliage Illustration -->
-<div class="relative mb-5 min-h-[8.25rem] sm:min-h-[10.25rem] print:hidden">
-    <!-- Top-right foliage & hills illustration matching reference design -->
-    <div class="absolute -top-3 right-0 w-48 sm:w-64 h-36 sm:h-44 pointer-events-none select-none overflow-hidden z-0">
-        <svg viewBox="0 0 220 170" class="w-full h-full object-contain object-right-bottom" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Soft ambient mounds / hills -->
+<!-- LAYER 1: Top Hero Header with Title, Count, Add User Button & Foliage Accent -->
+<div class="relative mb-3 print:hidden">
+    <!-- Top-right foliage accent placed subtly in background without stretching header -->
+    <div class="absolute -top-2 right-0 w-36 sm:w-48 h-16 sm:h-20 pointer-events-none select-none overflow-hidden z-0 opacity-60">
+        <svg viewBox="0 0 220 170" class="w-full h-full object-contain object-right" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M100 170 C100 115 145 85 195 85 C215 85 230 92 240 100 L240 170 Z" fill="#edf6ef" />
             <path d="M120 170 C120 120 160 95 205 95 C220 95 235 100 240 105 L240 170 Z" fill="#e0eee2" />
-            <!-- Small side leaf tip at right -->
             <path d="M210 115 C215 105 220 100 225 98 C225 108 220 118 215 125 Z" fill="#5a9661" opacity="0.8"/>
-            <!-- Back leaf (olive green) -->
             <path d="M140 145 C125 110 140 75 168 65 C180 95 165 130 140 145 Z" fill="#8db98e" />
             <path d="M140 145 C152 118 160 92 168 65" stroke="#72a373" stroke-width="2.5" stroke-linecap="round"/>
-            <!-- Front leaf (rich forest green) -->
             <path d="M162 150 C162 112 188 88 212 82 C218 118 198 145 162 150 Z" fill="#4d8b54" />
             <path d="M162 150 C178 128 195 105 212 82" stroke="#366b3c" stroke-width="2.5" stroke-linecap="round"/>
         </svg>
     </div>
 
-    <div class="relative z-10 pt-1 flex items-center justify-between gap-3">
+    <div class="relative z-10 flex items-center justify-between gap-3">
         <div class="min-w-0">
-            <h1 class="text-2xl sm:text-3xl font-extrabold text-[#111827] tracking-tight">Users</h1>
-            <p id="records-count" class="text-xs sm:text-sm text-gray-500 font-normal mt-0.5 sm:mt-1"><?= number_format($total_rows) ?> active user account(s)</p>
+            <h1 class="text-xl sm:text-2xl font-extrabold text-[#111827] tracking-tight">Users</h1>
+            <p id="records-count" class="text-xs text-gray-500 font-normal mt-0.5"><?= number_format($total_rows) ?> active user account(s)</p>
         </div>
         <div class="shrink-0">
             <button type="button" onclick="openAddCard()"
-                    class="bg-[#2e7d32] hover:bg-[#256829] active:scale-95 text-white font-medium px-4 sm:px-5 py-2 sm:py-2.5 rounded-full inline-flex items-center gap-1.5 sm:gap-2 shadow-sm text-xs sm:text-sm transition-all">
+                    class="bg-[#2e7d32] hover:bg-[#256829] active:scale-95 text-white font-medium px-3.5 sm:px-4 py-1.5 sm:py-2 rounded-full inline-flex items-center gap-1.5 shadow-sm text-xs sm:text-sm transition-all">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" class="w-4 h-4">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
                 </svg>
@@ -83,26 +79,26 @@ require "../includes/header.php";
 <?php require "../includes/alert.php"; ?>
 
 <!-- LAYER 2: Middle warm-toned rounded container holding search, filters, sort, and inner white card -->
-<div class="bg-[#f6f4ec] rounded-[2.25rem] sm:rounded-3xl p-3.5 sm:p-5 border border-[#ede9de] shadow-[0_4px_20px_rgba(0,0,0,0.03)] mb-6">
+<div class="bg-[#f6f4ec] rounded-2xl sm:rounded-3xl p-2.5 sm:p-3 border border-[#ede9de] shadow-[0_4px_20px_rgba(0,0,0,0.03)] mb-4">
 
     <!-- Filter toolbar: search + role filter + sort inline above the table -->
-    <form method="GET" id="filter-toolbar" class="mb-3.5 print:hidden">
+    <form method="GET" id="filter-toolbar" class="mb-2 sm:mb-2.5 print:hidden">
         <input type="hidden" name="sort" value="<?= htmlspecialchars(strtolower($sort_key)) ?>">
         <input type="hidden" name="dir" value="<?= strtolower($dir) ?>">
 
-        <div class="space-y-2.5 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-3">
+        <div class="space-y-2 md:space-y-0 md:flex md:flex-wrap md:items-center md:gap-2.5">
             <!-- Search input pill (pure white floating on Layer 2) -->
-            <div class="relative w-full md:w-72">
+            <div class="relative w-full md:w-64">
                 <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor"
-                     class="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none">
+                     class="w-4 h-4 text-gray-400 absolute left-3.5 top-1/2 -translate-y-1/2 pointer-events-none">
                     <path stroke-linecap="round" stroke-linejoin="round" d="m21 21-5.197-5.197m0 0A7.5 7.5 0 1 0 5.196 5.196a7.5 7.5 0 0 0 10.607 10.607Z" />
                 </svg>
                 <input type="text" name="search" value="<?= htmlspecialchars($search) ?>" placeholder="Search username or name..."
-                       class="w-full bg-white border border-gray-200/70 rounded-full shadow-sm pl-11 pr-10 py-2.5 text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all">
+                       class="w-full bg-white border border-gray-200/70 rounded-full shadow-sm pl-9 pr-8 py-2 sm:py-2.5 text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all">
                 <?php if ($search !== ""): ?>
                     <button type="button" onclick="this.form.search.value = ''; submitToolbar(this.form);" aria-label="Clear search"
-                            class="absolute right-3.5 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-4 h-4">
+                            class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-3.5 h-3.5">
                             <path stroke-linecap="round" stroke-linejoin="round" d="M6 18 18 6M6 6l12 12" />
                         </svg>
                     </button>
@@ -112,7 +108,7 @@ require "../includes/header.php";
             <!-- Role filter pill -->
             <div class="w-full md:w-auto">
                 <select name="role" aria-label="Filter by role" onchange="submitToolbar(this.form);"
-                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2.5 pl-4 pr-9 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
+                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2 sm:py-2.5 pl-3.5 pr-8 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
                     <option value="" <?= $role === "" ? "selected" : "" ?>>All Roles</option>
                     <option value="admin" <?= $role === "admin" ? "selected" : "" ?>>Admin</option>
                     <option value="staff" <?= $role === "staff" ? "selected" : "" ?>>Staff</option>
@@ -120,10 +116,10 @@ require "../includes/header.php";
             </div>
 
             <!-- Sort dropdown pill -->
-            <div class="grid grid-cols-1 gap-2.5 md:flex md:gap-3 flex-1 justify-end">
+            <div class="grid grid-cols-1 gap-2 md:flex md:gap-2.5 flex-1 justify-end">
                 <select aria-label="Sort by"
                         onchange="var p = this.value.split(':'); this.form.sort.value = p[0]; this.form.dir.value = p[1]; submitToolbar(this.form);"
-                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2.5 pl-4 pr-9 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
+                        class="w-full md:w-auto bg-white border border-gray-200/70 rounded-full shadow-sm py-2 sm:py-2.5 pl-3.5 pr-8 text-xs sm:text-sm font-medium text-gray-700 focus:outline-none focus:ring-2 focus:ring-[#2e7d32] focus:border-transparent transition-all truncate">
                     <option value="id:asc" <?= $sort_key === 'id' && $dir === 'ASC' ? 'selected' : '' ?>>Oldest</option>
                     <option value="id:desc" <?= $sort_key === 'id' && $dir === 'DESC' ? 'selected' : '' ?>>Newest</option>
                     <option value="username:asc" <?= $sort_key === 'username' && $dir === 'ASC' ? 'selected' : '' ?>>Username A&ndash;Z</option>
@@ -136,9 +132,9 @@ require "../includes/header.php";
     </form>
 
     <!-- LAYER 3: Inner pure white card holding the user records -->
-    <div id="records-panel" class="bg-white rounded-[1.75rem] border border-gray-100 shadow-sm overflow-hidden">
+    <div id="records-panel" class="bg-white rounded-xl sm:rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
         <div class="hidden md:block overflow-x-auto">
-            <table class="w-full text-sm">
+            <table class="w-full text-xs sm:text-sm">
                 <thead class="bg-gray-50/80 text-gray-500 uppercase text-[11px] tracking-wider border-b border-gray-100">
                     <tr>
                         <?php sortableTh("id", "ID", $sort_key, $dir); ?>
@@ -146,14 +142,14 @@ require "../includes/header.php";
                         <?php sortableTh("name", "Full Name", $sort_key, $dir); ?>
                         <?php sortableTh("role", "Role", $sort_key, $dir); ?>
                         <?php sortableTh("created", "Created", $sort_key, $dir); ?>
-                        <th class="px-4 py-3.5 text-right">Actions</th>
+                        <th class="px-3.5 py-2 text-right">Actions</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-100">
                     <?php if (count($users) === 0): ?>
                         <tr>
-                            <td colspan="6" class="px-4 py-10">
-                                <div class="border border-dashed border-gray-300 rounded-2xl px-4 py-8 text-center text-sm text-gray-500 bg-gray-50/50">
+                            <td colspan="6" class="px-4 py-8">
+                                <div class="border border-dashed border-gray-300 rounded-2xl px-4 py-6 text-center text-xs sm:text-sm text-gray-500 bg-gray-50/50">
                                     <?php if ($is_filtered): ?>
                                         No user accounts match your search.
                                         <a href="index.php" class="text-[#2e7d32] font-semibold hover:underline block mt-1">Clear filters</a>
@@ -167,31 +163,31 @@ require "../includes/header.php";
                     <?php endif; ?>
                     <?php foreach ($users as $row): ?>
                         <tr class="hover:bg-gray-50/80 transition-colors">
-                            <td class="px-4 py-3.5 text-xs text-gray-500 font-mono">#<?= $row['user_id'] ?></td>
-                            <td class="px-4 py-3.5 font-medium text-gray-900">
-                                <div class="flex items-center gap-2.5">
-                                    <div class="w-8 h-8 rounded-full bg-emerald-100/70 text-[#2e7d32] flex items-center justify-center text-xs font-bold shrink-0">
+                            <td class="px-3.5 py-2 text-xs text-gray-500 font-mono">#<?= $row['user_id'] ?></td>
+                            <td class="px-3.5 py-2 font-medium text-gray-900">
+                                <div class="flex items-center gap-2">
+                                    <div class="w-7 h-7 rounded-full bg-emerald-100/70 text-[#2e7d32] flex items-center justify-center text-xs font-bold shrink-0">
                                         <?= htmlspecialchars(strtoupper(substr($row['username'], 0, 1))) ?>
                                     </div>
                                     <div class="min-w-0">
-                                        <span class="font-semibold text-gray-800 text-sm"><?= htmlspecialchars($row['username']) ?></span>
+                                        <span class="font-semibold text-gray-800 text-xs sm:text-sm"><?= htmlspecialchars($row['username']) ?></span>
                                         <?php if ((int) $row['user_id'] === (int) $_SESSION['user_id']): ?>
-                                            <span class="ml-1.5 px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">You</span>
+                                            <span class="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-semibold bg-amber-50 text-amber-700 border border-amber-200/60">You</span>
                                         <?php endif; ?>
                                     </div>
                                 </div>
                             </td>
-                            <td class="px-4 py-3.5 text-gray-700 text-sm"><?= htmlspecialchars($row['full_name']) ?></td>
-                            <td class="px-4 py-3.5">
-                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold <?= $row['role'] === 'admin'
+                            <td class="px-3.5 py-2 text-gray-700 text-xs sm:text-sm"><?= htmlspecialchars($row['full_name']) ?></td>
+                            <td class="px-3.5 py-2">
+                                <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold <?= $row['role'] === 'admin'
                                     ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/60'
                                     : 'bg-sky-50 text-sky-700 border border-sky-200/60' ?>">
                                     <span class="w-1.5 h-1.5 rounded-full <?= $row['role'] === 'admin' ? 'bg-emerald-500' : 'bg-sky-500' ?>"></span>
                                     <?= htmlspecialchars(ucfirst($row['role'])) ?>
                                 </span>
                             </td>
-                            <td class="px-4 py-3.5 text-xs text-gray-500 font-medium"><?= htmlspecialchars(substr($row['created_at'], 0, 10)) ?></td>
-                            <td class="px-4 py-3.5 text-right">
+                            <td class="px-3.5 py-2 text-xs text-gray-500 font-medium"><?= htmlspecialchars(substr($row['created_at'], 0, 10)) ?></td>
+                            <td class="px-3.5 py-2 text-right">
                                 <div class="inline-flex items-center gap-1.5">
                                     <a href="index.php?edit=<?= $row['user_id'] ?>" title="Edit User"
                                        onclick="return openUserEdit(<?= (int) $row['user_id'] ?>, <?= htmlspecialchars(json_encode($row['full_name']), ENT_QUOTES) ?>, '<?= $row['role'] ?>', <?= htmlspecialchars(json_encode($row['username']), ENT_QUOTES) ?>);"
