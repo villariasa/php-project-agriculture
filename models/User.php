@@ -13,6 +13,39 @@ class User {
         return $stmt->fetchAll();
     }
 
+    public function countAll(string $role = "", string $term = "") {
+        $sql = "SELECT COUNT(*) FROM users WHERE is_deleted = FALSE";
+        $params = [];
+        if ($role !== "") {
+            $sql .= " AND role = :role";
+            $params["role"] = $role;
+        }
+        if ($term !== "") {
+            $sql .= " AND (username ILIKE :term OR full_name ILIKE :term)";
+            $params["term"] = "%{$term}%";
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return (int) $stmt->fetchColumn();
+    }
+
+    public function getPage(string $role, string $term, string $order, string $dir, int $limit, int $offset) {
+        $sql = "SELECT user_id, username, full_name, role, created_at FROM users WHERE is_deleted = FALSE";
+        $params = [];
+        if ($role !== "") {
+            $sql .= " AND role = :role";
+            $params["role"] = $role;
+        }
+        if ($term !== "") {
+            $sql .= " AND (username ILIKE :term OR full_name ILIKE :term)";
+            $params["term"] = "%{$term}%";
+        }
+        $sql .= " ORDER BY {$order} {$dir} LIMIT " . (int) $limit . " OFFSET " . (int) $offset;
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetchAll();
+    }
+
     public function findByUsername(string $username) {
         $sql = "SELECT * FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(:username)) AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);

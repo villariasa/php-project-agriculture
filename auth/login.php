@@ -121,7 +121,7 @@ $assets_url = "https://agriculture-assets.medzvillariaz.workers.dev/";
 
         <!-- Card header: white, per reference -->
         <div class="px-8 pt-8 pb-6 text-center border-b border-gray-100">
-            <img src="<?= $assets_url ?>logo/image-cutout.png" onerror="this.src='../assets/image-cutout.png'" alt="GehTanum logo" class="w-14 h-14 object-contain mx-auto mb-4 logo-drop">
+            <img src="<?= $assets_url ?>logo/image-cutout.png" alt="GehTanum logo" class="w-14 h-14 object-contain mx-auto mb-4 logo-drop">
             <h1 class="text-2xl font-bold text-gray-900 fade-up delay-1">Sign In</h1>
             <p class="text-sm text-gray-500 mt-1.5 fade-up delay-1">GehTanum &mdash; sign in to your account.</p>
         </div>
