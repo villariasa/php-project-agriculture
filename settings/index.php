@@ -25,14 +25,20 @@ $error = "";
 
 // Inline Add form handler
 if ($_SERVER["REQUEST_METHOD"] === "POST") {
-    $name = (string) trim($_POST["name"]);
+    $name = (string) trim($_POST["name"] ?? "");
     if ($name === "") {
         $error = "Please enter a value.";
+    } elseif ($lookup->findActiveByName($type, $name)) {
+        $error = "A " . strtolower($types[$type]) . " value named '{$name}' already exists.";
     } else {
         $new_id = $lookup->create($type, $name);
-        logActivity($pdo, "create", "lookup", (int) $new_id, "Added {$types[$type]} value: {$name}");
-        header("Location: index.php?type={$type}&msg=" . urlencode("Value added successfully."));
-        exit;
+        if ($new_id) {
+            logActivity($pdo, "create", "lookup", (int) $new_id, "Added {$types[$type]} value: {$name}");
+            header("Location: index.php?type={$type}&msg=" . urlencode("Value added successfully."));
+            exit;
+        } else {
+            $error = "A " . strtolower($types[$type]) . " value named '{$name}' already exists.";
+        }
     }
 }
 
@@ -181,7 +187,7 @@ require "../includes/header.php";
         <div class="flex-1 px-5 py-4 space-y-4">
             <div>
                 <label class="block text-sm text-gray-500 mb-1"><?= $types[$type] ?> Value</label>
-                <input type="text" name="name" required
+                <input type="text" name="name" required value="<?= htmlspecialchars($_POST['name'] ?? '') ?>"
                        class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
             </div>
             <p class="text-xs text-gray-400">This value becomes available immediately in the related dropdowns.</p>
@@ -264,7 +270,7 @@ if (!window.__aisEscBound) {
     });
 }
 function initSettingsPage() {
-    if (new URLSearchParams(window.location.search).get("add") === "1") {
+    if (new URLSearchParams(window.location.search).get("add") === "1" || <?= !empty($error) ? 'true' : 'false' ?>) {
         openAddCard();
     }
 

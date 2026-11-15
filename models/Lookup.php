@@ -89,15 +89,77 @@ class Lookup {
         return $stmt->fetch();
     }
 
-    public function create(string $type, string $name) {
+    // Find active record by name (case-insensitive and trimmed)
+    public function findActiveByName(string $type, string $name, ?int $exclude_id = null) {
         $cfg = $this->config[$type];
+        $sql = "SELECT {$cfg['pk']} AS id, {$cfg['name']} AS name
+                FROM {$type}
+                WHERE LOWER(TRIM({$cfg['name']})) = LOWER(TRIM(:name))
+                  AND is_deleted = FALSE";
+        $params = ["name" => $name];
+        if ($exclude_id !== null) {
+            $sql .= " AND {$cfg['pk']} != :exclude_id";
+            $params["exclude_id"] = $exclude_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() ?: null;
+    }
+
+    // Find soft-deleted record by name (case-insensitive and trimmed)
+    public function findDeletedByName(string $type, string $name) {
+        $cfg = $this->config[$type];
+        $sql = "SELECT {$cfg['pk']} AS id, {$cfg['name']} AS name
+                FROM {$type}
+                WHERE LOWER(TRIM({$cfg['name']})) = LOWER(TRIM(:name))
+                  AND is_deleted = TRUE
+                ORDER BY {$cfg['pk']} DESC
+                LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute(["name" => $name]);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function create(string $type, string $name) {
+        $name = trim($name);
+        if ($name === "") {
+            return false;
+        }
+
+        // 1. Prevent duplicate if an active record already exists (case-insensitive & trimmed)
+        if ($this->findActiveByName($type, $name)) {
+            return false;
+        }
+
+        $cfg = $this->config[$type];
+
+        // 2. If a soft-deleted record with this name exists, re-activate it and update casing
+        $deleted = $this->findDeletedByName($type, $name);
+        if ($deleted) {
+            $sql = "UPDATE {$type} SET is_deleted = FALSE, {$cfg['name']} = :name WHERE {$cfg['pk']} = :id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute(["name" => $name, "id" => $deleted["id"]]);
+            return (int) $deleted["id"];
+        }
+
+        // 3. Otherwise insert a brand new row
         $sql = "INSERT INTO {$type} ({$cfg['name']}) VALUES (:name) RETURNING {$cfg['pk']}";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(["name" => $name]);
-        return $stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     public function update(string $type, int $id, string $name) {
+        $name = trim($name);
+        if ($name === "") {
+            return false;
+        }
+
+        // Prevent duplicate if another active record already has this name
+        if ($this->findActiveByName($type, $name, $id)) {
+            return false;
+        }
+
         $cfg = $this->config[$type];
         $sql = "UPDATE {$type} SET {$cfg['name']} = :name WHERE {$cfg['pk']} = :id";
         $stmt = $this->pdo->prepare($sql);

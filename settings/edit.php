@@ -39,7 +39,14 @@ if ($name === "") {
     respondAndExit(false, "Please enter a value.", "index.php?type={$type}&error=" . urlencode("Please enter a value."));
 }
 
-$lookup->update($type, $id, $name);
+if ($lookup->findActiveByName($type, $name, $id)) {
+    respondAndExit(false, "A " . strtolower($lookup->getLabel($type)) . " value named '{$name}' already exists.", "index.php?type={$type}&error=" . urlencode("A " . strtolower($lookup->getLabel($type)) . " value named '{$name}' already exists."));
+}
+
+$success = $lookup->update($type, $id, $name);
+if (!$success) {
+    respondAndExit(false, "Failed to update value. A duplicate may already exist.", "index.php?type={$type}&error=" . urlencode("Failed to update value."));
+}
 logActivity($pdo, "update", "lookup", $id, "Renamed {$lookup->getLabel($type)} value to: {$name}");
 respondAndExit(true, "Value updated successfully.",
     "index.php?type={$type}&msg=" . urlencode("Value updated successfully."));
