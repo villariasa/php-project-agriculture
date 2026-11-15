@@ -32,7 +32,16 @@ if ($expected_harvest_date <= $planting_date) {
     exit;
 }
 
+if ($plantingModel->findDuplicate($farm_id, $crop_id, $planting_date)) {
+    header("Location: index.php?add=1&error=" . urlencode("A planting record for this farm, crop, and planting date already exists."));
+    exit;
+}
+
 $planting_id = $plantingModel->create($farm_id, $crop_id, $planting_date, $area_planted, $seed_quantity, $expected_harvest_date, $status_id);
+if (!$planting_id) {
+    header("Location: index.php?add=1&error=" . urlencode("A planting record for this farm, crop, and planting date already exists."));
+    exit;
+}
 logActivity($pdo, "create", "planting", (int) $planting_id, "Added planting dated {$planting_date}");
 header("Location: index.php?msg=" . urlencode("Planting record added successfully."));
 exit;

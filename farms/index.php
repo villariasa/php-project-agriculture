@@ -36,7 +36,7 @@ $farms              = $farmModel->getPage($irrigation_type_id, $search, $order, 
 $is_filtered = $search !== "" || $irrigation_type_id > 0;
 
 // Data for the filter + Add side card form
-$farmers          = (new Farmer($pdo))->getAll();
+$farmers          = (new Farmer($pdo))->getAllForDropdown();
 $lookup           = new Lookup($pdo);
 $soil_types       = $lookup->getAll("soil_types");
 $irrigation_types = $lookup->getAll("irrigation_types");
@@ -304,7 +304,7 @@ require "../includes/header.php";
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <option value="">-- Select Farmer --</option>
                     <?php foreach ($farmers as $fm): ?>
-                        <option value="<?= $fm['farmer_id'] ?>"><?= htmlspecialchars($fm['first_name'] . " " . $fm['last_name']) ?></option>
+                        <option value="<?= $fm['farmer_id'] ?>"><?= htmlspecialchars($fm['display_name']) ?></option>
                     <?php endforeach; ?>
                 </select>
             </div>
@@ -372,7 +372,7 @@ require "../includes/header.php";
                         class="w-full p-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none">
                     <?php foreach ($farmers as $fm): ?>
                         <option value="<?= $fm['farmer_id'] ?>" <?= (int) ($edit_record['farmer_id'] ?? 0) === (int) $fm['farmer_id'] ? 'selected' : '' ?>>
-                            <?= htmlspecialchars($fm['first_name'] . " " . $fm['last_name']) ?>
+                            <?= htmlspecialchars($fm['display_name']) ?>
                         </option>
                     <?php endforeach; ?>
                 </select>

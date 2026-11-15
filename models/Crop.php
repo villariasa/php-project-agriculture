@@ -62,6 +62,38 @@ class Crop {
         return $stmt->fetchAll();
     }
 
+    public function findDuplicate(string $crop_name, string $variety, ?int $exclude_id = null) {
+        $sql = "SELECT * FROM crop
+                WHERE LOWER(TRIM(crop_name)) = LOWER(TRIM(:crop_name))
+                  AND LOWER(TRIM(variety))   = LOWER(TRIM(:variety))
+                  AND is_deleted = FALSE";
+        $params = [
+            "crop_name" => $crop_name,
+            "variety"   => $variety
+        ];
+        if ($exclude_id !== null) {
+            $sql .= " AND crop_id != :exclude_id";
+            $params["exclude_id"] = $exclude_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function findDeletedDuplicate(string $crop_name, string $variety) {
+        $sql = "SELECT * FROM crop
+                WHERE LOWER(TRIM(crop_name)) = LOWER(TRIM(:crop_name))
+                  AND LOWER(TRIM(variety))   = LOWER(TRIM(:variety))
+                  AND is_deleted = TRUE
+                ORDER BY crop_id DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            "crop_name" => $crop_name,
+            "variety"   => $variety
+        ]);
+        return $stmt->fetch() ?: null;
+    }
+
     public function getById(int $crop_id) {
         $sql = "SELECT * FROM crop WHERE crop_id = :crop_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);
@@ -70,6 +102,32 @@ class Crop {
     }
 
     public function create(string $crop_name, string $variety, int $category_id, int $growing_period_days, int $season_id) {
+        $crop_name = trim($crop_name);
+        $variety   = trim($variety);
+
+        if ($this->findDuplicate($crop_name, $variety)) {
+            return false;
+        }
+
+        $deleted = $this->findDeletedDuplicate($crop_name, $variety);
+        if ($deleted) {
+            $sql = "UPDATE crop
+                    SET is_deleted = FALSE, crop_name = :crop_name, variety = :variety,
+                        category_id = :category_id, growing_period_days = :growing_period_days,
+                        season_id = :season_id, updated_at = NOW()
+                    WHERE crop_id = :crop_id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                "crop_name"           => $crop_name,
+                "variety"             => $variety,
+                "category_id"         => $category_id,
+                "growing_period_days" => $growing_period_days,
+                "season_id"           => $season_id,
+                "crop_id"             => $deleted["crop_id"]
+            ]);
+            return (int) $deleted["crop_id"];
+        }
+
         $sql = "INSERT INTO crop (crop_name, variety, category_id, growing_period_days, season_id)
                 VALUES (:crop_name, :variety, :category_id, :growing_period_days, :season_id)
                 RETURNING crop_id";
@@ -81,10 +139,17 @@ class Crop {
             "growing_period_days" => $growing_period_days,
             "season_id"           => $season_id
         ]);
-        return $stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     public function update(int $crop_id, string $crop_name, string $variety, int $category_id, int $growing_period_days, int $season_id) {
+        $crop_name = trim($crop_name);
+        $variety   = trim($variety);
+
+        if ($this->findDuplicate($crop_name, $variety, $crop_id)) {
+            return false;
+        }
+
         $sql = "UPDATE crop
                 SET crop_name = :crop_name, variety = :variety, category_id = :category_id,
                     growing_period_days = :growing_period_days, season_id = :season_id, updated_at = NOW()

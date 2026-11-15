@@ -66,6 +66,38 @@ class Farm {
         return $stmt->fetchAll();
     }
 
+    public function findDuplicate(int $farmer_id, string $farm_name, ?int $exclude_id = null) {
+        $sql = "SELECT * FROM farm
+                WHERE farmer_id = :farmer_id
+                  AND LOWER(TRIM(farm_name)) = LOWER(TRIM(:farm_name))
+                  AND is_deleted = FALSE";
+        $params = [
+            "farmer_id" => $farmer_id,
+            "farm_name" => $farm_name
+        ];
+        if ($exclude_id !== null) {
+            $sql .= " AND farm_id != :exclude_id";
+            $params["exclude_id"] = $exclude_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function findDeletedDuplicate(int $farmer_id, string $farm_name) {
+        $sql = "SELECT * FROM farm
+                WHERE farmer_id = :farmer_id
+                  AND LOWER(TRIM(farm_name)) = LOWER(TRIM(:farm_name))
+                  AND is_deleted = TRUE
+                ORDER BY farm_id DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            "farmer_id" => $farmer_id,
+            "farm_name" => $farm_name
+        ]);
+        return $stmt->fetch() ?: null;
+    }
+
     public function getById(int $farm_id) {
         $sql = "SELECT * FROM farm WHERE farm_id = :farm_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);
@@ -74,6 +106,32 @@ class Farm {
     }
 
     public function create(int $farmer_id, string $farm_name, string $location, float $area_hectares, int $soil_type_id, int $irrigation_type_id) {
+        $farm_name = trim($farm_name);
+        $location  = trim($location);
+
+        if ($this->findDuplicate($farmer_id, $farm_name)) {
+            return false;
+        }
+
+        $deleted = $this->findDeletedDuplicate($farmer_id, $farm_name);
+        if ($deleted) {
+            $sql = "UPDATE farm
+                    SET is_deleted = FALSE, location = :location, area_hectares = :area_hectares,
+                        soil_type_id = :soil_type_id, irrigation_type_id = :irrigation_type_id,
+                        farm_name = :farm_name, updated_at = NOW()
+                    WHERE farm_id = :farm_id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                "location"           => $location,
+                "area_hectares"      => $area_hectares,
+                "soil_type_id"       => $soil_type_id,
+                "irrigation_type_id" => $irrigation_type_id,
+                "farm_name"          => $farm_name,
+                "farm_id"            => $deleted["farm_id"]
+            ]);
+            return (int) $deleted["farm_id"];
+        }
+
         $sql = "INSERT INTO farm (farmer_id, farm_name, location, area_hectares, soil_type_id, irrigation_type_id)
                 VALUES (:farmer_id, :farm_name, :location, :area_hectares, :soil_type_id, :irrigation_type_id)
                 RETURNING farm_id";
@@ -86,10 +144,17 @@ class Farm {
             "soil_type_id"       => $soil_type_id,
             "irrigation_type_id" => $irrigation_type_id
         ]);
-        return $stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     public function update(int $farm_id, int $farmer_id, string $farm_name, string $location, float $area_hectares, int $soil_type_id, int $irrigation_type_id) {
+        $farm_name = trim($farm_name);
+        $location  = trim($location);
+
+        if ($this->findDuplicate($farmer_id, $farm_name, $farm_id)) {
+            return false;
+        }
+
         $sql = "UPDATE farm
                 SET farmer_id = :farmer_id, farm_name = :farm_name, location = :location,
                     area_hectares = :area_hectares, soil_type_id = :soil_type_id,

@@ -34,7 +34,16 @@ if ($farmer_id <= 0 || $farm_name === "" || $location === "" || $area_hectares <
         "index.php?edit={$farm_id}&error=" . urlencode("All fields are required and area must be greater than zero."));
 }
 
-$farmModel->update($farm_id, $farmer_id, $farm_name, $location, $area_hectares, $soil_type_id, $irrigation_type_id);
+if ($farmModel->findDuplicate($farmer_id, $farm_name, $farm_id)) {
+    respondAndExit(false, "This farmer already has an active farm named '{$farm_name}'.",
+        "index.php?edit={$farm_id}&error=" . urlencode("This farmer already has an active farm named '{$farm_name}'."));
+}
+
+$success = $farmModel->update($farm_id, $farmer_id, $farm_name, $location, $area_hectares, $soil_type_id, $irrigation_type_id);
+if (!$success) {
+    respondAndExit(false, "Failed to update farm.",
+        "index.php?edit={$farm_id}&error=" . urlencode("Failed to update farm."));
+}
 logActivity($pdo, "update", "farm", $farm_id, "Updated farm {$farm_name}");
 respondAndExit(true, "Farm updated successfully.",
     "index.php?msg=" . urlencode("Farm updated successfully."));

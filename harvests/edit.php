@@ -34,7 +34,16 @@ if ($planting_id <= 0 || $harvest_date === "" || $quantity_kg <= 0 || $selling_p
         "index.php?edit={$harvest_id}&error=" . urlencode("All fields are required and amounts must be greater than zero."));
 }
 
-$harvestModel->update($harvest_id, $planting_id, $harvest_date, $quantity_kg, $selling_price_per_kg, $grade_id, $remark_id);
+if ($harvestModel->findDuplicate($planting_id, $harvest_date, $harvest_id)) {
+    respondAndExit(false, "Another harvest record for this planting on this date already exists.",
+        "index.php?edit={$harvest_id}&error=" . urlencode("Another harvest record for this planting on this date already exists."));
+}
+
+$success = $harvestModel->update($harvest_id, $planting_id, $harvest_date, $quantity_kg, $selling_price_per_kg, $grade_id, $remark_id);
+if (!$success) {
+    respondAndExit(false, "Failed to update harvest.",
+        "index.php?edit={$harvest_id}&error=" . urlencode("Failed to update harvest."));
+}
 logActivity($pdo, "update", "harvest", $harvest_id, "Updated harvest of {$quantity_kg} kg");
 respondAndExit(true, "Harvest record updated successfully.",
     "index.php?msg=" . urlencode("Harvest record updated successfully."));

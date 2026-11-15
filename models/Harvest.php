@@ -88,6 +88,38 @@ class Harvest {
         return $stmt->fetchAll();
     }
 
+    public function findDuplicate(int $planting_id, string $harvest_date, ?int $exclude_id = null) {
+        $sql = "SELECT * FROM harvest
+                WHERE planting_id = :planting_id
+                  AND harvest_date = :harvest_date
+                  AND is_deleted = FALSE";
+        $params = [
+            "planting_id"  => $planting_id,
+            "harvest_date" => $harvest_date
+        ];
+        if ($exclude_id !== null) {
+            $sql .= " AND harvest_id != :exclude_id";
+            $params["exclude_id"] = $exclude_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function findDeletedDuplicate(int $planting_id, string $harvest_date) {
+        $sql = "SELECT * FROM harvest
+                WHERE planting_id = :planting_id
+                  AND harvest_date = :harvest_date
+                  AND is_deleted = TRUE
+                ORDER BY harvest_id DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            "planting_id"  => $planting_id,
+            "harvest_date" => $harvest_date
+        ]);
+        return $stmt->fetch() ?: null;
+    }
+
     public function getById(int $harvest_id) {
         $sql = "SELECT * FROM harvest WHERE harvest_id = :harvest_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);
@@ -96,6 +128,28 @@ class Harvest {
     }
 
     public function create(int $planting_id, string $harvest_date, float $quantity_kg, float $selling_price_per_kg, int $grade_id, int $remark_id) {
+        if ($this->findDuplicate($planting_id, $harvest_date)) {
+            return false;
+        }
+
+        $deleted = $this->findDeletedDuplicate($planting_id, $harvest_date);
+        if ($deleted) {
+            $sql = "UPDATE harvest
+                    SET is_deleted = FALSE, quantity_kg = :quantity_kg,
+                        selling_price_per_kg = :selling_price_per_kg, grade_id = :grade_id,
+                        remark_id = :remark_id, updated_at = NOW()
+                    WHERE harvest_id = :harvest_id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                "quantity_kg"          => $quantity_kg,
+                "selling_price_per_kg" => $selling_price_per_kg,
+                "grade_id"             => $grade_id,
+                "remark_id"            => $remark_id,
+                "harvest_id"           => $deleted["harvest_id"]
+            ]);
+            return (int) $deleted["harvest_id"];
+        }
+
         $sql = "INSERT INTO harvest (planting_id, harvest_date, quantity_kg, selling_price_per_kg, grade_id, remark_id)
                 VALUES (:planting_id, :harvest_date, :quantity_kg, :selling_price_per_kg, :grade_id, :remark_id)
                 RETURNING harvest_id";
@@ -108,10 +162,14 @@ class Harvest {
             "grade_id"             => $grade_id,
             "remark_id"            => $remark_id
         ]);
-        return $stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     public function update(int $harvest_id, int $planting_id, string $harvest_date, float $quantity_kg, float $selling_price_per_kg, int $grade_id, int $remark_id) {
+        if ($this->findDuplicate($planting_id, $harvest_date, $harvest_id)) {
+            return false;
+        }
+
         $sql = "UPDATE harvest
                 SET planting_id = :planting_id, harvest_date = :harvest_date, quantity_kg = :quantity_kg,
                     selling_price_per_kg = :selling_price_per_kg, grade_id = :grade_id, remark_id = :remark_id,

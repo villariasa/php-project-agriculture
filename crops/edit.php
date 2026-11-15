@@ -33,7 +33,16 @@ if ($crop_name === "" || $variety === "" || $category_id <= 0 || $growing_period
         "index.php?edit={$crop_id}&error=" . urlencode("All fields are required and growing period must be greater than zero."));
 }
 
-$cropModel->update($crop_id, $crop_name, $variety, $category_id, $growing_period_days, $season_id);
+if ($cropModel->findDuplicate($crop_name, $variety, $crop_id)) {
+    respondAndExit(false, "Another crop with the name '{$crop_name}' and variety '{$variety}' already exists.",
+        "index.php?edit={$crop_id}&error=" . urlencode("Another crop with the name '{$crop_name}' and variety '{$variety}' already exists."));
+}
+
+$success = $cropModel->update($crop_id, $crop_name, $variety, $category_id, $growing_period_days, $season_id);
+if (!$success) {
+    respondAndExit(false, "Failed to update crop.",
+        "index.php?edit={$crop_id}&error=" . urlencode("Failed to update crop."));
+}
 logActivity($pdo, "update", "crop", $crop_id, "Updated crop {$crop_name} ({$variety})");
 respondAndExit(true, "Crop updated successfully.",
     "index.php?msg=" . urlencode("Crop updated successfully."));

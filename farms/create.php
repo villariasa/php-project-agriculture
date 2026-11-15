@@ -26,7 +26,16 @@ if ($farmer_id <= 0 || $farm_name === "" || $location === "" || $area_hectares <
     exit;
 }
 
+if ($farmModel->findDuplicate($farmer_id, $farm_name)) {
+    header("Location: index.php?add=1&error=" . urlencode("This farmer already has an active farm named '{$farm_name}'."));
+    exit;
+}
+
 $farm_id = $farmModel->create($farmer_id, $farm_name, $location, $area_hectares, $soil_type_id, $irrigation_type_id);
+if (!$farm_id) {
+    header("Location: index.php?add=1&error=" . urlencode("This farmer already has an active farm named '{$farm_name}'."));
+    exit;
+}
 logActivity($pdo, "create", "farm", (int) $farm_id, "Added farm {$farm_name}");
 header("Location: index.php?msg=" . urlencode("Farm added successfully."));
 exit;

@@ -97,6 +97,42 @@ class Planting {
         return $stmt->fetchAll();
     }
 
+    public function findDuplicate(int $farm_id, int $crop_id, string $planting_date, ?int $exclude_id = null) {
+        $sql = "SELECT * FROM planting
+                WHERE farm_id = :farm_id
+                  AND crop_id = :crop_id
+                  AND planting_date = :planting_date
+                  AND is_deleted = FALSE";
+        $params = [
+            "farm_id"       => $farm_id,
+            "crop_id"       => $crop_id,
+            "planting_date" => $planting_date
+        ];
+        if ($exclude_id !== null) {
+            $sql .= " AND planting_id != :exclude_id";
+            $params["exclude_id"] = $exclude_id;
+        }
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute($params);
+        return $stmt->fetch() ?: null;
+    }
+
+    public function findDeletedDuplicate(int $farm_id, int $crop_id, string $planting_date) {
+        $sql = "SELECT * FROM planting
+                WHERE farm_id = :farm_id
+                  AND crop_id = :crop_id
+                  AND planting_date = :planting_date
+                  AND is_deleted = TRUE
+                ORDER BY planting_id DESC LIMIT 1";
+        $stmt = $this->pdo->prepare($sql);
+        $stmt->execute([
+            "farm_id"       => $farm_id,
+            "crop_id"       => $crop_id,
+            "planting_date" => $planting_date
+        ]);
+        return $stmt->fetch() ?: null;
+    }
+
     public function getById(int $planting_id) {
         $sql = "SELECT * FROM planting WHERE planting_id = :planting_id AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);
@@ -105,6 +141,27 @@ class Planting {
     }
 
     public function create(int $farm_id, int $crop_id, string $planting_date, float $area_planted, float $seed_quantity, string $expected_harvest_date, int $status_id) {
+        if ($this->findDuplicate($farm_id, $crop_id, $planting_date)) {
+            return false;
+        }
+
+        $deleted = $this->findDeletedDuplicate($farm_id, $crop_id, $planting_date);
+        if ($deleted) {
+            $sql = "UPDATE planting
+                    SET is_deleted = FALSE, area_planted = :area_planted, seed_quantity = :seed_quantity,
+                        expected_harvest_date = :expected_harvest_date, status_id = :status_id, updated_at = NOW()
+                    WHERE planting_id = :planting_id";
+            $stmt = $this->pdo->prepare($sql);
+            $stmt->execute([
+                "area_planted"          => $area_planted,
+                "seed_quantity"         => $seed_quantity,
+                "expected_harvest_date" => $expected_harvest_date,
+                "status_id"             => $status_id,
+                "planting_id"           => $deleted["planting_id"]
+            ]);
+            return (int) $deleted["planting_id"];
+        }
+
         $sql = "INSERT INTO planting (farm_id, crop_id, planting_date, area_planted, seed_quantity, expected_harvest_date, status_id)
                 VALUES (:farm_id, :crop_id, :planting_date, :area_planted, :seed_quantity, :expected_harvest_date, :status_id)
                 RETURNING planting_id";
@@ -118,10 +175,14 @@ class Planting {
             "expected_harvest_date" => $expected_harvest_date,
             "status_id"             => $status_id
         ]);
-        return $stmt->fetchColumn();
+        return (int) $stmt->fetchColumn();
     }
 
     public function update(int $planting_id, int $farm_id, int $crop_id, string $planting_date, float $area_planted, float $seed_quantity, string $expected_harvest_date, int $status_id) {
+        if ($this->findDuplicate($farm_id, $crop_id, $planting_date, $planting_id)) {
+            return false;
+        }
+
         $sql = "UPDATE planting
                 SET farm_id = :farm_id, crop_id = :crop_id, planting_date = :planting_date,
                     area_planted = :area_planted, seed_quantity = :seed_quantity,

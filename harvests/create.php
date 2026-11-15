@@ -28,7 +28,16 @@ if ($planting_id <= 0 || $harvest_date === "" || $quantity_kg <= 0 || $selling_p
     exit;
 }
 
+if ($harvestModel->findDuplicate($planting_id, $harvest_date)) {
+    header("Location: index.php?add=1&error=" . urlencode("A harvest record for this planting on this date already exists."));
+    exit;
+}
+
 $harvest_id = $harvestModel->create($planting_id, $harvest_date, $quantity_kg, $selling_price_per_kg, $grade_id, $remark_id);
+if (!$harvest_id) {
+    header("Location: index.php?add=1&error=" . urlencode("A harvest record for this planting on this date already exists."));
+    exit;
+}
 // Mark the related planting as Harvested
 $plantingModel->updateStatusByName($planting_id, "Harvested");
 logActivity($pdo, "create", "harvest", (int) $harvest_id, "Added harvest of {$quantity_kg} kg");

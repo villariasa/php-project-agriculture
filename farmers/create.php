@@ -24,7 +24,16 @@ if ($first_name === "" || $last_name === "" || $contact_number === "" || $addres
     exit;
 }
 
+if ($farmerModel->findDuplicate($first_name, $last_name, $contact_number, $address)) {
+    header("Location: index.php?add=1&error=" . urlencode("A farmer with the same full name, contact number, and address already exists."));
+    exit;
+}
+
 $farmer_id = $farmerModel->create($first_name, $last_name, $contact_number, $address);
+if (!$farmer_id) {
+    header("Location: index.php?add=1&error=" . urlencode("A farmer with the same full name, contact number, and address already exists."));
+    exit;
+}
 logActivity($pdo, "create", "farmer", (int) $farmer_id, "Added farmer {$first_name} {$last_name}");
 header("Location: index.php?msg=" . urlencode("Farmer added successfully."));
 exit;

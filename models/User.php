@@ -14,7 +14,7 @@ class User {
     }
 
     public function findByUsername(string $username) {
-        $sql = "SELECT * FROM users WHERE username = :username AND is_deleted = FALSE";
+        $sql = "SELECT * FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(:username)) AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(["username" => $username]);
         return $stmt->fetch();
@@ -85,9 +85,9 @@ class User {
         return $stmt->execute(["user_id" => $user_id]);
     }
 
-    // TRUE when a username is already taken by an active user
+    // TRUE when a username is already taken by an active user (case-insensitive & trimmed)
     public function usernameExists(string $username) {
-        $sql = "SELECT COUNT(*) FROM users WHERE username = :username AND is_deleted = FALSE";
+        $sql = "SELECT COUNT(*) FROM users WHERE LOWER(TRIM(username)) = LOWER(TRIM(:username)) AND is_deleted = FALSE";
         $stmt = $this->pdo->prepare($sql);
         $stmt->execute(["username" => $username]);
         return $stmt->fetchColumn() > 0;

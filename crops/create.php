@@ -25,7 +25,16 @@ if ($crop_name === "" || $variety === "" || $category_id <= 0 || $growing_period
     exit;
 }
 
+if ($cropModel->findDuplicate($crop_name, $variety)) {
+    header("Location: index.php?add=1&error=" . urlencode("A crop with the name '{$crop_name}' and variety '{$variety}' already exists."));
+    exit;
+}
+
 $crop_id = $cropModel->create($crop_name, $variety, $category_id, $growing_period_days, $season_id);
+if (!$crop_id) {
+    header("Location: index.php?add=1&error=" . urlencode("A crop with the name '{$crop_name}' and variety '{$variety}' already exists."));
+    exit;
+}
 logActivity($pdo, "create", "crop", (int) $crop_id, "Added crop {$crop_name} ({$variety})");
 header("Location: index.php?msg=" . urlencode("Crop added successfully."));
 exit;

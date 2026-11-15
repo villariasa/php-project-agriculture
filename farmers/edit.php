@@ -32,7 +32,16 @@ if ($first_name === "" || $last_name === "" || $contact_number === "" || $addres
         "index.php?edit={$farmer_id}&error=" . urlencode("All fields are required."));
 }
 
-$farmerModel->update($farmer_id, $first_name, $last_name, $contact_number, $address);
+if ($farmerModel->findDuplicate($first_name, $last_name, $contact_number, $address, $farmer_id)) {
+    respondAndExit(false, "Another farmer with the same full name, contact number, and address already exists.",
+        "index.php?edit={$farmer_id}&error=" . urlencode("Another farmer with the same full name, contact number, and address already exists."));
+}
+
+$success = $farmerModel->update($farmer_id, $first_name, $last_name, $contact_number, $address);
+if (!$success) {
+    respondAndExit(false, "Failed to update farmer.",
+        "index.php?edit={$farmer_id}&error=" . urlencode("Failed to update farmer."));
+}
 logActivity($pdo, "update", "farmer", $farmer_id, "Updated farmer {$first_name} {$last_name}");
 respondAndExit(true, "Farmer updated successfully.",
     "index.php?msg=" . urlencode("Farmer updated successfully."));

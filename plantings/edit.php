@@ -40,7 +40,16 @@ if ($expected_harvest_date <= $planting_date) {
         "index.php?edit={$planting_id}&error=" . urlencode("Expected harvest date must be after the planting date."));
 }
 
-$plantingModel->update($planting_id, $farm_id, $crop_id, $planting_date, $area_planted, $seed_quantity, $expected_harvest_date, $status_id);
+if ($plantingModel->findDuplicate($farm_id, $crop_id, $planting_date, $planting_id)) {
+    respondAndExit(false, "Another planting record for this farm, crop, and planting date already exists.",
+        "index.php?edit={$planting_id}&error=" . urlencode("Another planting record for this farm, crop, and planting date already exists."));
+}
+
+$success = $plantingModel->update($planting_id, $farm_id, $crop_id, $planting_date, $area_planted, $seed_quantity, $expected_harvest_date, $status_id);
+if (!$success) {
+    respondAndExit(false, "Failed to update planting.",
+        "index.php?edit={$planting_id}&error=" . urlencode("Failed to update planting."));
+}
 logActivity($pdo, "update", "planting", $planting_id, "Updated planting dated {$planting_date}");
 respondAndExit(true, "Planting record updated successfully.",
     "index.php?msg=" . urlencode("Planting record updated successfully."));
