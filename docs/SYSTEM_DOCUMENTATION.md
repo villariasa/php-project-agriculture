@@ -30,10 +30,10 @@
 ## 1. Project Title, Description, and Objectives
 
 ### 1.1 Project Title & Overview
-**GehTanum (Agriculture Information System)** — Centralized Web-Based Agricultural Operations, Land Parcel Mapping, Crop Lifecycle Tracking, and Yield Analytics Platform.
+**GehTanum (Agriculture Information System)** — Centralized Web-Based Agricultural Operations, Farmland Mapping, Crop Lifecycle Tracking, and Yield Analytics Platform.
 
 ### 1.2 Project Description
-**GehTanum** (Agriculture Information System) is an enterprise-grade agricultural management web platform engineered to modernize rural and cooperative farm records administration. Traditional farming operations frequently suffer from fragmented paper records, uncoordinated planting schedules, manual calculations of farm yield, and inaccurate profitability estimates. GehTanum resolves these operational inefficiencies by establishing a centralized, relational database architecture that unifies farmer profiles, farm parcel boundaries, crop master catalogs, seasonal planting cycles, and harvest transactions.
+**GehTanum** (Agriculture Information System) is an enterprise-grade agricultural management web platform engineered to modernize rural and cooperative farm records administration. Traditional farming operations frequently suffer from fragmented paper records, uncoordinated planting schedules, manual calculations of farm yield, and inaccurate profitability estimates. GehTanum resolves these operational inefficiencies by establishing a centralized, relational database architecture that unifies farmer profiles, farm land boundaries, crop master catalogs, seasonal planting cycles, and harvest transactions.
 
 The system enforces strict domain integrity through controlled foreign key lookup tables, eliminates data redundancy via Third Normal Form (3NF) normalization, and delivers live operational intelligence through real-time KPI dashboards, automated cycle status workflows, and customizable reports with CSV data export capabilities. Built on PHP 8.2 and cloud-hosted Supabase PostgreSQL, GehTanum provides role-based access control, responsive mobile-first navigation, and an immutable transaction audit log to ensure administrative accountability across all farming communities.
 
@@ -42,7 +42,7 @@ The system enforces strict domain integrity through controlled foreign key looku
 To architect, develop, and deploy a secure, fully normalized, web-based Agriculture Information System (**GehTanum**) that centralizes agricultural operations, streamlines field transaction logging from planting through harvest, and delivers real-time operational analytics for farm administrators and extension workers.
 
 #### 1.3.2 Specific Objectives
-1. **Farmer Directory & Land Tenure Management:** Establish a relational repository of agricultural producers and their corresponding farm parcels, recording geographic locations, land acreage in hectares, soil classifications, and irrigation systems.
+1. **Farmer Directory & Land Tenure Management:** Establish a relational repository of agricultural producers and their corresponding farmer lands, recording geographic locations, land acreage in hectares, soil classifications, and irrigation systems.
 2. **Agronomic Catalog Standardization:** Maintain a master catalog of crops, hybrid varieties, botanical categories, maturity durations (in days), and recommended growing seasons.
 3. **Planting Lifecycle Monitoring:** Track field planting activities with automated calculation of expected harvest dates, land allocation constraints, and seed stock consumption.
 4. **Harvest Production & Valuation:** Record harvest outputs, gross yields (kg), commercial selling prices, quality grading, and condition assessments, with automatic status updates upon yield completion.
@@ -56,9 +56,9 @@ The system architecture satisfies fourteen comprehensive functional requirements
 | # | Requirement Name | Description & Functional Scope | Implementation Files | Authorized Roles |
 | --- | --- | --- | --- | --- |
 | FR1 | Farmer Profile Management | Register new farmers, view profile directories, edit personal/contact info, search/filter by name/address, and perform soft-deletion. | farmers/index.php, models/Farmer.php | Admin, Staff |
-| FR2 | Farm Parcel Management | Register and maintain farm parcels linked to owning farmers, recording land area in hectares, and selecting soil/irrigation lookup types. | farms/index.php, models/Farm.php | Admin, Staff |
+| FR2 | Farm Land Management | Register and maintain farmer lands linked to owning farmers, recording land area in hectares, and selecting soil/irrigation lookup types. | farms/index.php, models/Farm.php | Admin, Staff |
 | FR3 | Crop Master Catalog | Manage catalog of agricultural crops, varieties, botanical categories, maturity cycle durations (days), and optimal growing seasons. | crops/index.php, models/Crop.php | Admin, Staff |
-| FR4 | Planting Transactions | Record agricultural planting activities linking parcels to crops, tracking ground area planted, seed quantities, and expected harvest dates. | plantings/index.php, models/Planting.php | Admin, Staff |
+| FR4 | Planting Transactions | Record agricultural planting activities linking farmer lands to crops, tracking ground area planted, seed quantities, and expected harvest dates. | plantings/index.php, models/Planting.php | Admin, Staff |
 | FR5 | Harvest Transactions | Record harvest outputs linked to plantings, logging yield quantity (kg), unit selling price, quality grades, and remarks. Automatically updates planting status. | harvests/index.php, models/Harvest.php | Admin, Staff |
 | FR6 | Executive Dashboard | Real-time summary KPI cards (total farmers, farms, crops, active plantings, harvests, revenue), date range filtering, recent activity, and quick navigation. | index.php | Admin, Staff |
 | FR7 | Authentication & Session | Secure authentication enforcing encrypted bcrypt passwords, session token management, and automatic unauthenticated redirection. | auth/login.php, auth/logout.php, includes/auth_check.php | All Users |
@@ -96,11 +96,11 @@ The relational database schema is structured into six core transactional entitie
 ### 3.3 Relationship & Cardinality Summary
 | Parent Table | Child Table | Cardinality | Foreign Key Column | Relationship Description |
 | --- | --- | --- | --- | --- |
-| farmer | farm | 1 : M (One-to-Many) | farm.farmer_id | A single farmer can own and manage multiple registered farm parcels. |
-| farm | planting | 1 : M (One-to-Many) | planting.farm_id | A farm parcel hosts multiple seasonal planting cycles over time. |
+| farmer | farm | 1 : M (One-to-Many) | farm.farmer_id | A single farmer can own and manage multiple registered farmer lands. |
+| farm | planting | 1 : M (One-to-Many) | planting.farm_id | A farm land hosts multiple seasonal planting cycles over time. |
 | crop | planting | 1 : M (One-to-Many) | planting.crop_id | A crop master entry is referenced across numerous planting records. |
 | planting | harvest | 1 : M (One-to-Many) | harvest.planting_id | A planting cycle yields one or more harvest batches. |
-| soil_types | farm | 1 : M (One-to-Many) | farm.soil_type_id | A soil type classification characterizes multiple farm parcels. |
+| soil_types | farm | 1 : M (One-to-Many) | farm.soil_type_id | A soil type classification characterizes multiple farmer lands. |
 | irrigation_types | farm | 1 : M (One-to-Many) | farm.irrigation_type_id | An irrigation infrastructure method is applied to multiple farms. |
 | crop_categories | crop | 1 : M (One-to-Many) | crop.category_id | A crop category groups multiple crop species. |
 | seasons | crop | 1 : M (One-to-Many) | crop.season_id | A seasonal climate condition applies to multiple crop types. |
@@ -115,7 +115,7 @@ The relational database schema is structured into six core transactional entitie
 Normalization eliminates data redundancy, anomalies (insertion, update, and deletion), and establishes relational integrity across all operational tables.
 
 ### 4.1 Unnormalized Form (UNF)
-The unnormalized structure contains repeating groups for crops planted and harvests logged under each farmer parcel record.
+The unnormalized structure contains repeating groups for crops planted and harvests logged under each farmer land record.
 
 | Farmer Name | Contact | Farm Location | Farm Name & Type | Crops Planted (Repeating Group) | Harvest Transactions (Repeating Group) |
 | --- | --- | --- | --- | --- | --- |
@@ -164,13 +164,13 @@ The data dictionary provides complete technical definitions, data types, nullabi
 
 
 ### Table: `farm`
-*Stores land parcel information, agricultural properties, and references to the owning farmer.*
+*Stores farmland information, agricultural properties, and references to the owning farmer.*
 
 | Column Name | Data Type | Constraints | Default | Description & Field Rules |
 | --- | --- | --- | --- | --- |
-| farm_id | SERIAL | PRIMARY KEY, NOT NULL | NextVal() | Surrogate primary key uniquely identifying each farm parcel. |
-| farmer_id | INT | NOT NULL, FK -> farmer(farmer_id) | None | Foreign key linking parcel to registered owner (1:M). |
-| farm_name | VARCHAR(100) | NOT NULL | None | Official or popular name of the agricultural farm parcel. |
+| farm_id | SERIAL | PRIMARY KEY, NOT NULL | NextVal() | Surrogate primary key uniquely identifying each farm land. |
+| farmer_id | INT | NOT NULL, FK -> farmer(farmer_id) | None | Foreign key linking land to registered owner (1:M). |
+| farm_name | VARCHAR(100) | NOT NULL | None | Official or popular name of the agricultural farm land. |
 | location | VARCHAR(150) | NOT NULL | None | Sitio/Barangay and Municipality where farm is situated. |
 | area_hectares | NUMERIC(10,2) | NOT NULL, CHECK (> 0) | None | Total cultivable land area in hectares (must be positive). |
 | soil_type_id | INT | NOT NULL, FK -> soil_types(soil_type_id) | None | Foreign key reference to controlled soil type lookup. |
@@ -197,12 +197,12 @@ The data dictionary provides complete technical definitions, data types, nullabi
 
 
 ### Table: `planting`
-*Records agricultural planting operational cycles, linking parcels to crops and tracking schedule.*
+*Records agricultural planting operational cycles, linking farmer lands to crops and tracking schedule.*
 
 | Column Name | Data Type | Constraints | Default | Description & Field Rules |
 | --- | --- | --- | --- | --- |
 | planting_id | SERIAL | PRIMARY KEY, NOT NULL | NextVal() | Surrogate primary key for the planting transaction record. |
-| farm_id | INT | NOT NULL, FK -> farm(farm_id) | None | Foreign key linking planting event to host farm parcel. |
+| farm_id | INT | NOT NULL, FK -> farm(farm_id) | None | Foreign key linking planting event to host farm land. |
 | crop_id | INT | NOT NULL, FK -> crop(crop_id) | None | Foreign key linking to specific crop variety planted. |
 | planting_date | DATE | NOT NULL | None | Calendar date on which seeds or seedlings were planted. |
 | area_planted | NUMERIC(10,2) | NOT NULL, CHECK (> 0) | None | Physical ground area allocated in hectares. |
@@ -261,7 +261,7 @@ The data dictionary provides complete technical definitions, data types, nullabi
 
 
 ### Table: `soil_types`
-*Lookup table specifying standardized soil classifications for agricultural parcels.*
+*Lookup table specifying standardized soil classifications for agricultural lands.*
 
 | Column Name | Data Type | Constraints | Default | Description & Field Rules |
 | --- | --- | --- | --- | --- |
@@ -337,7 +337,7 @@ The system enforces database-level CHECK constraints, unique indexes, and foreig
 
 | Table Name | Constraint Name / Type | Constraint Expression / Condition | Enforced Business Rule |
 | --- | --- | --- | --- |
-| farm | CHECK (area_hectares) | area_hectares > 0 | Enforces that farm land parcel size must strictly be a positive real number. |
+| farm | CHECK (area_hectares) | area_hectares > 0 | Enforces that farm farmland size must strictly be a positive real number. |
 | crop | CHECK (growing_period_days) | growing_period_days > 0 | Ensures maturity cycle in days is strictly positive. |
 | planting | CHECK (area_planted) | area_planted > 0 | Area cultivated in hectares must be positive. |
 | planting | CHECK (seed_quantity) | seed_quantity > 0 | Seed weight utilized in kg must be greater than zero. |
@@ -366,7 +366,7 @@ Reference tables govern all system dropdowns to maintain consistent operational 
 
 
 #### Lookup Table: soil_types
-*Standardized soil texture classifications for farm parcels.*
+*Standardized soil texture classifications for farmer lands.*
 
 | soil_type_id | soil_type_name | Characteristics & Best Suited Crops |
 | --- | --- | --- |
@@ -455,7 +455,7 @@ To support high-concurrency enterprise environments and prevent data corruption 
 ![Figure 6.4: Explicit Table-Level Locking Mechanisms](images/lock.png)
 
 #### Figure 6.5: Row-Level Locking via SELECT FOR UPDATE
-*Fine-grained row-level locking preventing race conditions when allocating land parcels or reserving seed stock during simultaneous plantings.* — **Core Concept:** `SELECT FOR UPDATE / Row Locks`
+*Fine-grained row-level locking preventing race conditions when allocating farmer lands or reserving seed stock during simultaneous plantings.* — **Core Concept:** `SELECT FOR UPDATE / Row Locks`
 
 ![Figure 6.5: Row-Level Locking via SELECT FOR UPDATE](images/lock-selected-rows.png)
 
@@ -478,15 +478,15 @@ To support high-concurrency enterprise environments and prevent data corruption 
 4. To terminate an active session, click the **Logout** button in the header profile menu.
 
 ### 7.2 Navigating the Executive Operational Dashboard
-1. **KPI Overview:** The top row displays total registered farmers, active farm parcels, cultivated crops, active planting cycles, total harvest volume, and cumulative revenue.
+1. **KPI Overview:** The top row displays total registered farmers, active farmer lands, cultivated crops, active planting cycles, total harvest volume, and cumulative revenue.
 2. **Date Interval Filter:** Select custom start and end dates to filter production metrics dynamically.
 3. **Quick Navigation:** Use the left navigation rail or bottom bar on mobile to switch between operational records, reports, and settings.
 
 ### 7.3 Managing Agricultural Records
 - **Farmers Directory:** Click **Farmers** in the sidebar. Use the search bar to locate producers. Click **+ Add Farmer** to open the registration card. Fill in personal details, address, and contact numbers. Click **Save**.
-- **Farm Parcels:** Click **Farms**. Click **+ Add Farm**. Select the registered owner from the dropdown, specify parcel name, geographic location, area in hectares, soil classification, and irrigation method. Click **Save**.
+- **Farm Lands:** Click **Farms**. Click **+ Add Farm**. Select the registered owner from the dropdown, specify land name, geographic location, area in hectares, soil classification, and irrigation method. Click **Save**.
 - **Crop Master:** Click **Crops**. Click **+ Add Crop**. Enter crop name, hybrid variety, category, maturity cycle days, and recommended growing season.
-- **Planting Transactions:** Click **Plantings**. Click **+ Record Planting**. Select the target farm parcel and crop variety. Enter planting date, land area planted (ha), and seed quantity (kg). The system automatically calculates forecasted harvest date. Status initializes as 'Planted'.
+- **Planting Transactions:** Click **Plantings**. Click **+ Record Planting**. Select the target farm land and crop variety. Enter planting date, land area planted (ha), and seed quantity (kg). The system automatically calculates forecasted harvest date. Status initializes as 'Planted'.
 - **Harvest Logging:** Click **Harvests**. Click **+ Record Harvest**. Select the corresponding active planting cycle. Enter harvest date, gross quantity (kg), unit selling price per kg, quality grade, and remarks. Upon submission, the system automatically transitions the planting cycle status to 'Harvested'.
 
 ### 7.4 Generating Operational Reports and CSV Export
@@ -512,14 +512,14 @@ The GehTanum user interface is engineered with responsive layouts for desktop, t
 | 1 | Authentication Login | auth/login.php | Clean centered login card with brand logo and credentials form. | Username, password, Remember Me, submit button, error banner. |
 | 2 | Executive Dashboard | index.php | High-level KPI metric cards, date range filter, and recent activities. | 5 Metric cards, active plantings alert, recent harvests table. |
 | 3 | Farmers Management | farmers/index.php | Split layout: tabular directory on left, add-farmer card on right. | Search input, address filter, sortable columns, edit/delete modals. |
-| 4 | Farms Management | farms/index.php | Comprehensive parcel directory joined with farmer owner and soil/irrigation. | Farmer dropdown, soil/irrigation lookups, area validation. |
+| 4 | Farms Management | farms/index.php | Comprehensive land directory joined with farmer owner and soil/irrigation. | Farmer dropdown, soil/irrigation lookups, area validation. |
 | 5 | Crop Master Catalog | crops/index.php | Directory of agronomic crops with category, season, and cycle duration. | Category & season selectors, maturity days input, action buttons. |
 | 6 | Planting Records | plantings/index.php | Transaction management interface linking farms and crops. | Farm & crop dropdowns, planting & harvest date pickers, status badge. |
 | 7 | Harvest Records | harvests/index.php | Yield transaction log displaying quantity, revenue, and quality grading. | Planting picker, quantity input, unit price, grade/remark lookups. |
 | 8 | Add/Edit Modal Forms | Multiple modal components | Standardized Bootstrap dialog with real-time field validation. | Clean floating labels, error feedback states, save/cancel buttons. |
 | 9 | Delete Confirmation Dialog | includes/confirm_modal.php | Two-step confirmation modal preventing unintended record deletion. | Destructive action warning text, entity title, Cancel & Confirm buttons. |
 | 10 | Report: Farmers & Farms | reports/farmers_farms.php | Consolidated report showing farmer ownership and total land holdings. | Search filter, summary totals, print and Export CSV actions. |
-| 11 | Report: Crop Production | reports/crop_production.php | Production statistics filtered by individual farm parcels. | Farm parcel selector, crop yield aggregation, Export CSV button. |
+| 11 | Report: Crop Production | reports/crop_production.php | Production statistics filtered by individual farmer lands. | Farm land selector, crop yield aggregation, Export CSV button. |
 | 12 | Report: Planting Status | reports/planting_status.php | Operational lifecycle monitoring report grouped by workflow status. | Status filter dropdown (Planted, Growing, Harvested), Export CSV. |
 | 13 | Report: Harvest & Revenue | reports/harvest_revenue.php | Financial and production analytics with total yield and gross revenue. | Date range start/end filter, total kg, total PHP revenue, CSV export. |
 | 14 | User Management (Admin) | users/index.php | Administrative console for managing system operator accounts. | Role assignment (Admin/Staff), password reset modal, deactivation. |
@@ -548,11 +548,11 @@ The GehTanum user interface is engineered with responsive layouts for desktop, t
 
 ![Figure 8.3: Farmers Management Directory](images/Farmer.png)
 
-#### Figure 8.4: Farm Parcels Management (farms/index.php)
-*Agricultural land parcel records linked to registered owners, detailing area sizes, soil classifications, and water delivery systems.*  
-**Key Interface Elements:** Farmer owner selector, parcel name, geographic location, area in hectares, soil type and irrigation badges, edit/delete actions.
+#### Figure 8.4: Farm Lands Management (farms/index.php)
+*Agricultural farmland records linked to registered owners, detailing area sizes, soil classifications, and water delivery systems.*  
+**Key Interface Elements:** Farmer owner selector, land name, geographic location, area in hectares, soil type and irrigation badges, edit/delete actions.
 
-![Figure 8.4: Farm Parcels Management](images/Farm.png)
+![Figure 8.4: Farm Lands Management](images/Farm.png)
 
 #### Figure 8.5: Crop Master Catalog (crops/index.php)
 *Agronomic commodity database establishing standard crops, hybrid varieties, botanical categories, and seasonal growth cycles.*  
@@ -562,7 +562,7 @@ The GehTanum user interface is engineered with responsive layouts for desktop, t
 
 #### Figure 8.6: Planting Cycles Module (plantings/index.php)
 *Operational field transaction module recording planting schedules, land allocation, and seed stock consumption.*  
-**Key Interface Elements:** Farm parcel and crop variety selectors, planting date picker, cultivated hectares, seed weight (kg), forecasted harvest date, lifecycle status badge.
+**Key Interface Elements:** Farm land and crop variety selectors, planting date picker, cultivated hectares, seed weight (kg), forecasted harvest date, lifecycle status badge.
 
 ![Figure 8.6: Planting Cycles Module](images/Planting.png)
 
@@ -579,14 +579,14 @@ The GehTanum user interface is engineered with responsive layouts for desktop, t
 ![Figure 8.8: Operational Reports Overview](images/Report.png)
 
 #### Figure 8.9: Report — Farmers & Land Ownership (reports/farmers_farms.php)
-*Consolidated ownership report mapping registered farmers to total operational acreage and farm parcel distribution.*  
-**Key Interface Elements:** Farmer search filter, parcel count aggregation, cumulative hectare totals, print report button, Export CSV action.
+*Consolidated ownership report mapping registered farmers to total operational acreage and farm land distribution.*  
+**Key Interface Elements:** Farmer search filter, land count aggregation, cumulative hectare totals, print report button, Export CSV action.
 
 ![Figure 8.9: Report — Farmers & Land Ownership](images/Report-ownership.png)
 
 #### Figure 8.10: Report — Crop Production per Farm (reports/crop_production.php)
-*Parcel-specific agronomic production report detailing commodity varieties, land usage, and yield quantities.*  
-**Key Interface Elements:** Farm parcel dropdown filter, commodity breakdown, cultivated land area totals, gross yield volume (kg), CSV export.
+*Land-specific agronomic production report detailing commodity varieties, land usage, and yield quantities.*  
+**Key Interface Elements:** Farm land dropdown filter, commodity breakdown, cultivated land area totals, gross yield volume (kg), CSV export.
 
 ![Figure 8.10: Report — Crop Production per Farm](images/Report-crop-prod.png)
 
