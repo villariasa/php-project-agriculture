@@ -509,14 +509,14 @@ if ($is_admin) {
         <!-- Top bar -->
         <header class="sticky top-0 z-30 bg-white border-b border-gray-200 print:hidden">
             <div class="flex items-center gap-3 h-14 px-4 sm:px-6">
-                <!-- Logo (mobile only — the sidebar carries it on desktop).
-                     It links home, so no separate breadcrumb home icon is needed. -->
-                <a href="<?= $app_root ?>index.php" class="lg:hidden shrink-0">
-                    <img src="<?= $assets_url ?>logo/image-cutout.png" alt="GehTanum logo" class="w-10 h-10 object-contain">
+                <!-- Brand logo & name (mobile only — the sidebar carries it on desktop) -->
+                <a href="<?= $app_root ?>index.php" class="lg:hidden flex items-center gap-2 shrink-0 min-w-0" title="GehTanum Home">
+                    <img src="<?= $assets_url ?>logo/image-cutout.png" alt="GehTanum logo" class="w-8 h-8 object-contain shrink-0">
+                    <span class="font-bold text-gray-900 text-base tracking-tight truncate">GehTanum</span>
                 </a>
 
-                <!-- Breadcrumbs -->
-                <nav id="breadcrumbs" class="flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
+                <!-- Breadcrumbs (desktop only on lg+, since mobile shows the GehTanum brand in header and page title below) -->
+                <nav id="breadcrumbs" class="hidden lg:flex items-center gap-1.5 text-sm min-w-0" aria-label="Breadcrumb">
                     <?php if (count($breadcrumbs) === 0 && ($page_title ?? "") !== "" && $active !== "dashboard"): ?>
                         <?php $breadcrumbs = [[$page_title, null]]; ?>
                     <?php endif; ?>
