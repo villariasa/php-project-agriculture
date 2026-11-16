@@ -593,7 +593,7 @@ $record_keys    = ["farmers", "farms", "crops", "plantings", "harvests"];
 $records_active = in_array($active, $record_keys, true);
 $menu_active    = in_array($active, ["settings", "users", "activity", "profile"], true);
 
-// Tab slot (0-4) for the gooey blob; -1 hides it
+// Tab slot (0-4) fora the gooey blob; -1 hides it
 if ($active === "dashboard")    { $nav_index = 0; }
 elseif ($records_active)        { $nav_index = 1; }
 elseif ($active === "search")   { $nav_index = 2; }
